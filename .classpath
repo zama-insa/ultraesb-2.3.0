@@ -118,7 +118,6 @@
 	<classpathentry kind="lib" path="lib/spring-aop-3.2.4.RELEASE.jar"/>
 	<classpathentry kind="lib" path="lib/samples/servlet-api-2.5.jar"/>
 	<classpathentry kind="lib" path="lib/optional/commons-pool-1.6.jar"/>
-	<classpathentry kind="lib" path="/usr/lib/jvm/java-1.7.0-openjdk-amd64/lib/tools.jar"/>
 	<classpathentry kind="lib" path="lib/quickfixj-core-1.5.2.jar"/>
 	<classpathentry kind="lib" path="lib/quickfixj-msg-fix42-1.5.2.jar"/>
 	<classpathentry kind="lib" path="lib/tools.jar"/>
