@@ -109,8 +109,6 @@
 	<classpathentry kind="lib" path="lib/test/wss4j-1.5.8.jar"/>
 	<classpathentry kind="lib" path="lib/test/httpasyncclient-4.0-alpha2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<!-- Replace JAVA_HOME with the path to jdk folder -->
-	<classpathentry kind="var" path="JAVA_HOME/lib/tools.jar"/>
 	<classpathentry kind="lib" path="lib/httpclient-4.2.6.jar"/>
 	<classpathentry kind="lib" path="lib/httpcore-4.2.5.jar"/>
 	<classpathentry kind="lib" path="lib/httpcore-nio-4.2.5.jar"/>
@@ -120,5 +118,9 @@
 	<classpathentry kind="lib" path="lib/spring-aop-3.2.4.RELEASE.jar"/>
 	<classpathentry kind="lib" path="lib/samples/servlet-api-2.5.jar"/>
 	<classpathentry kind="lib" path="lib/optional/commons-pool-1.6.jar"/>
+	<classpathentry kind="lib" path="/usr/lib/jvm/java-1.7.0-openjdk-amd64/lib/tools.jar"/>
+	<classpathentry kind="lib" path="lib/quickfixj-core-1.5.2.jar"/>
+	<classpathentry kind="lib" path="lib/quickfixj-msg-fix42-1.5.2.jar"/>
+	<classpathentry kind="lib" path="lib/tools.jar"/>
 	<classpathentry kind="output" path="samples/classes"/>
 </classpath>
