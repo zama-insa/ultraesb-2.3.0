@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+        <property name="requestFilters">
+            <list>
+                <bean class="org.adroitlogic.ultraesb.transport.http.ServiceResourceRequestFilter">
+                    <property name="resourcePrefix" value="http://localhost:8280"/>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Refer to the unit tests XSLTTest, XSLTLoadTest for more details about this sample and a unit tests for it-->
+    
+    <!--Demonstrates using XSLT to transform the request and the response of a Proxy service. Thus the
+     '//m0:CheckPriceRequest' element of a request is used as the source node for an XSLT transformation using the
+     samples/resources/transform_fwd.xslt transformation, and the resulting payload sent to the simple stock quote
+     service. The '//m0:getQuoteResponse' element of the response is then transformed via the transformation
+     samples/resources/transform_back.xslt and sent back to the client-->
+    <u:proxy id="jax-ws-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    mediation.getXMLSupport().transform(msg, "samples/resources/transform_fwd.xslt",
+                            "//m0:CheckPriceRequest", new String[] {"m0", "http://soap.services.samples/"});
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    mediation.getXMLSupport().transform(msg, "samples/resources/transform_back.xslt",
+                            "//m0:getQuoteResponse", new String[] {"m0", "http://soap.services.samples/"});
+                ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="xslt-load-test-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    mediation.getXMLSupport().transform(msg, "samples/resources/transform_env_reverse.xslt", null, null);
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/EchoService</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    mediation.getXMLSupport().transform(msg, "samples/resources/transform_env.xslt", null, null);
+                ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+</beans>

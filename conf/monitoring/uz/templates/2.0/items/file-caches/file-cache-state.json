@@ -1,0 +1,12 @@
+{
+    "uz_meta": {
+        "parent": "file-cache-item-parent"
+    },
+    "params":{
+        "name": "State of the file cache ${.*}$",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=FileCaches,Name=${.*}$][Details.state]",
+        "value_type": 1,
+        "history": 12,
+        "delay": 180
+    }
+}

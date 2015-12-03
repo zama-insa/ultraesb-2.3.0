@@ -1,0 +1,10 @@
+{
+    "uz_meta": {
+        "parent": "system-triggers-parent"
+    },
+    "params":{
+        "description": "Zabbix Agent is unreachable for 2 hours",
+        "expression": "{$host$:jmx[java.lang:type=Runtime][Uptime].nodata(7200)}",
+        "priority": "1"
+    }
+}

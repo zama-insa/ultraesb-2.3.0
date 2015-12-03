@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="container" title="Transport Listener Details">
+    <header class="helpedHeading">
+        <h2>Transport Listener Details</h2>
+        <div class="ultraHelp" title="Transport Listener Details Help">
+        <div>
+        <p>Shows statistical information about the transport listener, including its state, and last time at which
+        statistics were reset, and the current statistical window length. The <b>Received</b> and <b>Sent</b>
+        statistics indicates the bytes, messages, faults and timeouts. The minimum, maximum and average size of
+        messages are also shown.</p>
+        </div>
+        Future versions of the UltraESB will display transport specific properties defined in the configuration and
+        allow one to alter these properties at runtime.
+        <br/><br/><b>Note that some transport listeners may not yet publish detailed statistics.</b>
+    </div>
+    </header>
+    <section>Detailed statistics of the transport listener</section>
+    <div id="details" class="outer_wrapper">
+        <div id="trpLst-controls" class="top-right-controls">
+            <div class="controls">
+            <ul>
+			<li onclick="startTransport();" title="Start transport listener " class="start clickable left-span"><img src="icons/mga-start.png"/><br/> Start</li>
+			<li onclick="stopTransport();" title="Stop transport listener " class="stop clickable"><img src="icons/mga-stop.png"/> <br/>Stop</li>
+			<li onclick="pauseTransport();" title="Pause transport listener " class="pause clickable left-span"><img src="icons/mga-pause.png"/><br/> Pause</li>
+			<li onclick="resumeTransport();" title="Resume transport listener " class="resume clickable"><img src="icons/mga-resume.png"/> <br/>Resume</li>
+			<li title="Enable debug for listener " class="enableDebug clickable left-span"><img src="icons/mga-enable-debug.png"/> <br/>Debug On</li>
+			<li title="Disable debug for listener " class="disableDebug clickable"><img src="icons/mga-disable-debug.png"/> <br/>Debug Off</li>
+			<li onclick="maintenanceTransport();" title="Maintenance shutdown transport listener " class="mntShut clickable left-span"><img src="icons/mga-maintenance.png"/><br/> Mt.Shut</li>
+			<li onclick="resetTransport();" title="Reset statistics of transport listener " class="resetStat clickable"><img src="icons/mga-reset.png"/><br/> Reset Stat</li>
+			</ul>
+            </div>
+        </div>
+
+
+        <form id="transportDtls" class="tab_less_pane">
+            <fieldset id="trpDetails">
+                <header><h3>Listener Configuration</h3></header>
+            <ul class="attributes">
+                <li>
+                    <label> Transport ID </label>
+                    <input id="transportid" class="disabledText" readonly type="text"/>
+                </li>
+                <li>
+                    <label> State </label>
+                    <input id="state" class="disabledText" readonly type="text"/>
+                </li>
+                <li>
+                    <label> Statistics Last Reset </label>
+                    <input id="statlreset" class="disabledText" readonly type="text"/>
+                </li>
+                <li>
+                    <label> Metrics Window</label>
+                    <input id="mwindow" class="disabledText" readonly type="text"/>
+                </li>
+            </ul>
+
+                <header><h3>Transport Listener Metrics Dashboard &ndash; <span id="tlId"></span><span><select id="tlClusterSelector" class="clusteraware hidden" style="margin-left: 20px; margin-bottom: 2px;" onchange="redrawGraphs('tlClusterSelector')">
+                    <option value="cluster">Cluster</option>
+                    <option value="node">Node</option>
+                </select></span></h3></header>
+                <div class="bytesReceived" style="float: left; margin-right: 20px; width: 470px;">
+                    <div class="stats">
+                        <p>
+                            <span style="font-weight: bold">Bytes Received</span>
+                            <span id="bytesReceivedRate" class="stat rate"></span><span class="right"> Rate: </span>
+                            <span id="bytesReceivedAvg" class="stat min"></span><span class="right"> Avg: </span>
+                            <span id="bytesReceivedCount" class="stat count"></span><span class="right"> Total: </span>
+                        </p>
+                        <div id="bytesReceivedHist" class="hidden" style="width: 470px; padding: 10px 0;">
+                            <div class="percent"><span class="text">Min: </span><span id="bytesReceivedMin" class="stat min"></span></div>
+                            <div class="percent"><span class="text">75<sup>th</sup> percentile: </span><span id="in75Per" class="stat _75"></span></div>
+                            <div class="percent"><span class="text">95<sup>th</sup> percentile: </span><span id="in95Per" class="stat _95"></span></div>
+                            <div class="percent"><span class="text">98<sup>th</sup> percentile: </span><span id="in98Per" class="stat _98"></span></div>
+
+                            <div class="percent"><span class="text">99<sup>th</sup> percentile:</span><span id="in99Per" class="stat _99"></span></div>
+                            <div class="percent"><span class="text">99.9<sup>th</sup> percentile:</span><span id="in999Per" class="stat _999"></span></div>
+                            <div class="percent"><span class="text">99.99<sup>th</sup> percentile:</span><span id="in9999Per" class="stat _9999"></span></div>
+
+                            <div class="percent"><span class="text">Max: </span><span id="bytesReceivedMax" class="stat max"></span></div>
+                            <div class="percent"><span class="text">Median: </span><span id="bytesReceivedMedian" class="stat avg"></span></div>
+                        </div>
+                        <div id="inshowhist"><span class="right link" onclick="$('#inshowhist').hide();$('#inhidehist').show();$('#bytesReceivedHist').slideDown()">Show Histogram <span class="caret down"></span></span></div>
+                        <div id="inhidehist" class="hidden"><span class="right link" onclick="$('#inhidehist').hide();$('#inshowhist').show();$('#bytesReceivedHist').slideUp()">Hide Histogram <span class="caret up"></span></span></div>
+                        <div style="padding-top: 10px;"></div>
+                    </div>
+                </div>
+                <div class="bytesSent" style="float: left; width: 470px;">
+                    <div class="stats">
+                        <p>
+                            <span style="font-weight: bold">Bytes Sent</span>
+                            <span id="bytesSentRate" class="stat rate"></span><span class="right"> Rate: </span>
+                            <span id="bytesSentAvg" class="stat min"></span><span class="right"> Avg: </span>
+                            <span id="bytesSentCount" class="stat count"></span><span class="right"> Total: </span>
+                        </p>
+                        <div id="bytesSentHist" class="hidden" style="width: 470px; padding: 10px 0;">
+                            <div class="percent"><span class="text">Min: </span><span id="bytesSentMin" class="stat min"></span></div>
+                            <div class="percent"><span class="text">75<sup>th</sup> percentile: </span><span id="out75Per" class="stat _75"></span></div>
+                            <div class="percent"><span class="text">95<sup>th</sup> percentile: </span><span id="out95Per" class="stat _95"></span></div>
+                            <div class="percent"><span class="text">98<sup>th</sup> percentile: </span><span id="out98Per" class="stat _98"></span></div>
+
+                            <div class="percent"><span class="text">99<sup>th</sup> percentile:</span><span id="out99Per" class="stat _99"></span></div>
+                            <div class="percent"><span class="text">99.9<sup>th</sup> percentile:</span><span id="out999Per" class="stat _999"></span></div>
+                            <div class="percent"><span class="text">99.99<sup>th</sup> percentile:</span><span id="out9999Per" class="stat _9999"></span></div>
+
+                            <div class="percent"><span class="text">Max: </span><span id="bytesSentMax" class="stat max"></span></div>
+                            <div class="percent"><span class="text">Median: </span><span id="bytesSentMedian" class="stat avg"></span></div>
+                        </div>
+                        <div id="outshowhist"><span class="right link" onclick="$('#outshowhist').hide();$('#outhidehist').show();$('#bytesSentHist').slideDown()">Show Histogram <span class="caret down"></span></span></div>
+                        <div id="outhidehist" class="hidden"><span class="right link" onclick="$('#outhidehist').hide();$('#outshowhist').show();$('#bytesSentHist').slideUp()">Hide Histogram <span class="caret up"></span></span></div>
+                        <div style="padding-top: 10px;"></div>
+                    </div>
+                </div>
+                <div style="clear: both"></div>
+                <div class="messagesReceived" style="float: left; margin-right: 20px;">
+                    <div class="stats">
+                        <p>
+                            <span style="font-weight: bold">Messages Received</span>
+                            <span id="messagesReceivedRate" class="stat rate"></span><span class="right"> Rate: </span>
+                            <span id="messagesReceivedCount" class="stat count"></span><span class="right"> Total: </span>
+                        </p>
+                    </div>
+                </div>
+                <div class="messagesSent" style="float: left">
+                    <div class="stats">
+                        <p>
+                            <span style="font-weight: bold">Messages Sent</span>
+                            <span id="messagesSentRate" class="stat rate"></span><span class="right"> Rate: </span>
+                            <span id="messagesSentCount" class="stat count"></span><span class="right"> Total: </span>
+                        </p>
+                    </div>
+                </div>
+                <div class="receivingFaults" style="float: left; margin-right: 20px;">
+                    <div class="stats">
+                        <p>
+                            <span style="font-weight: bold">Receiving Faults</span>
+                            <span id="receivingFaultRate" class="stat rate"></span><span class="right"> Rate: </span>
+                            <span id="receivingFaultCount" class="stat count"></span><span class="right"> Total: </span>
+                        </p>
+                    </div>
+                </div>
+                <div class="sendingFaults" style="float: left">
+                    <div class="stats">
+                        <p>
+                            <span style="font-weight: bold">Sending Faults</span>
+                            <span id="sendingFaultRate" class="stat rate"></span><span class="right"> Rate: </span>
+                            <span id="sendingFaultCount" class="stat count"></span><span class="right"> Total: </span>
+                        </p>
+                    </div>
+                </div>
+        </fieldset>
+        </form>
+
+        <div class="sub-tables">
+            <header><h3>Error Code Table</h3></header>
+            <table id="errCodeTable">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Error Code</th>
+                        <th>Error Count</th>
+                    </tr>
+                </thead>
+            </table>
+
+            <header><h3>Keep Alive Stats</h3></header>
+            <table id="keepAliveStatTable">
+                <thead>
+                    <tr>
+                        <th>Server</th>
+                        <th>Requested</th>
+                        <th>Reused</th>
+                        <th>Forgot</th>
+                        <th>Open</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+    <body>
+        <div id="dialog-form" title="Maintenance Shutdown">
+            <p class="validateTips">Please specify delay in ms</p>
+            <form>
+                <fieldset>
+                    <label>Delay (ms)</label><input class="time numeric" type="text" name="name" id="delay" />
+                </fieldset>
+            </form>
+        </div>
+    </body>
+    <script type="text/javascript" src="js/graph/line-graph.js"></script>
+    <script type="text/javascript">
+        var id = getURLParameter('id');
+        var state;
+
+        function checkRegexp(o, regexp, n) {
+			if (!( regexp.test(o))) {
+				$(".validateTips").text(n);
+				return false;
+			} else {
+				return true;
+			}
+		}
+
+        function maintenanceTransport() {
+			$( "#dialog-form" ).dialog( "open" );
+	    };
+
+        $(function() {
+            $( "#dialog-form" ).dialog({
+                autoOpen: false,
+                height: 190,
+                width: 300,
+                modal: true,
+                buttons: {
+                    Shutdown: function() {
+                        var delay = $("#delay").attr("value");
+                        if (checkRegexp( delay, /^[0-9]+$/, "Delay must be a number")) {
+                            $(this).dialog("close");
+                            $.ajax ({
+                                type:'POST',
+                                url: getCallURLBase() + 'transports/maintenanceShutdownListener/' + id +'?delay='+ delay,
+                                success: function(msg) {
+                                    showInfo('Maintenance shutdown successful id:'+ id , 'index.html?pageName=node-mgt/transportList-details.html&id='+ id );
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+	    });
+
+        $(document).ready(function() {
+            var jqxhr = $.getJSON(getCallURLBase() + "transports/getTransportListener/" + id, function(dataset) {
+                $('#transportid').val(dataset.id);
+                $('#tlId').text(dataset.id);
+                $('#state').val(dataset.state);
+                $('#statlreset').val(dataset.lastStatisticsResetTime);
+                $('#mwindow').val(dataset.metricsWindow);
+                state=dataset.state;
+
+                var sendCode = dataset.sendErrorCodeTable;
+                $.each(sendCode, function(key, value) {
+                    $('#errCodeTable').append('<tr><td>' + "Send" +
+                        '</td><td class="numeric">' + key +
+                        '</td><td class="numeric">' + formatNumber(value) + '</td></tr>'
+                    );
+                });
+
+                var receiveCode = dataset.receiveErrorCodeTable;
+                $.each(receiveCode, function(key, value) {
+                    $('#errCodeTable').append('<tr><td>' + "Receive" +
+                        '</td><td class="numeric">' + key +
+                        '</td><td class="numeric">' + formatNumber(value) + '</td></tr>'
+                    );
+                });
+
+                if (dataset.keepaliveStatsMap != null) {
+                    var map = dataset.keepaliveStatsMap;
+                    var stats=new Array();
+                    $.each(map, function(server, stat) {
+                        stats.push(server);
+                        var statMap = stat;
+                        $.each(statMap, function(key, value) {
+                            stats.push(value);
+                        });
+                        $('#keepAliveStatTable').append('<tr><td>' + stats[0] +
+                            '</td><td class="numeric">' + formatNumber(stats[1]) +
+                            '</td><td class="numeric">' + formatNumber(stats[2]) +
+                            '</td><td class="numeric">' + formatNumber(stats[3]) +
+                            '</td><td class="numeric">' + formatNumber(stats[4]) + '</td></tr>'
+                        );
+                        stats.splice(0,5)
+                    });
+                }
+
+                $('#errCodeTable').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers"
+                });
+
+                $('#keepAliveStatTable').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers"
+                });
+
+                $('.start').attr("title", $('.start').attr("title") + dataset.id);
+                $('.stop').attr("title", $('.stop').attr("title") + dataset.id);
+                $('.resume').attr("title", $('.resume').attr("title") + dataset.id);
+                $('.pause').attr("title", $('.pause').attr("title") + dataset.id);
+                $('.mntShut').attr("title", $('.mntShut').attr("title") + dataset.id);
+                $('.resetStat').attr("title", $('.resetStat').attr("title") + dataset.id);
+                $('.enableDebug').bind("click", new Function("enableDebug('" + id + "'," + dataset.debugOn + ")"));
+                $('.enableDebug').attr("title", $('.enableDebug').attr("title") + id);
+                $('.disableDebug').bind("click", new Function("disableDebug('" + id + "'," + dataset.debugOn + ")"));
+                $('.disableDebug').attr("title", $('.disableDebug').attr("title") + id);
+
+                var graphs = {};
+
+                graphs[dataset.metricsStreams.receivedBytesStream] = {
+                    "divClass": "bytesReceived", "type": "gauge",
+                    "stream": dataset.metricsStreams.receivedBytesStream,
+                    "w": 400, "h": 150, "yAxisName": "Bytes", "defaultMax": 100,
+                    "yAxisData": function(d) {return d.sum;},
+                    "stats": {
+                        "sum": "bytesReceivedCount",
+                        "rate": "bytesReceivedRate",
+                        "average": "bytesReceivedAvg",
+                        "min": "bytesReceivedMin",
+                        "max": "bytesReceivedMax",
+                        "median": "bytesReceivedMedian",
+                        "_75Percentile": "in75Per",
+                        "_95Percentile": "in95Per",
+                        "_98Percentile": "in98Per",
+                        "_99Percentile": "in99Per",
+                        "_999Percentile": "in999Per",
+                        "_9999Percentile": "in9999Per"
+                    }
+                };
+                graphs[dataset.metricsStreams.sentBytesStream] = {
+                    "divClass": "bytesSent", "type": "gauge",
+                    "stream": dataset.metricsStreams.sentBytesStream,
+                    "w": 400, "h": 150, "yAxisName": "Bytes", "defaultMax": 100,
+                    "yAxisData": function(d) {return d.sum;},
+                    "stats": {
+                        "sum": "bytesSentCount",
+                        "rate": "bytesSentRate",
+                        "average": "bytesSentAvg",
+                        "min": "bytesSentMin",
+                        "max": "bytesSentMax",
+                        "median": "bytesSentMedian",
+                        "_75Percentile": "out75Per",
+                        "_95Percentile": "out95Per",
+                        "_98Percentile": "out98Per",
+                        "_99Percentile": "out99Per",
+                        "_999Percentile": "out999Per",
+                        "_9999Percentile": "out9999Per"
+                    }
+                };
+                graphs[dataset.metricsStreams.receivedMessagesStream] = {
+                    "divClass": "messagesReceived", "type": "counter",
+                    "stream": dataset.metricsStreams.receivedMessagesStream,
+                    "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                    "yAxisData": function(d) {return d.count;},
+                    "stats": {
+                        "count": "messagesReceivedCount",
+                        "rate": "messagesReceivedRate"
+                    }
+                };
+                graphs[dataset.metricsStreams.sentMessagesStream] = {
+                    "divClass": "messagesSent", "type": "counter",
+                    "stream": dataset.metricsStreams.sentMessagesStream,
+                    "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                    "yAxisData": function(d) {return d.count;},
+                    "stats": {
+                        "count": "messagesSentCount",
+                        "rate": "messagesSentRate"
+                    }
+                };
+                graphs[dataset.metricsStreams.receivingFaultsStream] = {
+                    "divClass": "receivingFaults", "type": "counter",
+                    "stream": dataset.metricsStreams.receivingFaultsStream, "color": "red",
+                    "w": 400, "h": 150, "yAxisName": "Fault Count", "defaultMax": 5,
+                    "yAxisData": function(d) {return d.count;},
+                    "stats": {
+                        "count": "receivingFaultCount",
+                        "rate": "receivingFaultRate"
+                    }
+                };
+                graphs[dataset.metricsStreams.sendingFaultsStream] = {
+                    "divClass": "sendingFaults", "type": "counter",
+                    "stream": dataset.metricsStreams.sendingFaultsStream, "color": "red",
+                    "w": 400, "h": 150, "yAxisName": "Fault Count", "defaultMax": 5,
+                    "yAxisData": function(d) {return d.count;},
+                    "stats": {
+                        "count": "sendingFaultCount",
+                        "rate": "sendingFaultRate"
+                    }
+                };
+
+                if ($.cookie("clustering") == "true") {
+                    $('.clusteraware').show();
+                    var tlClusterSelector = $.cookie('tlClusterSelector');
+                    if (tlClusterSelector == null) {
+                        dynamicClusterMultiGraph(graphs, 3000);
+                    } else {
+                        $('#tlClusterSelector').val(tlClusterSelector);
+                        if (tlClusterSelector == "cluster") {
+                            dynamicClusterMultiGraph(graphs, 3000);
+                        } else {
+                            dynamicMultiGraph(graphs, 3000);
+                        }
+                    }
+                } else {
+                    dynamicMultiGraph(graphs, 3000);
+                }
+            });
+        });
+
+        function redrawGraphs(selector) {
+            $.cookie(selector, $('#' + selector).val());
+            window.location.reload();
+        }
+
+        function startTransport() {
+            if (state == 'Starting' || state=='Started') {
+                showWarning('Cannot start Listener: ' + id + ', is either started or starting.');
+            } else {
+                $.ajax ({
+                type :'POST',
+                url : getCallURLBase() + 'transports/startListener/' + id,
+                    success :function(msg) {
+                        showInfo('Successfully started Listener: ' + id , 'index.html?pageName=node-mgt/transportList-details.html&id='+ id );
+                    }
+                });
+            }
+        }
+
+        function stopTransport() {
+            if (state == 'Stopping' || state=='Stopped') {
+                showWarning('Cannot stop Listener: ' + id + ', is either stopped or stopping.');
+            } else {
+                showConfirmation('Do you want to stop the Transport Listener?' , function() {
+                    $.ajax({
+                        type :'POST',
+                        url : getCallURLBase() + 'transports/stopListener/' + id,
+                        success :function(msg) {
+                            showInfo('Successfully stopped Listener: ' + id , 'index.html?pageName=node-mgt/transportList-details.html&id='+ id);
+                        }
+                    });
+                });
+            }
+        }
+
+        function pauseTransport() {
+            if (state == 'Stopping' || state == 'Stopped' || state == 'Paused') {
+                showWarning('Cannot pause Listener ' + id + ', either stopped or paused.');
+            } else {
+                $.ajax ({
+                    type :'POST',
+                    url : getCallURLBase() + 'transports/pauseListener/' + id,
+                    success :function(msg) {
+                        showInfo('Successfully paused Listener: ' + id , 'index.html?pageName=node-mgt/transportList-details.html&id='+ id);
+                    }
+                });
+            }
+        }
+
+        function resumeTransport() {
+            if (state == 'Paused') {
+                $.ajax ({
+                    type : 'POST',
+                    url : getCallURLBase() + 'transports/resumeListener/' + id,
+                    success : function(msg) {
+                        showInfo('Listener: ' + id + ' resumed ', 'index.html?pageName=node-mgt/transportList-details.html&id='+ id);
+                    }
+                });
+            } else {
+                showWarning('Listener: ' + id + ' is not paused.');
+            }
+        }
+
+        function resetTransport() {
+            $.ajax ({
+                type : 'POST',
+                url : getCallURLBase() + 'transports/resetListener/' + id,
+                success : function(msg) {
+                    showInfo('Listener: ' + id + ' successfully reset ', 'index.html?pageName=node-mgt/transportList-details.html&id='+ id);
+                }
+            });
+        }
+
+        function enableDebug(id,debug) {
+            if (!debug) {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'transports/setListenerDebugOn/' + id + '/true',
+                    success: function(msg) {
+                        showInfo('Debug enabled successfully for the Listener : ' + id + '.', 'index.html?pageName=node-mgt/transportList-details.html&id='+ id);
+                    }
+                    });
+            } else {
+                showWarning('Debug already enabled for Listener ' + id + '!');
+            }
+        }
+
+        function disableDebug(id,debug) {
+            if (debug) {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'transports/setListenerDebugOn/' + id + '/false',
+                    success: function(msg) {
+                        showInfo('Debug disabled successfully for the Listener : ' + id + '.', 'index.html?pageName=node-mgt/transportList-details.html&id='+ id);
+                    }
+                });
+            } else {
+                showWarning('Debug already disabled for Listener ' + id + '!');
+            }
+        }
+
+    </script>
+</div>
+</html>

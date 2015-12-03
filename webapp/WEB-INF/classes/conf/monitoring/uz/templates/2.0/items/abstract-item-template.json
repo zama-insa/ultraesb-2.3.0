@@ -1,0 +1,21 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "parent": "zabbix-parent",
+        "key": "items-parent"
+    },
+    "method":"item.$action$",
+    "params": {
+        "hostid": "$hostid$",
+        "value_type": 3,
+        "data_type" : 0,
+        "status": 0,
+        "applications": ["ultraesb"],
+        "history": 12,
+        "trends": 365,
+        "type": 0,
+        "interfaceid": "$interfaceid$",
+        "delay": 180
+    },
+    "id":2
+}

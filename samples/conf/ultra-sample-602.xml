@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+        <property name="enableConnectionDebug" value="true"/>
+        <property name="connectionDebugHeaders">
+            <set>
+                <value>all</value>
+            </set>
+        </property>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+        <property name="enableConnectionDebug" value="true"/>
+        <property name="connectionDebugHeaders">
+            <set>
+                <value>all</value>
+            </set>
+        </property>
+    </bean>
+
+    <!--Refer to the unit test EndpointsFailoverTest for more details about this sample and a unit test for it-->
+
+    <!--Defines a proxy service that sends the request to a round-robin endpoint between two addresses. Messages
+    are sent with a socket timeout of 1000 ms. If an address fails, the address is retried or suspended as
+    configured. If both endpoints fail, the errorSequence will be invoked-->
+    <u:proxy id="rr-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inDestination type="round-robin" timeout="1000">
+                <u:address id="port-9000">http://localhost:9000/service/EchoService</u:address>
+                <u:address id="port-9001">http://localhost:9001/service/EchoService</u:address>
+                <u:temporaryFailures>
+                    <u:gracePeriod>2000</u:gracePeriod>
+                </u:temporaryFailures>
+                <u:suspendOnFailure>
+                    <u:initialDuration>2000</u:initialDuration>
+                    <u:progressionFactor>1.0</u:progressionFactor>
+                    <u:maximumDuration>10000</u:maximumDuration>
+                </u:suspendOnFailure>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    System.out.println("Executing Error Handler");
+                    mediation.setPayloadFromString(msg, "failed");
+                    mediation.sendResponse(msg, 200);
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="rr-fo-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inDestination type="round-robin-with-fail-over" timeout="1000">
+                <u:address id="port-9000">http://localhost:9000/service/EchoService</u:address>
+                <u:address id="port-9001">http://localhost:9001/service/EchoService</u:address>
+                <u:temporaryFailures>
+                    <u:gracePeriod>2000</u:gracePeriod>
+                </u:temporaryFailures>
+                <u:suspendOnFailure>
+                    <u:initialDuration>2000</u:initialDuration>
+                    <u:progressionFactor>1.0</u:progressionFactor>
+                    <u:maximumDuration>10000</u:maximumDuration>
+                </u:suspendOnFailure>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    System.out.println("Executing Error Handler");
+                    mediation.setPayloadFromString(msg, "failed");
+                    mediation.sendResponse(msg, 200);
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="rr-proxy-safe-retry">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inDestination type="round-robin-with-fail-over" timeout="1000">
+                <u:address id="port-9000">http://localhost:9000/service/EchoService</u:address>
+                <u:address id="port-9001">http://localhost:9001/service/EchoService</u:address>
+                <u:temporaryFailures>
+                    <u:gracePeriod>2000</u:gracePeriod>
+                </u:temporaryFailures>
+                <u:suspendOnFailure>
+                    <u:initialDuration>2000</u:initialDuration>
+                    <u:progressionFactor>1.0</u:progressionFactor>
+                    <u:maximumDuration>10000</u:maximumDuration>
+                </u:suspendOnFailure>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    System.out.println("Executing Error Handler");
+                    mediation.setPayloadFromString(msg, "failed");
+                    mediation.sendResponse(msg, 200);
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="rr-proxy-safe-retry-ignore">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inDestination type="round-robin-with-fail-over" timeout="1000">
+                <u:address id="port-9000">http://localhost:9000/service/EchoService</u:address>
+                <u:address id="port-9001">http://localhost:9001/service/EchoService</u:address>
+                <u:safeToRetryErrorCodes>all</u:safeToRetryErrorCodes>
+                <u:temporaryFailures>
+                    <u:gracePeriod>3000</u:gracePeriod>
+                </u:temporaryFailures>
+                <u:suspendOnFailure>
+                    <u:initialDuration>4000</u:initialDuration>
+                    <u:progressionFactor>1.0</u:progressionFactor>
+                    <u:maximumDuration>10000</u:maximumDuration>
+                </u:suspendOnFailure>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    System.out.println("Executing Error Handler");
+                    mediation.setPayloadFromString(msg, "failed");
+                    mediation.sendResponse(msg, 500);
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

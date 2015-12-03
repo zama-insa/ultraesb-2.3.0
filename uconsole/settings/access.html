@@ -1,0 +1,260 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+<!doctype html>
+<html>
+<div id="tabs-3">
+    <div id="accessRuleInfo" class="hidden">
+        <h3>Access Rule Information</h3>
+        <fieldset id="accessRuleInfoForm">
+            <ul>
+                <li>
+                    <label>Access URL</label>
+                    <input type="text" id="accessURL" class="editableText">
+                </li>
+                <li>
+                    <label>Access Rule</label>
+                    <input type="text" id="accessRule" class="editableText">
+                </li>
+                <br/>
+                <input type="hidden" id="accessRuleOrder" value="0"/>
+                <button type="button" class="button clickable hidden" title="Add" id="accessRuleInfoAdd" onclick="addAccessRule();">Add</button>
+                <button type="button" class="button clickable hidden" title="Update" id="accessRuleInfoUpdate" onclick="updateAccessRule();">Update</button>
+                <button type="button" class="button clickable" title="Cancel" id="accessRuleInfoCancel" onclick="displayAccessRules();">Cancel</button>
+            </ul>
+        </fieldset>
+    </div>
+    <div id="accessRules" class="shown" style="width:100%">
+        <h3>Defined Access Rules</h3>
+        Access rules defined in the uconsole user manager
+        <input type="button" class="button clickable" style="float: right; margin-bottom: 5px;" value="Add Rule" onclick="displayAddAccessRule(0)">
+        <div id="accessRulesTable"></div>
+    </div>
+    <script type="text/javascript">
+
+        function editAccessRule(url) {
+            var jqxhr = $.getJSON(getCallURLBase() + "usermgt/rules/" + encodeURIComponent(url), function(dataset) {
+
+                $('#accessURL').attr('readonly', 'readonly');
+                $('#accessURL').removeClass('editableText');
+                $('#accessURL').addClass('disabledText');
+                var data = {rule:dataset};
+                var formDirective = {
+                    'input#accessURL@value'          :'rule.url',
+                    'input#accessRuleOrder@value'    :'rule.order',
+                    'input#accessRule@value'         :'rule.access'
+                };
+                $('#accessRuleInfoForm').render(data, formDirective);
+                $('#accessRuleInfoUpdate').removeClass('hidden');
+                $('#accessRuleInfoUpdate').addClass('shown');
+                $('#accessRules').slideUp('fast');
+                $('#accessRuleInfo').slideDown('slow');
+            });
+        }
+
+        function displayAddAccessRule(order) {
+            if (order > 0) {
+                $('#accessRuleOrder').attr('value', order);
+            }
+            $('#accessURL').removeAttr('readonly');
+            $('#accessURL').removeClass('disabledText');
+            $('#accessURL').addClass('editableText');
+            $('#accessURL').attr('value', '');
+            $('#accessRule').attr('value', '');
+            $('#accessRuleInfoAdd').removeClass('hidden');
+            $('#accessRuleInfoAdd').addClass('shown');
+            $('#accessRules').slideUp('fast');
+            $('#accessRuleInfo').slideDown('slow');
+        }
+
+        function displayAccessRules() {
+            $('#accessRuleInfoAdd').removeClass('shown');
+            $('#accessRuleInfoUpdate').removeClass('shown');
+            $('#accessRuleInfoAdd').addClass('hidden');
+            $('#accessRuleInfoUpdate').addClass('hidden');
+            $('#accessRuleInfo').slideUp('fast');
+            $('#accessRules').slideDown('slow');
+        }
+
+        function removeAccessRule(url) {
+            showConfirmation("Do you want to remove the access rule for URL " + url, function() {
+                $.ajax({
+                    type: 'DELETE',
+                    url: getCallURLBase() + 'usermgt/rules/' + encodeURIComponent(url),
+                    success: function(msg) {
+                        showInfoWithCallback("Successfully removed the access rule  for the URL " + url, function() {
+                            loadAccessRuleData();
+                            displayAccessRules();
+                        });
+                    }
+                }).error(function () {
+                    showError("Error in removing the access rule for the URL " + url, null);
+                });
+            });
+        }
+
+        function moveUp(url) {
+            showConfirmation("Do you want to move up the access rule in order with URL " + url, function() {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'usermgt/rules/' + encodeURIComponent(url) + '/up',
+                    success: function(msg) {
+                        showInfoWithCallback("Successfully moved up the access rule in order with the URL " + url, function() {
+                            loadAccessRuleData();
+                            displayAccessRules();
+                        });
+                    }
+                }).error(function () {
+                    showError("Error in moving up the access rule in order with the URL " + url, null);
+                });
+            });
+        }
+
+        function moveDown(url) {
+            showConfirmation("Do you want to move down the access rule in order with URL " + url, function() {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'usermgt/rules/' + encodeURIComponent(url) + '/down',
+                    success: function(msg) {
+                        showInfoWithCallback("Successfully moved down the access rule in order with the URL " + url, function() {
+                            loadAccessRuleData();
+                            displayAccessRules();
+                        });
+                    }
+                }).error(function () {
+                    showError("Error in moving down the access rule in order with the URL " + url, null);
+                });
+            });
+        }
+
+        function addAccessRule() {
+            var accessURL = $('#accessURL').attr('value');
+            var params = '{';
+            params += '"url": "' + accessURL + '",';
+            params += '"order": ' + $('#accessRuleOrder').attr('value') + ',';
+            params += '"access": [';
+            var accessRules = $('#accessRule').attr('value').split(',');
+            for (var ruleId in accessRules) {
+                params += ruleId != 0 ? ',' : '';
+                params += '"' + accessRules[ruleId] + '"';
+            }
+            params += ']}';
+
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'usermgt/rules/' + encodeURIComponent(accessURL),
+                data: params,
+                contentType: 'application/json',
+                success: function(msg) {
+                    showInfoWithCallback("Successfully added the access rule for the URL " + accessURL, function() {
+                        loadAccessRuleData();
+                        displayAccessRules();
+                    });
+                }
+            }).error(function () {
+                showError("Error in adding the access rule information", null);
+            });
+        }
+
+        function updateAccessRule() {
+            var params = '{';
+            var accessURL = $('#accessURL').attr('value');
+            params += '"url": "' + accessURL + '",';
+            params += '"order": ' + $('#accessRuleOrder').attr('value') + ',';
+            params += '"access": [';
+            var accessRules = $('#accessRule').attr('value').split(',');
+            for (var ruleId in accessRules) {
+                params += ruleId != 0 ? ',' : '';
+                params += '"' + accessRules[ruleId] + '"';
+            }
+            params += ']}';
+
+            $.ajax({
+                type: 'PUT',
+                url: getCallURLBase() + 'usermgt/rules/' + encodeURIComponent(accessURL),
+                data: params,
+                contentType: 'application/json',
+                success: function(msg) {
+                    showInfoWithCallback("Successfully updated the access rule for the URL " + accessURL, function() {
+                        loadAccessRuleData();
+                        displayAccessRules();
+                    });
+                }
+            }).error(function () {
+                showError("Error in updating the access rule information", null);
+            });
+        }
+
+        function loadAccessRuleData() {
+            $('#accessRulesTable').html('<table class="display" id="accessRuleList">'
+                    + '<thead><tr><th>Rule Order</th><th>Access URL</th><th>Access Rule</th><th>Controls</th></tr></thead>'
+                    + '<tbody><tr><td class="order"></td><td class="accessURL"></td><td class="accessRule"></td>'
+                    + '<td class="controls">'
+                    + '<img class="add clickable" title="Add" src="icons/plus.png"/>'
+                    + '<img class="edit clickable" title="Edit" src="icons/edit.png"/>'
+                    + '<img class="remove clickable" title="Remove" src="icons/remove.png"/>'
+                    + '<img class="moveUp clickable" title="Move up" src="icons/up.png"/>'
+                    + '<img class="moveDown clickable" title="Move down" src="icons/down.png"/>'
+                    + '</td></tr></tbody></table>');
+
+
+            var jqxhr = $.getJSON(getCallURLBase() + "usermgt/rules/all", function(dataset) {
+
+                var data = {rules:dataset};
+                var dataDir = {
+                    'tbody tr':{
+                        'rule<-rules':{
+                            'td.order'          :'rule.order',
+                            'td.accessURL'          :'rule.url',
+                            'td.accessRule'         :function(rule) {return rule.item.access.toString();},
+                            'td.controls img.edit@onclick'      :'{editAccessRule("#{rule.url}");}',
+                            'td.controls img.add@onclick'      :'{displayAddAccessRule("#{rule.order}");}',
+                            'td.controls img.moveUp@onclick'      :'{moveUp("#{rule.url}");}',
+                            'td.controls img.moveUp@style'      :function(rule) {return rule.item.order==1 ? 'display:none' : 'display:inline';},
+                            'td.controls img.moveDown@onclick'      :'{moveDown("#{rule.url}");}',
+                            'td.controls img.moveDown@style'      :function(rule) {return rule.item.order==dataset.length ? 'display:none' : 'display:inline';},
+                            'td.controls img.remove@onclick'    :'{removeAccessRule("#{rule.url}");}'
+                        }
+                    }
+                };
+                $('#accessRuleList').render(data,dataDir);
+                encodeURLs();
+                $('#accessRuleList').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers"
+                });
+            });
+        }
+
+        $(document).ready(function() {
+            loadAccessRuleData();
+        });
+    </script>
+</div>
+</html>
+

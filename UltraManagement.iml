@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="false">
+    <output url="file://$MODULE_DIR$/uconsole/WEB-INF/classes" />
+    <output-test url="file://$MODULE_DIR$/uconsole/WEB-INF/classes" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/uconsole" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library">
+      <library name="lib">
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/conf/mediation/classes" />
+          <root url="file://$MODULE_DIR$/lib/patches" />
+          <root url="file://$MODULE_DIR$/uconsole/WEB-INF/lib" />
+          <root url="file://$MODULE_DIR$/uconsole/WEB-INF/classes" />
+          <root url="file://$MODULE_DIR$/lib" />
+          <root url="file://$MODULE_DIR$/lib/optional" />
+          <root url="file://$MODULE_DIR$/lib/endorsed" />
+          <root url="file://$MODULE_DIR$/lib/custom" />
+          <root url="file://$MODULE_DIR$/lib/samples" />
+          <root url="jar://$JAVA_HOME$/lib/tools.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/sources/uconsole-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/sources/ultraesb-api-2.1.0-SNAPSHOT-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/sources/ultraesb-core-2.1.0-SNAPSHOT-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/sources/ultraesb-jmx-2.1.0-SNAPSHOT-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/sources/ultraesb-metrics-2.1.0-SNAPSHOT-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/sources/ultraesb-uterm-2.1.0-SNAPSHOT-sources.jar!/" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/uconsole/WEB-INF/lib" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/lib/custom" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/lib/optional" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/lib/patches" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/lib/samples" recursive="false" />
+      </library>
+    </orderEntry>
+  </component>
+</module>
+

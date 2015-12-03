@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "endpoint-item-parent"
+    },
+    "params":{
+        "name": "Address of the endpoint ${.*}$ (warn)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.warnAddressCount]"
+    }
+}

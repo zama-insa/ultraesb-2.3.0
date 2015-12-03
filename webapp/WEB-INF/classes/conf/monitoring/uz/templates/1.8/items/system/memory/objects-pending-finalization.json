@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "jvm-memory-item-parent"
+    },
+    "params":{
+        "description": "Objects pending finalization",
+        "key_": "jmx[java.lang:type=Memory][ObjectPendingFinalizationCount]"
+    }
+}

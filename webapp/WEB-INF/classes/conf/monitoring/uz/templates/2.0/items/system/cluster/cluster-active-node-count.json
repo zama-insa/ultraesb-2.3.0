@@ -1,0 +1,9 @@
+{
+	"uz_meta": {
+		"parent": "cluster-item-parent"
+	},
+	"params": {
+		"name": "Active node count within cluster",
+		"key_": "jmx[org.adroitlogic.ultraesb:Type=ClusterManagement,Name=Cluster][ActiveNodeCount]"
+	}
+}

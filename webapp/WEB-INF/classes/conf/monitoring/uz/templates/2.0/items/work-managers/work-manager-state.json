@@ -1,0 +1,10 @@
+{
+    "uz_meta": {
+        "parent": "work-manager-item-parent"
+    },
+    "params":{
+        "name": "State of the work manager ${.*}$",
+        "value_type": 4,
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=WorkManagers,Name=${.*}$][Details.state]"
+    }
+}

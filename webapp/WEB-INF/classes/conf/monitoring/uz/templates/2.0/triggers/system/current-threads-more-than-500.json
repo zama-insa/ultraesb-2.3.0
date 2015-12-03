@@ -1,0 +1,10 @@
+{
+    "uz_meta": {
+        "parent": "system-triggers-parent"
+    },
+    "params":{
+        "description": "Current thread count more than 500",
+        "expression": "{$host$:jmx[java.lang:type=Threading][ThreadCount].last(0)}>500",
+        "priority": "2"
+    }
+}

@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "category":"services",
+        "parent": "graphs-parent",
+        "key": "endpoint-graphs-parent",
+        "type": "endpoint"
+    }
+}

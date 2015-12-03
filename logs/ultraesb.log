@@ -1,0 +1,108 @@
+2015-12-03 22:41:01,552 [-] [main] [system] [000000I]  INFO ServerManager ServerManager initializing..
+2015-12-03 22:41:01,885 [-] [main] [system] [000000I]  INFO UltraServer UltraESB JAR file version : [2.3.0-fe7ac4bec76d]
+2015-12-03 22:41:02,102 [-] [main] [system] [000000I]  INFO UltraServer BouncyCastle set as the preferred security provider..
+2015-12-03 22:41:02,134 [-] [main] [system] [000000I]  INFO LicenseManager Server ID : be905a98-76d1-44f6-acf3-640d1fb39afd
+2015-12-03 22:41:02,134 [-] [main] [system] [000000I]  INFO LicenseManager You are currently using this software under an evaluation license of 30 days. To obtain a full license free of charge, please visit http://adroitlogic.org
+2015-12-03 22:41:02,773 [-] [main] [system] [000000I]  INFO PooledMessageFileCache Directory : /home/danghaian/Programs/ultraesb-2.3.0/tmp/danghaian_localhost locked for file cache
+2015-12-03 22:41:02,773 [-] [main] [system] [000000W]  WARN PooledMessageFileCache System ulimit of : 1024 file descriptors does not seem adequate for production use
+2015-12-03 22:41:02,979 [-] [main] [system] [000000I]  INFO ConfigurationImpl Starting UltraESB/2.3.0 (GA) (c) 2010-2014 AdroitLogic. All Rights Reserved - localhost
+2015-12-03 22:41:02,979 [-] [main] [system] [000000I]  INFO ConfigurationImpl Server name : localhost
+2015-12-03 22:41:03,684 [-] [main] [system] [000000I]  INFO ConfigurationImpl Pre-initialization of the engine..
+2015-12-03 22:41:04,045 [-] [main] [system] [000000I]  INFO TransformationUtils Initializing Transformation feature
+2015-12-03 22:41:04,071 [-] [main] [system] [000000I]  INFO JSONUtils Initializing the JSON feature
+2015-12-03 22:41:04,081 [-] [main] [system] [000000I]  INFO XMLFeatures Initializing the XML feature
+2015-12-03 22:41:04,178 [-] [main] [system] [000000I]  INFO MediationImpl Initializing the Mediation feature
+2015-12-03 22:41:04,401 [-] [main] [system] [000000I]  INFO FastInfosetUtils Initializing the Fast-Infoset feature
+2015-12-03 22:41:04,414 [-] [main] [system] [000000I]  INFO CryptoSupport Initializing the Security and Crypto features
+2015-12-03 22:41:04,432 [-] [main] [system] [000000I]  INFO ServerManager Starting server ...
+2015-12-03 22:41:04,432 [-] [main] [system] [000000I]  INFO ServerManager Linux - amd64 [3.19.0-22-generic] / Processors : 4
+2015-12-03 22:41:04,453 [-] [main] [system] [000000I]  INFO ServerManager Total physical memory : 6,009,316K (261,540K free)  Heap max : 1,005,056K
+2015-12-03 22:41:04,453 [-] [main] [system] [000000I]  INFO ServerManager Java HotSpot(TM) 64-Bit Server VM, Oracle Corporation [25.66-b17]
+2015-12-03 22:41:04,472 [-] [main] [system] [000000I]  INFO ServerManager Clustering is disabled
+2015-12-03 22:41:04,567 [-] [main] [system] [000000I]  INFO HttpsNIOSender Https transport sender : https-sender using default identity keystore
+2015-12-03 22:41:04,567 [-] [main] [system] [000000I]  INFO HttpsNIOSender Https transport sender : https-sender using the default trust keystore
+2015-12-03 22:41:04,568 [-] [HttpNIOSender-http-sender] [system] [000000I]  INFO HttpNIOSender Starting NIO Sender : http-sender ...
+2015-12-03 22:41:05,114 [-] [HttpsNIOSender-https-sender] [system] [000000I]  INFO HttpsNIOSender Starting NIO Sender : https-sender ...
+2015-12-03 22:41:05,124 [-] [main] [system] [000000I]  INFO fileCache Initialized cache of : 200 files at : /home/danghaian/Programs/ultraesb-2.3.0/tmp/danghaian_localhost
+2015-12-03 22:41:05,143 [-] [main] [system] [000000I]  INFO SimpleQueueWorkManager Started Work Manager : default
+2015-12-03 22:41:05,144 [-] [main] [system] [000000I]  INFO ServerManager Initializing transport listeners
+2015-12-03 22:41:05,155 [-] [main] [system] [000000I]  INFO ServerManager Starting Proxy Services, Endpoints and Sequences
+2015-12-03 22:41:05,161 [-] [main] [system] [000000I]  INFO Address Started Address : address of endpoint : mediation.response
+2015-12-03 22:41:05,161 [-] [main] [system] [000000I]  INFO Endpoint Endpoint : mediation.response started
+2015-12-03 22:41:05,163 [-] [main] [system] [000000I]  INFO Address Started Address : address of endpoint : echo-service
+2015-12-03 22:41:05,163 [-] [main] [system] [000000I]  INFO echo-service Endpoint : echo-service started
+2015-12-03 22:41:06,303 [-] [main] [system] [000000I]  INFO error-handler Sequence : error-handler started
+2015-12-03 22:41:06,340 [-] [main] [system] [000000I]  INFO health-check-inSequence Sequence : health-check-inSequence started
+2015-12-03 22:41:06,341 [-] [main] [system] [000000I]  INFO health-check Proxy service : health-check started
+2015-12-03 22:41:06,341 [-] [main] [system] [000000I]  INFO ServerManager UltraESB root deployment unit started successfully
+2015-12-03 22:41:06,343 [-] [main] [system] [000000I]  INFO DeploymentUnitBuilder Using the hot-swap class loading of libraries/classes for deployment unit default
+2015-12-03 22:41:06,495 [-] [main] [system] [000000I]  INFO DeploymentUnitBuilder Successfully created the deployment unit : default
+2015-12-03 22:41:06,550 [-] [main] [system] [000000I]  INFO echo-back-inSequence Sequence : echo-back-inSequence started
+2015-12-03 22:41:06,550 [-] [main] [system] [000000I]  INFO echo-back Proxy service : echo-back started
+2015-12-03 22:41:06,610 [-] [main] [system] [000000I]  INFO echo-proxy-outSequence Sequence : echo-proxy-outSequence started
+2015-12-03 22:41:06,612 [-] [main] [system] [000000I]  INFO Address Started Address : address of endpoint : echo-proxy-inDestination
+2015-12-03 22:41:06,612 [-] [main] [system] [000000I]  INFO echo-proxy-inDestination Endpoint : echo-proxy-inDestination started
+2015-12-03 22:41:06,614 [-] [main] [system] [000000I]  INFO Address Started Address : address of endpoint : echo-proxy-outDestination
+2015-12-03 22:41:06,614 [-] [main] [system] [000000I]  INFO echo-proxy-outDestination Endpoint : echo-proxy-outDestination started
+2015-12-03 22:41:06,614 [-] [main] [system] [000000I]  INFO echo-proxy Proxy service : echo-proxy started
+2015-12-03 22:41:06,614 [-] [main] [system] [000000I]  INFO ConfigurationImpl Successfully added the deployment unit : default
+2015-12-03 22:41:06,614 [-] [main] [system] [000000I]  INFO ServerManager Starting transport listeners
+2015-12-03 22:41:06,629 [-] [HttpNIOListener-http-8280] [system] [000000I]  INFO HttpNIOListener Starting NIO Listener : http-8280 on port : 8280 ...
+2015-12-03 22:41:06,674 [-] [main] [system] [000000I]  INFO HttpsNIOListener Identity keystore loaded from : conf/keys/identity.jks
+2015-12-03 22:41:06,685 [-] [main] [system] [000000I]  INFO HttpsNIOListener Trust keystore loaded from : conf/keys/trust.jks
+2015-12-03 22:41:06,689 [-] [main] [system] [000000I]  INFO ConfigurationImpl UltraESB/2.3.0 (GA) - localhost started with root configuration..
+2015-12-03 22:41:06,695 [-] [HttpsNIOListener-https-8443] [system] [000000I]  INFO HttpsNIOListener Starting NIO Listener : https-8443 on port : 8443 ...
+2015-12-03 22:48:51,987 [-] [main] [system] [000000I]  INFO ServerManager ServerManager initializing..
+2015-12-03 22:48:56,866 [-] [main] [system] [000000I]  INFO UltraServer UltraESB JAR file version : [2.3.0-fe7ac4bec76d]
+2015-12-03 22:48:58,898 [-] [main] [system] [000000I]  INFO UltraServer BouncyCastle set as the preferred security provider..
+2015-12-03 22:48:59,125 [-] [main] [system] [000000I]  INFO LicenseManager Server ID : be905a98-76d1-44f6-acf3-640d1fb39afd Days left for evaluation : 29
+2015-12-03 22:48:59,126 [-] [main] [system] [000000I]  INFO LicenseManager You are currently using this software under an evaluation license of 30 days. To obtain a full license free of charge, please visit http://adroitlogic.org
+2015-12-03 22:49:08,769 [-] [main] [system] [000000I]  INFO PooledMessageFileCache Directory : /home/danghaian/Programs/ultraesb-2.3.0/tmp/danghaian_localhost locked for file cache
+2015-12-03 22:49:08,770 [-] [main] [system] [000000W]  WARN PooledMessageFileCache System ulimit of : 1024 file descriptors does not seem adequate for production use
+2015-12-03 22:49:11,833 [-] [main] [system] [000000I]  INFO ConfigurationImpl Starting UltraESB/2.3.0 (GA) (c) 2010-2014 AdroitLogic. All Rights Reserved - localhost
+2015-12-03 22:49:11,833 [-] [main] [system] [000000I]  INFO ConfigurationImpl Server name : localhost
+2015-12-03 22:49:16,100 [-] [main] [system] [000000I]  INFO ConfigurationImpl Pre-initialization of the engine..
+2015-12-03 22:49:16,537 [-] [main] [system] [000000I]  INFO TransformationUtils Initializing Transformation feature
+2015-12-03 22:49:16,777 [-] [main] [system] [000000I]  INFO JSONUtils Initializing the JSON feature
+2015-12-03 22:49:16,839 [-] [main] [system] [000000I]  INFO XMLFeatures Initializing the XML feature
+2015-12-03 22:49:17,999 [-] [main] [system] [000000I]  INFO MediationImpl Initializing the Mediation feature
+2015-12-03 22:49:18,586 [-] [main] [system] [000000I]  INFO FastInfosetUtils Initializing the Fast-Infoset feature
+2015-12-03 22:49:18,782 [-] [main] [system] [000000I]  INFO CryptoSupport Initializing the Security and Crypto features
+2015-12-03 22:49:20,013 [-] [main] [system] [000000I]  INFO ServerManager Starting server ...
+2015-12-03 22:49:20,013 [-] [main] [system] [000000I]  INFO ServerManager Linux - amd64 [3.19.0-22-generic] / Processors : 4
+2015-12-03 22:49:20,441 [-] [main] [system] [000000I]  INFO ServerManager Total physical memory : 6,009,316K (4,066,528K free)  Heap max : 1,005,056K
+2015-12-03 22:49:20,442 [-] [main] [system] [000000I]  INFO ServerManager Java HotSpot(TM) 64-Bit Server VM, Oracle Corporation [25.66-b17]
+2015-12-03 22:49:20,753 [-] [main] [system] [000000I]  INFO ServerManager Clustering is disabled
+2015-12-03 22:49:22,859 [-] [main] [system] [000000I]  INFO HttpsNIOSender Https transport sender : https-sender using default identity keystore
+2015-12-03 22:49:22,859 [-] [main] [system] [000000I]  INFO HttpsNIOSender Https transport sender : https-sender using the default trust keystore
+2015-12-03 22:49:22,861 [-] [HttpNIOSender-http-sender] [system] [000000I]  INFO HttpNIOSender Starting NIO Sender : http-sender ...
+2015-12-03 22:49:27,763 [-] [HttpsNIOSender-https-sender] [system] [000000I]  INFO HttpsNIOSender Starting NIO Sender : https-sender ...
+2015-12-03 22:49:27,809 [-] [main] [system] [000000I]  INFO fileCache Initialized cache of : 200 files at : /home/danghaian/Programs/ultraesb-2.3.0/tmp/danghaian_localhost
+2015-12-03 22:49:27,900 [-] [main] [system] [000000I]  INFO SimpleQueueWorkManager Started Work Manager : default
+2015-12-03 22:49:27,901 [-] [main] [system] [000000I]  INFO ServerManager Initializing transport listeners
+2015-12-03 22:49:27,910 [-] [main] [system] [000000I]  INFO ServerManager Starting Proxy Services, Endpoints and Sequences
+2015-12-03 22:49:27,913 [-] [main] [system] [000000I]  INFO Address Started Address : address of endpoint : mediation.response
+2015-12-03 22:49:27,914 [-] [main] [system] [000000I]  INFO Endpoint Endpoint : mediation.response started
+2015-12-03 22:49:27,915 [-] [main] [system] [000000I]  INFO Address Started Address : address of endpoint : echo-service
+2015-12-03 22:49:27,915 [-] [main] [system] [000000I]  INFO echo-service Endpoint : echo-service started
+2015-12-03 22:49:38,271 [-] [main] [system] [000000I]  INFO error-handler Sequence : error-handler started
+2015-12-03 22:49:38,313 [-] [main] [system] [000000I]  INFO health-check-inSequence Sequence : health-check-inSequence started
+2015-12-03 22:49:38,314 [-] [main] [system] [000000I]  INFO health-check Proxy service : health-check started
+2015-12-03 22:49:38,314 [-] [main] [system] [000000I]  INFO ServerManager UltraESB root deployment unit started successfully
+2015-12-03 22:49:38,370 [-] [main] [system] [000000I]  INFO DeploymentUnitBuilder Using the hot-swap class loading of libraries/classes for deployment unit default
+2015-12-03 22:49:39,946 [-] [main] [system] [000000I]  INFO DeploymentUnitBuilder Successfully created the deployment unit : default
+2015-12-03 22:49:40,006 [-] [main] [system] [000000I]  INFO echo-back-inSequence Sequence : echo-back-inSequence started
+2015-12-03 22:49:40,007 [-] [main] [system] [000000I]  INFO echo-back Proxy service : echo-back started
+2015-12-03 22:49:40,237 [-] [main] [system] [000000I]  INFO echo-proxy-outSequence Sequence : echo-proxy-outSequence started
+2015-12-03 22:49:40,239 [-] [main] [system] [000000I]  INFO Address Started Address : address of endpoint : echo-proxy-inDestination
+2015-12-03 22:49:40,241 [-] [main] [system] [000000I]  INFO echo-proxy-inDestination Endpoint : echo-proxy-inDestination started
+2015-12-03 22:49:40,242 [-] [main] [system] [000000I]  INFO Address Started Address : address of endpoint : echo-proxy-outDestination
+2015-12-03 22:49:40,242 [-] [main] [system] [000000I]  INFO echo-proxy-outDestination Endpoint : echo-proxy-outDestination started
+2015-12-03 22:49:40,242 [-] [main] [system] [000000I]  INFO echo-proxy Proxy service : echo-proxy started
+2015-12-03 22:49:40,242 [-] [main] [system] [000000I]  INFO ConfigurationImpl Successfully added the deployment unit : default
+2015-12-03 22:49:40,242 [-] [main] [system] [000000I]  INFO ServerManager Starting transport listeners
+2015-12-03 22:49:40,318 [-] [HttpNIOListener-http-8280] [system] [000000I]  INFO HttpNIOListener Starting NIO Listener : http-8280 on port : 8280 ...
+2015-12-03 22:49:40,816 [-] [main] [system] [000000I]  INFO HttpsNIOListener Identity keystore loaded from : conf/keys/identity.jks
+2015-12-03 22:49:40,870 [-] [main] [system] [000000I]  INFO HttpsNIOListener Trust keystore loaded from : conf/keys/trust.jks
+2015-12-03 22:49:40,871 [-] [main] [system] [000000I]  INFO ConfigurationImpl UltraESB/2.3.0 (GA) - localhost started with root configuration..
+2015-12-03 22:49:40,872 [-] [HttpsNIOListener-https-8443] [system] [000000I]  INFO HttpsNIOListener Starting NIO Listener : https-8443 on port : 8443 ...

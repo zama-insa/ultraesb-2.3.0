@@ -1,0 +1,2 @@
+Any user libraries or custom third party additions to the UltraESB mediation flows should be placed in this directory,
+ideally any library that user adds should go into this directory

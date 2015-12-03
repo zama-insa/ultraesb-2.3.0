@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd" default-destroy-method="destroy">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Refer to the unit test SimpleAggregateTest for more details about this sample and a unit test for it-->
+
+    <!--A proxy service demonstrating simple cloning and aggregation in practice. A request message is sent to three
+    endpoints - in this case, to the same endpoint thrice, for simplicity. The responses are received by the outSequence
+    and are handed over to the in-memory aggregation bean InMemoryMessageAggregator defined by the interface
+    'MessageAggregator'. A message aggregator injects the aggregated message on completion again into the outSequence
+    of the proxy service, and marks such a message with a property 'MessageAggregator.AggregationConstants.MERGED'
+
+    When an aggregated message is ready, it contains each individual message aggregated as an attachment. If the
+    payloads aggregated are XML, the mediation method mergeXMLAttachmentsUnderElement() consolidates these under a
+    new element specified. A custom aggregation method maybe used to merge non-XML or other types of messages.
+
+    The merged message is sent through a XQuery to select the response with the lowest quote, which is sent back
+    to the client as the response
+
+    Note: The XQuery support requires the download and copying of the Saxon JAR file into lib/optional directory-->
+    <u:proxy id="aggregate-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.core.helper.*;"><![CDATA[
+                    mediation.sendToEndpoint(msg, "stockquote01");
+                    mediation.sendToEndpoint(msg, "stockquote02");
+                    mediation.sendToEndpoint(msg, "stockquote03");
+                    mediation.sendToEndpoint(msg, "stockquote04");
+                    mediation.sendToEndpoint(msg, "stockquote05");
+                    mediation.sendToEndpoint(msg, "stockquote06");
+                    mediation.sendToEndpoint(msg, "stockquote07");
+                    mediation.sendToEndpoint(msg, "stockquote08");
+                    mediation.sendToEndpoint(msg, "stockquote09");
+                    mediation.sendToEndpoint(msg, "stockquote00");
+                    mediation.sendToEndpoint(msg, "stockquote11");
+                    mediation.sendToEndpoint(msg, "stockquote12");
+                    mediation.sendToEndpoint(msg, "stockquote13");
+                    mediation.sendToEndpoint(msg, "stockquote14");
+                    mediation.sendToEndpoint(msg, "stockquote15");
+                    mediation.sendToEndpoint(msg, "stockquote16");
+                    mediation.sendToEndpoint(msg, "stockquote17");
+                    mediation.sendToEndpoint(msg, "stockquote18");
+                    mediation.sendToEndpoint(msg, "stockquote19");
+                    mediation.sendToEndpoint(msg, "stockquote10");
+                    mediation.sendToEndpoint(msg, "stockquote21");
+                    mediation.sendToEndpoint(msg, "stockquote22");
+                    mediation.sendToEndpoint(msg, "stockquote23");
+                    mediation.sendToEndpoint(msg, "stockquote24");
+                    mediation.sendToEndpoint(msg, "stockquote25");
+                    mediation.sendToEndpoint(msg, "stockquote26");
+                    mediation.sendToEndpoint(msg, "stockquote27");
+                    mediation.sendToEndpoint(msg, "stockquote28");
+                    mediation.sendToEndpoint(msg, "stockquote29");
+                    mediation.sendToEndpoint(msg, "stockquote20");
+                ]]></u:java>
+            </u:inSequence>
+            <u:outSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.helper.MessageAggregator;"><![CDATA[
+                        if (msg.getMessageProperty(MessageAggregator.AggregationConstants.MERGED) == null) {
+                            MessageAggregator agg = mediation.getSpringBean("agg", MessageAggregator.class);
+                            agg.aggregate(msg);
+                        } else {
+                            mediation.getXMLSupport().mergeXMLAttachmentsUnderElement(msg, "root");
+                            XQuerySupport xq = mediation.getSpringBean("xq", XQuerySupport.class);
+                            xq.transformMessage(msg, "samples/resources/sample4.xq");
+                            mediation.sendToEndpoint(msg, "response");
+                        }
+                    ]]></u:java>
+            </u:outSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="stockquote00">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote01">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote02">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote03">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote04">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote05">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote06">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote07">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote08">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote09">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote10">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote11">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote12">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote13">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote14">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote15">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote16">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote17">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote18">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote19">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote20">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote21">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote22">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote23">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote24">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote25">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote26">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote27">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote28">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="stockquote29">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+
+    <u:endpoint id="response">
+        <u:address type="response"/>
+    </u:endpoint>
+
+    <!--Configures the in-memory aggregator to complete on receipt of three messages-->
+    <bean id="agg" class="org.adroitlogic.ultraesb.core.helper.InMemoryMessageAggregator">
+        <constructor-arg ref="ultra-config"/>
+        <property name="completionSize" value="30"/>
+    </bean>
+
+    <bean id="xq" class="org.adroitlogic.ultraesb.core.helper.XQuerySupportImpl">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+</beans>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+***********************************************************************************************************************
+
+    NOTE: This is the "default" deployment unit of the UltraESB, where the ESB can have any number of deployment units.
+    These deployment units placed under the conf/deployments directory, mainly defines proxy services, sequences and
+    endpoints, however it is also possible to include generic spring beans used by these elements in this spring
+    configuration file, all of which maybe loaded / unloaded at runtime dynamically
+
+    This defines two very simple services as basic examples. Refer the screen casts and other documented articles
+    found from http://docs.adroitlogic.org for simple or advanced configuration examples
+
+***********************************************************************************************************************
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <!--Defines a proxy service that is exposed over the transport definition with the ID "http-8280". This definition
+    is available in the ultra-root.xml, and typically defines the HTTP transport configuration over port 8280. The
+    service is exposed by default at the context path /service/<proxy-id> To change this context path, refer to the
+    HTTP transport configuration options
+
+    See http://adroitlogic.org/samples-articles-and-tutorials/16/55 for a quick introduction to proxy services-->
+    <u:proxy id="echo-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <!--This commented configuration fragment shows how a custom class maybe requested to mediate this incoming
+            message. Using a custom class allows IDE step-through debugging during development, and allows the sequence
+            operations to be compiled and deployed as a JAR file across multiple instances, preventing possible
+            alterations.
+
+            The Getting started guide [http://adroitlogic.org/samples-articles-and-tutorials/15/20] will
+            introduce you to how a proxy service maybe configured, tested and debugged with an intelligent IDE
+
+            Sequences maybe defined as Java code snippets or files, JSR-233 script snippets or files, compiled class
+            files or Spring beans etc. See http://adroitlogic.org/samples-articles-and-tutorials/15/22 for examples
+            of these options-->
+
+            <!--u:inSequence>
+                <u:class name="sample.SimpleJavaMediation1"/>
+            </u:inSequence-->
+
+            <!--An inDestination allows the definition of a target endpoint to send 'incoming' messages. If
+            a message was explicitly routed to an endpoint during the inSequence, this will not be used and need not be
+            defined (See samples on routing, mock services etc for examples)
+
+            Endpoints may define one or more addresses - and if load balancing, fail-over etc should be used between
+            them. See Samples for more options.
+            -->
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/EchoService</u:address>
+            </u:inDestination>
+
+            <!--This defines an inline sequence defined as a Java fragment. This allows 'easy' and powerful
+            configuration support for mediation, and does NOT require the user to compile, bundle, or deploy any code
+            unlike some of the other ESBs. Code specified in-line is automatically compiled at start-up and executed
+            as byte code.
+
+            A Java fragment or JSR-233 script sequence is passed three pre-defined variables:
+                msg - the current message (See API documentation for available methods)
+                mediation - a reference to a rich set of mediation utility methods (See API)
+                logger - a logging category that maybe used for user logging (see Log4J configuration log4j.properties)
+
+            See the mediation reference guide to learn about the rich and powerful API available, which can be used
+            with Java, or JSR-233 scripting languages alike http://adroitlogic.org/samples-articles-and-tutorials/16/51-->
+            <u:outSequence>
+                <u:java><![CDATA[
+                        System.out.println("Reply payload : " + mediation.readPayloadAsString(msg));
+                    ]]></u:java>
+            </u:outSequence>
+
+            <!--The outDestination defines where to send outgoing messages. Typically for a HTTP/S proxy service this
+            defaults to the special type 'response' - which means that the message is a response to an incoming message
+            and should be sent back as appropriate - i.e. on the same socket back to the client when using HTTP/S-->
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--This is a sample mock service that echos back HTTP/S request information. Note that there is only an inSequence
+    for this proxy service, as messages are simply processed and responses are returned back to the client using the
+    API methods.
+
+    UltraESB supports many options for Mock or real service development for any supported transport - such as HTTP/S,
+    JMS, AMQP, File, MLLP/S, Email, etc-->
+    <u:proxy id="echo-back" pinnedServers="node1,localhost">
+        <u:transport id="http-8280"/>
+        <u:transport id="https-8443"/>
+        <u:target errorSequence="error-handler">
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.http.HttpConstants;"><![CDATA[
+                        mediation.setPayloadFromString(msg,
+                                "<response>" +
+                                        "<method>" + mediation.getHTTPSupport().getMethod(msg) + "</method>" +
+                                        "<uri>" + msg.getDestinationURL() + "</uri>" +
+                                        "<query>" + mediation.getHTTPSupport().getQueryString(msg) + "</query>" +
+                                        "<request>" + mediation.readPayloadAsString(msg) + "</request>" +
+                                "</response>");
+                        mediation.sendResponse(msg, 200);
+                    ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

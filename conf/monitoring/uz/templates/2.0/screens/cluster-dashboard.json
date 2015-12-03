@@ -1,0 +1,70 @@
+{
+    "uz_meta": {
+        "parent": "screens-parent",
+        "cluster": "true"
+    },
+    "params": {
+        "name":"Cluster dashboard of the UltraESB cluster $installation$",
+        "screenitems":[{
+            "resourcetype":"0",
+            "resourceid":"Heap Memory Usage across the cluster",
+            "width":"500",
+            "height":"100",
+            "x":"0",
+            "y":"0",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }, {
+            "resourcetype":"0",
+            "resourceid":"Thread Usage across the cluster",
+            "width":"500",
+            "height":"100",
+            "x":"1",
+            "y":"0",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }, {
+            "resourcetype":"0",
+            "resourceid":"Open File Descriptors across the cluster",
+            "width":"500",
+            "height":"100",
+            "x":"0",
+            "y":"1",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }, {
+            "resourcetype":"0",
+            "resourceid":"Process CPU time across the cluster",
+            "width":"500",
+            "height":"100",
+            "x":"1",
+            "y":"1",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }]
+    }
+}

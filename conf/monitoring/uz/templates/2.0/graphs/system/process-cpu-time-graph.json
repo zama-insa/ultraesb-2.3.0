@@ -1,0 +1,19 @@
+{
+    "uz_meta": {
+        "parent": "graphs-parent",
+        "cluster": "true"
+    },
+    "params":{
+        "gitems":[{
+            "itemid":"$node.host$:jmx[java.lang:type=OperatingSystem][ProcessCpuTime]",
+            "drawtype":"0",
+            "sortorder":"0",
+            "color":"$node.color$",
+            "yaxisside":"0",
+            "calc_fnc":"2",
+            "type":"0",
+            "periods_cnt":"5"
+        }],
+        "name":"Process CPU time across the cluster"
+    }
+}

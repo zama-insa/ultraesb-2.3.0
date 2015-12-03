@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "proxy-service-item-parent"
+    },
+    "params":{
+        "description": "Errors handled by the proxy service ${.*}$ (incoming)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=ProxyServices,Name=${.*}$][Details.handledErrorInCount]"
+    }
+}

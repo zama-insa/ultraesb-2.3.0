@@ -1,0 +1,12 @@
+{
+    "uz_meta": {
+        "parent": "endpoint-item-parent"
+    },
+    "params":{
+        "name": "State of the endpoint ${.*}$",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.state]",
+        "value_type": 1,
+        "history": 12,
+        "delay": 180
+    }
+}

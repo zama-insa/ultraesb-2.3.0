@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<datasources>
+    <no-tx-datasource>
+
+        <jndi-name>NonTransactedDB</jndi-name>
+
+        <connection-url>jdbc:derby://localhost:1527/database</connection-url>
+        <driver-class>org.apache.derby.jdbc.ClientDriver</driver-class>
+        <user-name>admin</user-name>
+        <password>admin</password>
+
+        <!-- The minimum connections in a pool/sub-pool. Pools are lazily constructed on first use -->
+        <min-pool-size>5</min-pool-size>
+        <!-- The maximum connections in a pool/sub-pool -->
+        <max-pool-size>20</max-pool-size>
+        <!-- The time before an unused connection is destroyed -->
+        <idle-timeout-minutes>5</idle-timeout-minutes>
+        <!-- Whether to check all statements are closed when the connection is returned to the pool,
+        this is a debugging feature that should be turned off in production -->
+        <track-statements/>
+    </no-tx-datasource>
+</datasources>

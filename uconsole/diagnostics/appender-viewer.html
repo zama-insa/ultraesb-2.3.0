@@ -1,0 +1,73 @@
+<!--
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. All Rights Reserved.
+  -->
+<!doctype html>
+
+<html>
+<div id="container" title="Log Appenders">
+    <header class="helpedHeading">
+        <h2>Log Appenders</h2>
+        <div class="ultraHelp" title="Appenders">
+            <p>Lists configured Log4J appenders. You may change the conversion pattern and/or threshold of an appender.
+            Use this page to enable the MEMORY_APPENDER to view the tail end of the log file via the UConsole</p>
+        </div>
+    </header>
+    <section>Log appenders defined for logging</section>
+    <div class="outer_wrapper">
+    <table id="appenders" class="display">
+        <thead>
+        <tr>
+            <th>Appender Name</th>
+            <th>Conversion Pattern</th>
+            <th>Threshold</th>
+            <th>Control</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td id="name"></td>
+            <td id="pattern"></td>
+            <td id="threshold"></td>
+            <td id="control">
+                <img id="edit" class="edit clickable"  title="Edit"  src="icons/edit.png"/>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <script type="text/javascript">
+
+        function editAppender(appender) {
+            loadPage('index.html?pageName=diagnostics/edit-appender.html&appender=' + appender);
+        }
+
+        $(document).ready(function() {
+            var jqxhr = $.getJSON(getCallURLBase() + 'logging/appenders', function(dataset) {
+                var data = {appenders:dataset} ;
+
+                var directive = {
+                    'tbody tr' : {
+                        'appender<-appenders' : {
+                            'td#name' : 'appender.name',
+                            'td#pattern' : 'appender.pattern',
+                            'td#threshold' : function (appender) { if(appender.item.threshold != null) { return appender.item.threshold;} else {return '-';}},
+                            'td#control img#edit@onclick' : '{editAppender("#{appender.name}");}'
+                        }
+                    }
+                };
+
+                $('#appenders').render(data, directive);
+                oTable = $('#appenders').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers",
+                    "iDisplayLength": 50,
+                    "aoColumns" : [null, null, null, null]
+                });
+            });
+        });
+    </script>
+
+</div>
+</html>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Refer to the unit tests MockingWithXQueryTest for more details about this sample and a unit test for it-->
+
+    <!--Demonstrates a mock service exposed over HTTP, that uses a Java class 'samples.services.mock.XQueryMocker'
+    to handle requests. The optional XQuerySupport through the Saxon library is used in this example and thus requires
+    the library to be placed into the lib/optional directory for execution of this sample
+
+    Refer to the unit test source for the MockingWithXQueryTest and XQueryMocker for more information
+
+    This example emulates support for requests with ETags, where a valid Etag request returns a HTTP 304 and an invalid
+    Etag or a request without an Etag results in a JDBC query execution, and subsequent transformation of the results
+    using an XQuery script 'samples/resources/sample1.xq'
+
+    Note: This is a fairly advanced sample, and a new user should first refer into simple samples to get started-->
+    <u:proxy id="subscription-mock">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:class name="samples.services.mock.XQueryMocker"/>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="org.apache.derby.jdbc.ClientDriver"/>
+        <property name="url" value="jdbc:derby://localhost:1529/../modules/sample/target/unittestdb"/>
+        <property name="username" value="admin"/>
+        <property name="password" value="admin"/>
+    </bean>
+
+    <bean id="xq" class="org.adroitlogic.ultraesb.core.helper.XQuerySupportImpl">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+</beans>

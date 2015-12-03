@@ -1,0 +1,99 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="tabs-1">
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var jqxhr = $.getJSON(getCallURLBase() + "proxyservices/getServices", function(dataset) {
+                var blankSvcArray = [{id:""}];
+                var newDataSet = blankSvcArray.concat(dataset);
+                var data = {services:newDataSet};
+                var dir = {
+                    'option':{
+                        "service <- services":{
+                            ".":"#{service.id}",
+                            "@value":"service.id"
+                        },
+                        sort: function(a, b) {
+                            return a.id > b.id ? 1 : -1;
+                        }
+                    }
+                };
+
+                $('#proxyId-start').render(data, dir);
+                $('#proxyId-start').combobox();
+                $('#proxyId-stop').render(data, dir);
+                $('#proxyId-stop').combobox();
+                $('#proxyId-enbDbg').render(data, dir);
+                $('#proxyId-enbDbg').combobox();
+                $('#proxyId-disDbg').render(data, dir);
+                $('#proxyId-disDbg').combobox();
+            });
+        });
+    </script>
+    <fieldset id="proxy-control-ops">
+        <ul>
+            <li class="control-panel-li"><div class="start-proxy">
+                <label>Start proxy service with id</label>
+                <select id="proxyId-start" title="Proxy service id to be started">
+                    <option value="">Select one...</option>
+                </select>
+                <input type="button" class="button clickable" value="Start Proxy" title="Start proxy service"
+                       onclick="invokeOperation('proxyservice', 'proxy service', 'start', 'start', $('div.start-proxy input.ui-widget').val())"/>
+            </div></li>
+            <li class="control-panel-li"><div class="stop-proxy">
+                <label>Stop proxy service with id</label>
+                <select id="proxyId-stop" title="Proxy service id to be stopped">
+                    <option value="">Select one...</option>
+                </select>
+                <input type="button" class="button clickable" value="Stop Proxy" title="Stop proxy service"
+                       onclick="invokeOperation('proxyservice', 'proxy service', 'stop', 'stop', $('div.stop-proxy input.ui-widget').val())"/>
+            </div></li>
+            <br/>
+            <li class="control-panel-li"><div class="enbDbg-proxy">
+                <label>Enable debug of proxy service with id</label>
+                <select id="proxyId-enbDbg" title="Proxy service id of which debug will be enabled">
+                    <option value="">Select one...</option>
+                </select>
+                <input type="button" class="button clickable" value="Enable Debug" title="Enable debug of proxy service"
+                       onclick="invokeOperation('proxyservice', 'proxy service', 'enableDebug', 'enable debug for', $('div.enbDbg-proxy input.ui-widget').val())"/>
+            </div></li>
+            <li class="control-panel-li"><div class="disDbg-proxy">
+                <label>Disable debug of proxy service with id</label>
+                <select id="proxyId-disDbg" title="Proxy service id of which debug will be disabled">
+                    <option value="">Select one...</option>
+                </select>
+                <input type="button" class="button clickable" value="Disable Debug" title="Disable debug of proxy service"
+                       onclick="invokeOperation('proxyservice', 'proxy service', 'disableDebug', 'disable debug for', $('div.disDbg-proxy input.ui-widget').val())"/>
+            </div></li>
+        </ul>
+    </fieldset>
+</div>
+</html>

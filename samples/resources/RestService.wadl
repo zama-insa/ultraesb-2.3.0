@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<application xmlns="http://wadl.dev.java.net/2009/02">
+    <doc xmlns:jersey="http://jersey.java.net/" jersey:generatedBy="Jersey: 1.12 02/15/2012 05:30 PM"/>
+    <grammars/>
+    <resources base="http://localhost:9000/rest-services">
+        <resource path="/download">
+            <method id="downloadFile" name="GET">
+                <request>
+                    <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="token" style="query" type="xs:string"/>
+                    <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="file" style="query" type="xs:string"/>
+                    <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Accept-Encoding" style="header" type="xs:string"/>
+                </request>
+                <response>
+                    <representation mediaType="*/*"/>
+                </response>
+            </method>
+        </resource>
+        <resource path="/customers">
+            <method id="createCustomer" name="POST">
+                <request>
+                    <representation mediaType="application/xml"/>
+                </request>
+                <response>
+                    <representation mediaType="*/*"/>
+                </response>
+            </method>
+            <method id="getAll" name="GET">
+                <response>
+                    <representation mediaType="application/xml"/>
+                </response>
+            </method>
+            <resource path="{id}">
+                <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="id" style="template" type="xs:int"/>
+                <method id="getCustomer" name="GET">
+                    <response>
+                        <representation mediaType="application/xml"/>
+                    </response>
+                </method>
+                <method id="headCustomer" name="HEAD">
+                    <response>
+                        <representation mediaType="application/xml"/>
+                    </response>
+                </method>
+                <method id="deleteCustomer" name="DELETE"/>
+                <method id="updateCustomer" name="PUT">
+                    <request>
+                        <representation mediaType="application/xml"/>
+                    </request>
+                </method>
+            </resource>
+        </resource>
+    </resources>
+</application>

@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "proxy-service-item-parent"
+    },
+    "params":{
+        "description": "Messages processed by the proxy service ${.*}$ (incoming)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=ProxyServices,Name=${.*}$][Details.processedInCount]"
+    }
+}

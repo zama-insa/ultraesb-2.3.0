@@ -1,0 +1,114 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!doctype html>
+<html>
+    <div id="container" title="Sequences">
+        <header class="helpedHeading">
+            <h2>Sequences</h2>
+            <div class="ultraHelp" title="Sequences Help">
+            <div>
+                <p>The Sequences tab lists the sequences executing on the instance along with the status, and
+                other information such as the proxy service, state and sequence file (for JSR 223 or Java file sequences),
+                Bean name or class name for Spring bean and Java class sequences. A sequence can also be started,
+                stopped and enabled or disabled for debug, and any statistics reset</p>
+                <p>To search for a Sequence of interest, or to filter sequences displayed type the ID or
+                any part of it, on the <b>Search</b> box on top of the table</p>
+            </div>
+        </div>
+        </header>
+        <section>Standalone / reusable Sequences defined on the instance</section>
+        <div class="outer_wrapper">
+        <table class="display" id="tblSequences">
+            <thead>
+                <tr><th>ID</th><th>Info</th><th>Proxy</th><th>State</th><th>Control</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="id"><a href="index.html?pageName=node-mgt/sequence-details.html&id="></a></td>
+                    <td class="seqinf"></td>
+                    <td class="proxyID"></td>
+                    <td class="state "></td>
+                    <td class="control">
+                        <img class="start clickable" title="Start" src="icons/start.png"/>
+                        <img class="stop clickable"  title="Stop"  src="icons/stop.png"/>
+                        <img class="enabledebug clickable" title="Enable Debug" src="icons/enable-debug.png"/>
+                        <img class="disabledebug clickable" title="Disable Debug" src="icons/disable-debug.png"/>
+                        <img class="resetStatistics clickable"  title="Reset Statistics"  src="icons/reset.png"/>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+
+        <script type="text/javascript" src="js/sequence-support.js"></script>
+        <script type="text/javascript">
+
+            $(document).ready(function() {
+                var jqxhr = $.getJSON(getCallURLBase() + "sequences/getSequences", function(dataset) {
+                    var data = {sequences:dataset};
+                    var dataDirective = {
+                        'tbody tr':{
+                            'sequence<-sequences':{
+                                'td.id a':function(sequence){if (null == sequence.item.id) {return "-";} else { return sequence.item.id;}},
+                                'td.id a@title':'sequence.id',
+                                'td.seqinf':function(sequence){if (null == sequence.item.info) {return "-";} else { return sequence.item.info;}},
+                                'td.seqinf@title':'sequence.info',
+                                'td.proxyID':function(sequence){if (null == sequence.item.proxyID) {return "-";} else { return sequence.item.proxyID;}},
+                                'td.proxyID@title':'sequence.proxyID',
+                                'td.id a@href+':'sequence.id',
+                                'td.state' :function(sequence){if (null == sequence.item.state) {return "-";} else { return sequence.item.state;}},
+                                'td.state@title' : 'sequence.state',
+                                'td.state @class+' : 'sequence.state',
+                                'td.control img.start@onclick'          :'{startSequence("#{sequence.id}" , "#{sequence.state}");}',
+                                'td.control img.start@id'               : function (sequence) { return sequence.item.id + "-start"} ,
+                                'td.control img.stop@onclick'           : '{endSequence("#{sequence.id}" , "#{sequence.state}");}',
+                                'td.control img.stop@id'                : function (sequence) { return sequence.item.id + "-stop"},
+                                'td.control img.enabledebug@onclick'    : '{enableDebugSequence("#{sequence.id}" , "#{sequence.debugOn}");}',
+                                'td.control img.enabledebug@id'         : function (sequence) { return sequence.item.id + "-enDebug"},
+                                'td.control img.disabledebug@onclick'   : '{disableDebugSequence("#{sequence.id}" , "#{sequence.debugOn}");}',
+                                'td.control img.disabledebug@id'        : function (sequence) { return sequence.item.id + "-disDebug"},
+                                'td.control img.resetStatistics@onclick': '{resetStatisticsSequence("#{sequence.id}");}',
+                                'td.control img.enabledebug@onload'     : '{displayDebugIcon("#{sequence.id}" ,"#{sequence.debugOn}");}',
+                                'td.control img.start@onload'           : '{displayIcon("#{sequence.id}" ,"#{sequence.state}");}'
+                            }
+                        }
+                    };
+                    $('#tblSequences').render(data, dataDirective);
+                    encodeURLs();
+                    $('#tblSequences').dataTable({
+                        "bLengthChange": true,
+                        "bJQueryUI": true,
+                        "sPaginationType": "full_numbers",
+                        "aoColumns" : [null, null, null, null, {"sWidth": "100px"}]
+                    });
+                });
+            });
+        </script>
+    </div>
+</html>

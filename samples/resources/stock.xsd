@@ -1,0 +1,17 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://soap.services.samples/"
+           targetNamespace="http://soap.services.samples/" version="1.0">
+
+    <xs:include schemaLocation="common.xsd"/>
+
+    <xs:element name="getFullQuote" type="tns:getFullQuote"/>
+    <xs:element name="getFullQuoteResponse" type="tns:getFullQuoteResponse"/>
+    <xs:element name="getMarketActivity" type="tns:getMarketActivity"/>
+    <xs:element name="getMarketActivityResponse" type="tns:getMarketActivityResponse"/>
+    <xs:element name="getQuote" type="tns:getQuote"/>
+    <xs:element name="getQuoteResponse" type="tns:getQuoteResponse"/>
+    <xs:element name="getSimpleQuote" type="tns:getSimpleQuote"/>
+    <xs:element name="getSimpleQuoteResponse" type="tns:getSimpleQuoteResponse"/>
+    <xs:element name="placeOrder" type="tns:placeOrder"/>
+    <xs:element name="placeOrderResponse" type="tns:placeOrderResponse"/>
+
+</xs:schema>

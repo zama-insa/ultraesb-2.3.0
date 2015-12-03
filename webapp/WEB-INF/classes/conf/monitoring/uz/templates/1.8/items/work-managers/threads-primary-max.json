@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "work-manager-item-parent"
+    },
+    "params":{
+        "description": "Threads of the work manager ${.*}$ (primary-max)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=WorkManagers,Name=${.*}$][Details.primaryMaxThreads]"
+    }
+}

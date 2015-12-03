@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+        "http://java.sun.com/dtd/web-app_2_3.dtd">
+
+<web-app>
+    <display-name>UltraESB sample backend services</display-name>
+
+    <!--RESTful sample-->
+    <servlet>
+        <servlet-name>Resteasy</servlet-name>
+        <display-name>Resteasy</display-name>
+        <servlet-class>org.apache.cxf.jaxrs.servlet.CXFNonSpringJaxrsServlet</servlet-class>
+        <init-param>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>samples.services.restful.shop.services.ShoppingApplication</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <!--JAX-WS Sample-->
+    <listener>
+        <listener-class>com.sun.xml.ws.transport.http.servlet.WSServletContextListener</listener-class>
+    </listener>
+
+    <!--JAX-WS Sample-->
+    <servlet>
+        <servlet-name>stockquote</servlet-name>
+        <servlet-class>com.sun.xml.ws.transport.http.servlet.WSServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>errorquote</servlet-name>
+        <servlet-class>com.sun.xml.ws.transport.http.servlet.WSServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>multiply</servlet-name>
+        <servlet-class>com.sun.xml.ws.transport.http.servlet.WSServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>arrayMultiplication</servlet-name>
+        <servlet-class>com.sun.xml.ws.transport.http.servlet.WSServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>patient</servlet-name>
+        <servlet-class>com.sun.xml.ws.transport.http.servlet.WSServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <!--Echo servlet -->
+    <servlet>
+        <servlet-name>EchoService</servlet-name>
+        <servlet-class>samples.services.http.EchoService</servlet-class>
+    </servlet>
+
+    <!--Text Servlet-->
+    <servlet>
+        <servlet-name>TextServlet</servlet-name>
+        <servlet-class>samples.services.http.TextServlet</servlet-class>
+    </servlet>
+    <!--Json Servlet-->
+    <servlet>
+        <servlet-name>JsonServlet</servlet-name>
+        <servlet-class>samples.services.http.JsonServlet</servlet-class>
+    </servlet>
+    <!--Html Servlet-->
+    <servlet>
+        <servlet-name>HtmlServlet</servlet-name>
+        <servlet-class>samples.services.http.HtmlServlet</servlet-class>
+    </servlet>
+
+    <!--RESTful sample-->
+    <servlet-mapping>
+        <servlet-name>Resteasy</servlet-name>
+        <url-pattern>/rest-services/*</url-pattern>
+    </servlet-mapping>
+
+    <!--JAX-WS Sample-->
+    <servlet-mapping>
+        <servlet-name>stockquote</servlet-name>
+        <url-pattern>/service/SimpleStockQuoteService</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>errorquote</servlet-name>
+        <url-pattern>/service/ErrorStockQuoteService</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>multiply</servlet-name>
+        <url-pattern>/service/MultiplicationService</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>arrayMultiplication</servlet-name>
+        <url-pattern>/service/ArrayMultiplication</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>patient</servlet-name>
+        <url-pattern>/service/PatientInformationService</url-pattern>
+    </servlet-mapping>
+
+    <!--Echo Servlet-->
+    <servlet-mapping>
+        <servlet-name>EchoService</servlet-name>
+        <url-pattern>/service/EchoService</url-pattern>
+    </servlet-mapping>
+
+    <!--Text Servlet-->
+    <servlet-mapping>
+        <servlet-name>TextServlet</servlet-name>
+        <url-pattern>/service/TextServlet</url-pattern>
+    </servlet-mapping>
+
+    <!--Json Servlet-->
+    <servlet-mapping>
+        <servlet-name>JsonServlet</servlet-name>
+        <url-pattern>/service/JsonServlet</url-pattern>
+    </servlet-mapping>
+
+    <!--Html Servlet-->
+    <servlet-mapping>
+        <servlet-name>HtmlServlet</servlet-name>
+        <url-pattern>/service/HtmlServlet</url-pattern>
+    </servlet-mapping>
+
+</web-app>

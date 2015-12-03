@@ -1,0 +1,10 @@
+{
+    "uz_meta": {
+        "parent": "system-triggers-parent"
+    },
+    "params":{
+        "description": "Less than two instances are available in the ESB cluster",
+        "expression": "{$host$:jmx[org.adroitlogic.ultraesb:Type=ClusterManagement,Name=Cluster][ActiveNodeCount].last(0)}<2",
+        "priority": "2"
+    }
+}

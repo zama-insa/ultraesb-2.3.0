@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--This configuration is used in Performance Testing of the UltraESB-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="prod"/>
+                <property name="deploymentUnitsEnabled" value="false"/>
+            </bean>
+        </property>
+    </bean>
+
+    <!--This is a variation of sample #900 for unit testing-->
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg value="/tmp"/>
+        <constructor-arg value="10" type="int"/>
+        <constructor-arg value="true" type="boolean"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+        <property name="zeroCopyEnabled" value="true"/>
+        <property name="requestFilters">
+            <list>
+                <bean class="org.adroitlogic.ultraesb.transport.http.ServiceResourceRequestFilter">
+                    <property name="resourcePrefix" value="http://localhost:8280"/>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <bean id="https-sender" class="org.adroitlogic.ultraesb.transport.http.HttpsNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+
+    <!--=================================================================-->
+    <!--The Performance Test Scenario specific configuration and services-->
+    <!--=================================================================-->
+
+    <!--The test endpoint used to make requests and receive an echo back-->
+    <u:endpoint id="RealService">
+        <u:address>http://localhost:9000/service/EchoService</u:address>
+    </u:endpoint>
+
+    <!--A Direct and simple proxy service with a custom error sequence that hides the actual cause from the client-->
+    <u:proxy id="DirectProxy">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.wsdl_url" value="file:samples/resources/perf/ProxyWSDL-embedded.wsdl"/>
+        </u:transport>
+        <u:target inDestination="RealService">
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    mediation.getSOAPSupport().setPayloadToSOAP11Fault(msg, null, "Error", null);
+                    mediation.sendResponse(msg, 500);
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--A content based routing proxy that only forwards orders where the first symbol is for 'IBM'-->
+    <u:proxy id="CBRProxy">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.wsdl_url" value="file:samples/resources/perf/ProxyWSDL-embedded.wsdl"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    if (mediation.getXMLSupport().filter(msg, "//order[1]/symbol", "IBM")) {
+                        mediation.sendToEndpoint(msg, "RealService");
+                    } else {
+                        mediation.getSOAPSupport().setPayloadToSOAP11Fault(msg, null, "First order must be for the symbol IBM", null);
+                        mediation.sendResponse(msg, 500);
+                    }
+                ]]></u:java>
+            </u:inSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--A Proxy service performing XSLT transformation of the request and response-->
+    <u:proxy id="XSLTProxy">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.wsdl_url" value="file:samples/resources/perf/ProxyWSDL-embedded.wsdl"/>
+        </u:transport>
+        <u:target inDestination="RealService">
+            <u:inSequence>
+                <u:java><![CDATA[
+                    mediation.getXMLSupport().transform(msg, "samples/resources/perf/transform_env_reverse.xslt", null);
+                ]]></u:java>
+            </u:inSequence>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    mediation.getXMLSupport().transform(msg, "samples/resources/perf/transform_env.xslt", null);
+                ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--The WS-Security Proxy service that validates a request and forwards valid requests to the backend-->
+    <u:proxy id="SecureProxy">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.wsdl_url" value="file:samples/resources/perf/ProxyWSDL-embedded.wsdl"/>
+        </u:transport>
+        <u:target inDestination="RealService">
+            <u:inSequence>
+                <u:java import="org.adroitlogic.soapbox.api.*;"><![CDATA[
+                try {
+                    WSSecurityManager wssecMgr = mediation.getSpringBean("wssecMgr", WSSecurityManager.class);
+                    wssecMgr.verifyTimestampedEncryptedAndSignedMessage(msg, true);
+                } catch (Exception e) {
+                    mediation.getSOAPSupport().setPayloadToSOAP11Fault(msg, null, "Security validation failed : " + e.getMessage(), null);
+                    mediation.sendResponse(msg, 500);
+                }
+                ]]></u:java>
+            </u:inSequence>
+            <u:outSequence>
+                <u:java import="org.adroitlogic.soapbox.api.*;"><![CDATA[
+                    WSSecurityManager wssecMgr = mediation.getSpringBean("wssecMgr", WSSecurityManager.class);
+                    wssecMgr.timestampSignAndEncryptMessage(msg, "bob", "alice");
+                ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--Definition and initialization of the WS-Security support and keystores-->
+    <bean id="wssecMgr" class="org.adroitlogic.soapbox.WSSecurityManager">
+        <!--The identity keystore and trust keystore are the same store.jks -->
+        <constructor-arg value="samples/resources/perf/store.jks"/>
+        <constructor-arg value="password"/>
+        <constructor-arg>
+            <map>
+                <entry key="alice" value="password"/>
+                <entry key="bob" value="password"/>
+            </map>
+        </constructor-arg>
+    </bean>
+
+</beans>

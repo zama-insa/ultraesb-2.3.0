@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg value="10" type="int"/>
+    </bean>
+
+    <bean id="file" class="org.adroitlogic.ultraesb.transport.file.FileTransportSender"/>
+
+    <bean id="mllp-51575" class="org.adroitlogic.ultraesb.transport.mllp.MLLPNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="51575"/>
+    </bean>
+
+    <bean id="amqp-sender" class="org.adroitlogic.ultraesb.transport.amqp.AMQPTransportSender">
+        <property name="template" ref="rabbitmq-template"/>
+    </bean>
+
+    <bean id="rabbitmq-template" class="org.springframework.amqp.rabbit.core.RabbitTemplate">
+        <property name="connectionFactory" ref="rabbitConnectionFactory"/>
+        <property name="messageConverter">
+            <bean class="org.adroitlogic.ultraesb.transport.amqp.AMQPMessageConverter"/>
+        </property>
+        <!-- default exchange, applied to messages sent without specifying an exchange without this property messages
+        without an exchange will be dispatched to the default exchange of the broker, which is a direct exchange in
+        general which maps to a queue with the given routing-key directly -->
+        <!--<property name="exchange" value="amq.topic"/>-->
+    </bean>
+
+    <bean id="rabbitConnectionFactory" class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
+        <constructor-arg value="localhost"/>
+        <property name="username" value="guest"/>
+        <property name="password" value="guest"/>
+        <property name="channelCacheSize" value="25"/>
+    </bean>
+
+    <u:proxy id="hl7-proxy">
+        <u:transport id="mllp-51575"/>
+        <u:target>
+            <u:inSequence>
+                <u:class name="org.adroitlogic.ultraesb.hl7.HL72AMQPSampleInSequence"/>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:sequence id="error-handler">
+        <u:class name="org.adroitlogic.ultraesb.hl7.SampleErrorHandler"/>
+    </u:sequence>
+    
+    <u:endpoint id="file-archive">
+        <u:address>file://tmp/hl7/adt</u:address>
+        <!-- File name can be made dynamic by calling the API mediation.getFileSupport().setFileName(msg, $FILE_NAME);
+        before calling this endpoint -->
+        <u:property name="ultra.file.name" value="received.hl7"/>
+        <u:property name="ultra.file.timestamp_format" value="yyyy_MM_dd_'T'HH_mm_ss.SSSSZ"/>
+    </u:endpoint>
+
+    <u:endpoint id="failure-archive">
+        <u:address>file://tmp/hl7/failed</u:address>
+        <u:property name="ultra.file.name" value="failed.hl7"/>
+        <u:property name="ultra.file.timestamp_format" value="yyyy_MM_dd_'T'HH_mm_ss.SSSSZ"/>
+    </u:endpoint>
+
+    <u:endpoint id="amqp-destination">
+        <!-- address protocol = amqp:/{exchange-name?}{routing-key} -->
+        <u:address>amqp:/adt.sample-route</u:address>  <!-- use msg.setDestinationURL() and the send to default endpoint to make the routing key dynamic -->
+        <!-- This property can be set in the message as a message property to make this dynamic before calling the send -->
+        <u:property name="ultra.amqp.exchange" value="amq.topic"/>
+    </u:endpoint>
+
+    <u:endpoint id="default">
+        <u:address type="default"/>
+    </u:endpoint>
+
+</beans>

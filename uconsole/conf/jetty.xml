@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
+
+<Configure id="Server" class="org.eclipse.jetty.server.Server">
+
+    <!-- =========================================================== -->
+    <!-- Server Thread Pool                                          -->
+    <!-- =========================================================== -->
+    <Set name="threadPool">
+        <New class="org.eclipse.jetty.util.thread.QueuedThreadPool">
+          <Set name="minThreads">4</Set>
+          <Set name="maxThreads">20</Set>
+        </New>
+    </Set>
+
+    <!-- =========================================================== -->
+    <!-- Set connectors                                              -->
+    <!-- =========================================================== -->
+    <Call name="addConnector">
+        <Arg>
+            <New class="org.eclipse.jetty.server.ssl.SslSocketConnector">
+                <Arg>
+                    <New class="org.eclipse.jetty.util.ssl.SslContextFactory">
+                        <Set name="keyStore"><SystemProperty name="uconsole.home" default=""/>conf/keys/identity.jks</Set>
+                        <Set name="keyStorePassword">password</Set>
+                        <Set name="keyManagerPassword">password</Set>
+                        <Set name="trustStore"><SystemProperty name="uconsole.home" default=""/>conf/keys/identity.jks</Set>
+                        <Set name="trustStorePassword">password</Set>
+                        <Set name="allowRenegotiate">false</Set>
+                    </New>
+                </Arg>
+                <Set name="Port"><Property name="uconsole.port" default="8043"/></Set>
+                <Set name="Host"><Property name="uconsole.host" default="localhost"/></Set>
+                <Set name="Acceptors">2</Set>
+                <Set name="maxIdleTime">30000</Set>
+            </New>
+        </Arg>
+    </Call>
+
+    <Call name="addBean">
+        <Arg>
+            <New class="org.adroitlogic.ultraesb.admin.util.WebErrorHandler"/>
+        </Arg>
+    </Call>
+
+    <!-- Stops the server when ctrl+c is pressed (registers to Runtime.addShutdownHook) -->
+    <Set name="stopAtShutdown">true</Set>
+
+    <!-- send the server version in the response header? -->
+    <Set name="sendServerVersion">false</Set>
+
+    <!-- send the date header in the response header? -->
+    <Set name="sendDateHeader">true</Set>
+
+    <!-- allows requests(prior to shutdown) to finish gracefully -->
+    <Set name="gracefulShutdown">1000</Set>
+</Configure>

@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="100"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+        <property name="requestFilters">
+            <list>
+                <bean class="org.adroitlogic.ultraesb.transport.http.ServiceResourceRequestFilter">
+                    <property name="resourcePrefix" value="http://localhost:8280"/>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <bean id="https-sender" class="org.adroitlogic.ultraesb.transport.http.HttpsNIOSender">
+        <constructor-arg ref="fileCache"/>
+        <property name="nonProductionNoRemoteCertValidation" value="true"/>
+        <property name="hostnameVerifier" value="AllowAll"/>
+    </bean>
+
+    <!--Refer to the unit test WSSecTest for more details about this sample and a unit test for it-->
+
+    <!--Demonstrates a WS-Security secured SOAP Proxy that validates the request with UsernameToken authentication
+    and then decrypts and verifies the signature and timestamp. On a asecurity failure, the exact error details are
+    hidden for security purposes, and a general error message with a SOAP fault returned.
+
+    If a request satisfies the security constraints, its forwarded to the simple stockquote service, and the response
+    is secured with the encryption for alias bob and signed with alias for alice from the keystore
+
+    See http://adroitlogic.org/samples-articles-and-tutorials/17/44 for more details-->
+    <u:proxy id="ws-sec-proxy">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.wsdl_url" value="file:samples/resources/SimpleStockQuoteService.wsdl"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                        try {
+                            org.adroitlogic.soapbox.api.WSSecurityManager wssecMgr = mediation.getWSSecurityManager();
+                            wssecMgr.verifyUsernameTokenAuthentication(msg);
+                            wssecMgr.verifyTimestampedEncryptedAndSignedMessage(msg, true);
+
+                            System.out.println("Validated User : " + msg.getMessageProperty(MessageSecurityContext.USER_NAME));
+                            System.out.println("Validated Roles : " + msg.getMessageProperty(MessageSecurityContext.USER_ROLES));
+                        } catch (Exception e) {
+                            mediation.getSOAPSupport().setPayloadToSOAP11Fault(msg, null, "Security validation failed", null);
+                            mediation.sendResponse(msg, 500);
+                        }
+                    ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    mediation.getWSSecurityManager().timestampSignAndEncryptMessage(msg, "bob", "alice");
+                ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--Demonstrates a proxy service that adds WS-Security to an outgoing message. Thus a simple SOAP request is
+    timestamped, signed (alias alice) and encrypted (alias bob) and forwarded to the Secure stock quote service
+    The response received is validated and the WS-Security removed from the message payload and forwarded to the
+    original client-->
+    <u:proxy id="add-ws-sec-proxy">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.wsdl_url" value="file:samples/resources/SimpleStockQuoteService.wsdl"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    mediation.getWSSecurityManager().timestampSignAndEncryptMessage(msg, "bob", "alice");
+                    mediation.getWSSecurityManager().addUsernameTokenAuthentication(msg, "asankha", "adroitlogic", false, true, false);
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:8280/service/ws-sec-proxy</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    mediation.getWSSecurityManager().verifyTimestampedEncryptedAndSignedMessage(msg, true);
+                ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--Demonstrates adding WS-Security UsernameToken authentication with a timestamp to an outgoing request-->
+    <u:proxy id="hello-proxy">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.wsdl_url" value="file:samples/resources/SimpleStockQuoteService.wsdl"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    mediation.getWSSecurityManager().addPlainUsernameTokenAuthenticationWithTimestamp(msg, "admin", "admin");
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>https://localhost:9443/services/HelloService.HelloServiceHttpsSoap11Endpoint</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="ws-sec-proxy-certs">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.wsdl_url" value="file:samples/resources/SimpleStockQuoteService.wsdl"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="java.security.cert.*;"><![CDATA[
+                        try {
+                            org.adroitlogic.soapbox.api.WSSecurityManager wssecMgr = mediation.getWSSecurityManager();
+                            wssecMgr.verifyTimestampedEncryptedAndSignedMessage(msg, true);
+
+                            X509Certificate[] certs = (X509Certificate[]) msg.getMessageProperty(MessageSecurityContext.USER_CERTS);
+                            System.out.println("Subject Principal : " + certs[0].getSubjectX500Principal());
+                        } catch (Exception e) {
+                            mediation.getSOAPSupport().setPayloadToSOAP11Fault(msg, null, "Security validation failed", null);
+                            mediation.sendResponse(msg, 500);
+                        }
+                    ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--Defines the WSSecurityManager bean to use the WS-Security support of the UltraESB. This is initialized by
+    passing the identity and trust keystores and passwords. The variation of the constructor used in this example
+    is when both the identity and trust stores are one and the same. This sample keystore is the defacto keystore
+    used in standard WS-Security samples for interoperability-->
+    <bean id="wssecMgr" class="org.adroitlogic.soapbox.WSSecurityManager">
+        <constructor-arg value="samples/conf/keys/ws-sec-keystore.jks"/>
+        <!--<constructor-arg value="file:samples/conf/keys/ws-sec-keystore.jks"/>-->
+        <!--<constructor-arg value="ucpath:ws-sec-keystore.jks"/>-->
+        <constructor-arg value="password"/>
+        <constructor-arg>
+            <map>
+                <entry key="alice" value="password"/>
+                <entry key="bob" value="password"/>
+            </map>
+        </constructor-arg>
+        <property name="userDetailsService" ref="plain-user-service"/>
+    </bean>
+
+    <!-- Usernames/Password is asankha/adroitlogic -->
+    <s:authentication-manager alias="authenticationManager">
+    <s:authentication-provider>
+        <s:user-service id="plain-user-service">
+            <s:user name="asankha" password="adroitlogic" authorities="ROLE_USER, ROLE_MANAGER"/>
+        </s:user-service>
+    </s:authentication-provider>
+    </s:authentication-manager>
+
+</beans>

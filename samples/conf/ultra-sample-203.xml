@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Refer to the unit test SOAPMediationTest for more details about this sample and a unit test for it-->
+    
+    <!--Demonstrates a SOAP proxy service that specifies its inDestination and outDestination by reference to the
+    re-usable endpoints 'stockquote' and 'response'. The inSequence is assigned another sequence 'sequenceErrorHandler'
+    to be invoked on an error. Thus, if the request fails schema validation, the error handler sequence will be 
+    invoked to return a SOAP fault.
+
+    The Schema validation can take in multiple XSD files - e.g. when one XSD imports or includes others, however the
+    underlying Xerces parser is sensitive to the order. Refer to the API documentation for more details.
+
+    The element to be validated is extracted from an optional XPath expression if specified.-->
+    <u:proxy id="soap-proxy-1">
+        <u:transport id="http-8280"/>
+        <u:target inDestination="stockquote" outDestination="response">
+            <u:inSequence onErrorInvoke="sequenceErrorHandler">
+                <u:java><![CDATA[
+                    String[] schemas = {"samples/resources/stock.xsd", "samples/resources/common.xsd"};
+                    mediation.getXMLSupport().validate(msg, schemas, "//soap:getQuote",
+                            new String[] {"soap", "http://soap.services.samples/"});
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--This SOAP proxy demonstrates a Service level error handler, that will be called on an error on the
+    inSequence or outSequence of a proxy service. In this example, a stock quote request for any symbol other
+    than 'ADRT' is sent to an invalid and non-existent endpoint, which triggers a fault. The serviceErrorHandler
+    sequence is then called to handle the error and return a SOAP fault-->
+    <u:proxy id="soap-proxy-2">
+        <u:transport id="http-8280"/>
+        <u:target inDestination="stockquote" outDestination="response" errorSequence="serviceErrorHandler">
+            <u:inSequence>
+                <u:java><![CDATA[
+                    if (mediation.getXMLSupport().filter(msg, "//soap:getQuote/request/symbol", "ADRT",
+                            new String[] {"soap", "http://soap.services.samples/"})) {
+                        mediation.sendToEndpoint(msg, "stockquote");
+                    } else {
+                        mediation.sendToEndpoint(msg, "stockquote-err");
+                    }
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:sequence id="sequenceErrorHandler">
+        <u:java><![CDATA[
+            System.out.println("Error handler called");
+            mediation.getSOAPSupport().setPayloadToSOAP11Fault(msg, null, "Validation Failed", msg.getLastException().toString());
+            mediation.sendResponseAndDrop(msg, 500);
+        ]]></u:java>
+    </u:sequence>
+    
+    <u:sequence id="serviceErrorHandler">
+        <u:java><![CDATA[
+            System.out.println("Service error handler called");
+            mediation.getSOAPSupport().setPayloadToSOAP11Fault(msg, null, "Generic service error", msg.getLastException().toString());
+            mediation.sendResponseAndDrop(msg, 500);
+        ]]></u:java>
+    </u:sequence>
+
+    <u:endpoint id="stockquote">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+
+    <u:endpoint id="stockquote-err">
+        <u:address>http://localhost:9002/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+
+    <u:endpoint id="response">
+        <u:address type="response"/>
+    </u:endpoint>
+
+</beans>

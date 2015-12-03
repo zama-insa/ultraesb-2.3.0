@@ -1,0 +1,8 @@
+mappings = {
+  gender(
+    F      : 'W',
+
+    (ELSE) : { it }
+  )
+}
+

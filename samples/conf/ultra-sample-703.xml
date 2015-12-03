@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This example shows distributed transactions in action, including transaction suspend and resume, and interleaving of
+non-JTA transactions in-between. This example is configured for use without a JEE application server using the Atomikos
+transaction essentials. This example is similar to sample 702, but uses an externally hosted ActiveMQ 5.x as the
+JMS provider.
+
+However, due to a bug with ActiveMQ [https://issues.apache.org/activemq/browse/AMQ-1152] the XA re-delivery upon
+rollback does not operate correctly as of ActiveMQ 5.3.1
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <!--This bean definition is a required part of any UltraESB configuration and is for internal use only -->
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg value="tmp"/>
+        <constructor-arg value="20" type="int"/>
+    </bean>
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!-- The JMS listener - Supports same properties as per the Spring DefaultMessageListenerContainer -->
+    <bean id="jms-lsnr" class="org.adroitlogic.ultraesb.transport.jms.JMSTransportListener">
+        <property name="connectionFactory" ref="queueConnectionFactory"/>
+        <property name="transactionManager" ref="txManager"/>
+        <property name="sessionTransacted" value="true"/>
+    </bean>
+
+    <!-- This is a special wrapper transaction manager to be set as the transaction manager for a JMS Listener. It
+    allows transaction suspend and resume from different threads -->
+    <bean id="txManager" class="org.adroitlogic.ultraesb.core.spring.SpringPlatformTransactionManager">
+        <property name="txnManager" ref="transactionManager"/>
+    </bean>
+    <!-- This is the standard JTA transaction manager from Spring, that auto-configures against the transaction
+     manager implementation available -->
+    <bean id="transactionManager"  class="org.springframework.transaction.jta.JtaTransactionManager">
+        <property name="transactionManager" ref="atomikosTransactionManager"/>
+        <property name="userTransaction" ref="atomikosUserTransaction"/>
+    </bean>
+
+    <bean id="atomikosTransactionManager" class="com.atomikos.icatch.jta.UserTransactionManager" init-method="init" destroy-method="close">
+        <property name="forceShutdown" value="true"/>
+    </bean>
+
+    <bean id="atomikosUserTransaction" class="com.atomikos.icatch.jta.UserTransactionImp"/>
+
+    <bean id="queueConnectionFactory" class="com.atomikos.jms.QueueConnectionFactoryBean" init-method="init">
+        <property name="resourceName" value="Execution_Q"/>
+        <property name="xaQueueConnectionFactory" ref="xaFactory"/>
+    </bean>
+
+    <bean id="xaFactory" class="org.apache.activemq.ActiveMQXAConnectionFactory">
+        <constructor-arg value="tcp://localhost:61616"/>
+        <property name="redeliveryPolicy">
+            <bean class="org.apache.activemq.RedeliveryPolicy">
+                <property name="initialRedeliveryDelay" value="1000" />
+                <property name="useExponentialBackOff" value="false" />
+                <property name="maximumRedeliveries" value="3" />
+            </bean>
+        </property>
+    </bean>
+
+    <!--The Spring DataSourceTransactionManager for use with the non-transactional Datasource defined above-->
+    <bean id="nonTxManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="nonTxDS"/>
+    </bean>
+
+    <bean id="nonTxDS" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="org.apache.derby.jdbc.ClientDriver"/>
+        <property name="url" value="jdbc:derby://localhost:1527/database;user=admin;password=admin"/>
+    </bean>
+
+    <bean id="txDS" class="com.atomikos.jdbc.SimpleDataSourceBean" init-method="init" destroy-method="close">
+        <property name="uniqueResourceName" value="XADBMS"/>
+        <property name="xaDataSourceClassName" value="org.apache.derby.jdbc.ClientXADataSource40"/>
+        <property name="xaDataSourceProperties" value="user=admin;password=admin;serverName=127.0.0.1;portNumber=1527;databaseName=database"/>
+        <property name="exclusiveConnectionMode" value="true"/>
+        <property name="connectionPoolSize" value="10"/>
+    </bean>
+
+    <!--The Proxy service that listens for Text JMS messages of the form "<symbol> <quantity> <price>" from the
+    JMS Queue with the JNDI name "java:/OrderQueue" -->
+    <u:proxy id="jmsProxyIN">
+        <u:transport id="jms-lsnr">
+            <u:property name="ultra.jms.destination" value="OrderQueue"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.springframework.jdbc.core.*;"><![CDATA[
+
+                        String msgBody = mediation.readPayloadAsString(msg);
+                        logger.info("New order message received : " + msgBody);
+
+                        // Simple extraction of message data
+                        String symbol = msgBody.split(" ")[0];
+                        int quantity = Integer.parseInt(msgBody.split(" ")[1]);
+                        double price = Double.parseDouble(msgBody.split(" ")[2]);
+
+                        // suspend the transaction against transaction manager "txManager"
+                        // Note: this is the TM used to read the JMS message (See JMS listener configuration)
+                        msg.suspendTransaction("txManager");
+
+                        // begin a new non-JTA transaction for use with the non-transactional Datasource and log
+                        // message properties and commit. Note that this commit is now independent of the JTA
+                        // transaction used to read the JMS message, and is now suspended
+                        msg.beginTransaction("nonTxManager");
+                        JdbcTemplate t = new JdbcTemplate(mediation.getDataSource("nonTxDS"));
+                        t.update("insert into ORDERS_RECEIVED values(?,?,?,?)",
+                            new Object[] {msg.getMessageUUID().toString(), symbol, quantity, price});
+                        msg.commitTransaction();
+
+                        // Request for message properties to be made available with the asynchronous response
+                        msg.addResponseCorrelation("symbol", symbol);
+                        msg.addResponseCorrelation("quantity", quantity);
+                        msg.addResponseCorrelation("price", price);
+                        // create a stock quote request message - Note, we use a simple String message for simplicity,
+                        // JSR-233 scripting languages, XQuery, XSLT, Milyn etc are other options - see other examples
+                        msg.setContentType("text/xml");
+                        mediation.setPayloadFromString(msg,
+                            "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:soap=\"http://soap.services.samples/\">\n" +
+                            "   <soapenv:Body>\n" +
+                            "      <soap:getQuote>\n" +
+                            "         <request>\n" +
+                            "            <symbol>" + symbol + "</symbol>\n" +
+                            "         </request>\n" +
+                            "      </soap:getQuote>\n" +
+                            "   </soapenv:Body>\n" +
+                            "</soapenv:Envelope>");
+                    ]]></u:java>
+            </u:inSequence>
+
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+
+            <u:outSequence>
+                <u:java import="org.springframework.jdbc.core.*;"><![CDATA[
+
+                    // resume the transaction suspended - this is the JTA transaction that read the JMS message
+                    msg.resumeTransaction();
+                    // load message properties saved from the request
+                    String symbol = msg.getStringMessageProperty("symbol");
+                    int quantity = msg.getMessageProperty("quantity", Integer.class);
+                    double price = msg.getMessageProperty("price", Double.class);
+                    // read quoted price from the response received
+                    double quotedPrice = Double.parseDouble(mediation.extractAsStringUsingXPath(msg, "//last", null));
+
+                    // insert into ORDERS_ACCEPTED table - note, we are now within the resumed JTA transaction
+                    JdbcTemplate t = new JdbcTemplate(mediation.getDataSource("txDS"));
+                    t.update("insert into ORDERS_ACCEPTED values(?,?,?)", new Object[] {symbol, quantity, quotedPrice});
+
+                    // now, if the price quoted is less than the asking price, commit JTA transaction, and make the
+                    // update to the database and JMS message read persist, or rollback everything and attempt again
+                    if (quotedPrice < price) {
+                        logger.info("Placing order at : " + quotedPrice + " for : " + quantity + " of : " + symbol);
+                        msg.commitTransaction();
+                    } else {
+                        logger.info("Cancelling order as quoted price for " + symbol + " was : " + quotedPrice);
+                        msg.rollbackTransaction();
+                    }
+                ]]></u:java>
+            </u:outSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

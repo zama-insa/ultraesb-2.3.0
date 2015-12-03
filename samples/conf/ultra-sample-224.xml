@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="20"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <bean id="poolExecutor" class="java.util.concurrent.ScheduledThreadPoolExecutor">
+        <constructor-arg value="100"/>
+    </bean>
+
+    <!--Demonstrates extracting elements from a json payload using jsonPath. use sample.json in
+     'samples/resources/requests' to run this service.-->
+    <u:proxy id="json-path">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                       System.out.println("List of all elements of the InnerNode1: "+mediation.getJSONSupport().extractUsingJSONPath(msg,"$.OutterNode.InnerNode1[*]"));
+                       System.out.println("List of Ids of all the elements of InnerNode1: "+mediation.getJSONSupport().extractUsingJSONPath(msg,"$.OutterNode.InnerNode1[*].id"));
+                       System.out.println("The Id of the first element of InnerNode1: "+mediation.getJSONSupport().extractUsingJSONPath(msg,"$.OutterNode.InnerNode1[1].id"));
+                       System.out.println("The value of the inner_id of valueArray: "+mediation.getJSONSupport().extractUsingJSONPath(msg,"$.OutterNode.InnerNode1[0].valueArray[2][1][0].inner_id"));
+                       System.out.println("List of Ids of The elements of InnerNode1 where node_value is > 16: "+mediation.getJSONSupport().extractUsingJSONPath(msg,"$.OutterNode.InnerNode1[?(@.node_value > 16)].id"));
+                    ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

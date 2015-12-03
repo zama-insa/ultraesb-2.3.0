@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg value="10" type="int"/>
+    </bean>
+
+    <!--Refer to the unit tests HL7Test, MLLPLoadTest for more details about this sample and a unit tests for it-->
+    
+    <bean id="mllp-2200" class="org.adroitlogic.ultraesb.transport.mllp.MLLPNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="2200"/>
+    </bean>
+    <bean id="mllps-2300" class="org.adroitlogic.ultraesb.transport.mllp.MLLPSNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="2300"/>
+        <property name="identityStorePath" value="conf/keys/identity.jks"/>
+        <property name="identityStorePassword" value="password"/>
+        <property name="identityKeyPassword" value="password"/>
+        <property name="trustStorePath" value="conf/keys/trust.jks"/>
+        <property name="trustStorePassword" value="password"/>
+    </bean>
+
+    <bean id="mllp-sender" class="org.adroitlogic.ultraesb.transport.mllp.MLLPNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+    <bean id="mllps-sender" class="org.adroitlogic.ultraesb.transport.mllp.MLLPSNIOSender">
+        <constructor-arg ref="fileCache"/>
+        <property name="nonProductionNoRemoteCertValidation" value="true"/>
+    </bean>
+
+    <u:proxy id="mllp-ack">
+        <u:transport id="mllp-2200"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.transport.mllp.*;"><![CDATA[
+                    System.out.println("Came to the ACK proxy...");
+                    Message res = HAPIUtils.createDefaultResponse(msg);
+                    mediation.sendResponse(res, 0);
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="mllps-nack">
+        <u:transport id="mllps-2300"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.transport.mllp.*;"><![CDATA[
+                    System.out.println("Came to the NACK proxy...");
+                    Message res = HAPIUtils.createErrorResponse(msg, "AR", -1, "My Error");
+                    mediation.sendResponse(res, 0);
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+
+</beans>

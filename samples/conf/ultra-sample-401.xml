@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Refer to the unit test FileTest for more details about this sample and a unit test for it-->
+
+    <bean id="file" class="org.adroitlogic.ultraesb.transport.file.FileTransportListener"/>
+    <bean id="file-sender" class="org.adroitlogic.ultraesb.transport.file.FileTransportSender"/>
+
+    <context:property-placeholder system-properties-mode="OVERRIDE" ignore-unresolvable="true"/>
+        <!--location="classpath*:environmentConfig/default/*.properties,classpath*:/environmentConfig/${com.mycompany.config.runOnEnv}/*.properties,classpath*:/META-INF/*.properties"-->
+        <!--system-properties-mode="OVERRIDE" ignore-unresolvable="true"/>-->
+
+    <!--Defines a proxy service that polls for "*.txt" files at /tmp/file/incoming directory every 2 seconds
+    Processed and failed files are moved to /tmp/file/done or /tmp/file/error directories with a timestamp
+    This proxy throws an exception if the filename patches 'error.txt' so that the received files maybe tested-->
+    <u:proxy id="file-proxy1">
+        <u:transport id="file">
+            <u:property name="ultra.transport.url" value="file://${java.io.tmpdir}/file/incoming"/>
+            <u:property name="ultra.file.name_pattern" value=".*\.txt"/>
+            <u:property name="ultra.polling.start_delay" value="1000"/>
+            <u:property name="ultra.polling.repeat_interval" value="2000"/>
+            <!--<u:property name="ultra.polling.concurrent" value="true"/>-->
+            <!--<u:property name="ultra.polling.cron_expression" value="0/20/40 * * ? * MON-FRI"/>-->
+            <u:property name="ultra.file.move_after_process" value="/tmp/file/done"/>
+            <u:property name="ultra.file.move_after_failure" value="/tmp/file/error"/>
+            <u:property name="ultra.file.move_timestamp_format" value="yyyy_MM_dd_'T'HH_mm_ss.SSSSZ"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.file.FileConstants;"><![CDATA[
+                        String fileName = msg.getFirstTransportHeader(FileConstants.NAME);
+                        System.out.println("Got file : " + fileName);
+                        if ("error.txt".equals(fileName)) {
+                            throw new Exception("This file should fail");
+                        }
+                    ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--Defines a proxy service similar to file-proxy1, but which only checks for the existence of a file
+    /tmp/file/incoming/special.file every 2 seconds-->
+    <u:proxy id="file-proxy2">
+        <u:transport id="file">
+            <u:property name="ultra.transport.url" value="file://${java.io.tmpdir}/file/incoming/special.file"/>
+            <u:property name="ultra.polling.start_delay" value="1000"/>
+            <u:property name="ultra.polling.repeat_interval" value="2000"/>
+            <!--<u:property name="ultra.polling.concurrent" value="true"/>-->
+            <!--<u:property name="ultra.polling.cron_expression" value="0/20/40 * * ? * MON-FRI"/>-->
+            <u:property name="ultra.file.move_after_process" value="/tmp/file/done"/>
+            <u:property name="ultra.file.move_after_failure" value="/tmp/file/error"/>
+            <u:property name="ultra.file.move_timestamp_format" value="yyyy_MM_dd_'T'HH_mm_ss.SSSSZ"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.file.FileConstants;"><![CDATA[
+                        String fileName = msg.getFirstTransportHeader(FileConstants.NAME);
+                        System.out.println("Got file : " + fileName);
+                        if ("error".equals(mediation.readPayloadAsString(msg))) {
+                            throw new Exception("This file should fail");
+                        }
+                    ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--Defines a proxy that polls /tmp/file/incoming/response.test every 2 seconds and holds off message completion
+    until the file payload is sent to an HTTP endpoint at http://localhost:9000/service/EchoService. If the expected
+    response (i.e. the text string 'response' in this example) is received, the processing will complete successfully
+    and the original file moved to the 'ultra.file.move_after_process' directory. If the response is not what was expected, the
+    processing completes as a failure-->
+    <u:proxy id="file-proxy3">
+        <u:transport id="file">
+            <u:property name="ultra.transport.url" value="file://${java.io.tmpdir}/file/incoming/response.test"/>
+            <u:property name="ultra.polling.start_delay" value="1000"/>
+            <u:property name="ultra.polling.repeat_interval" value="2000"/>
+            <!--<u:property name="ultra.polling.concurrent" value="true"/>-->
+            <!--<u:property name="ultra.polling.cron_expression" value="0/20/40 * * ? * MON-FRI"/>-->
+            <u:property name="ultra.file.move_after_process" value="/tmp/file/done"/>
+            <u:property name="ultra.file.move_after_failure" value="/tmp/file/error"/>
+            <u:property name="ultra.file.move_timestamp_format" value="yyyy_MM_dd_'T'HH_mm_ss.SSSSZ"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.file.FileConstants;"><![CDATA[
+                    String fileName = msg.getFirstTransportHeader(FileConstants.NAME);
+                    System.out.println("Got file : " + fileName);
+                    msg.holdCompletion();
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/EchoService</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    if ("response".equals(mediation.readPayloadAsString(msg))) {
+                        System.out.println("Expected response received");
+                    } else {
+                        throw new Exception("This file should fail");
+                    }
+                ]]></u:java>
+            </u:outSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--Defines a proxy service that polls a FTPS location for file that match pattern '*.txt'-->
+    <!--<u:proxy id="file-proxy4">
+        <u:transport id="file">
+            <u:property name="ultra.transport.url" value="ftps://asankha:xxxxx@localhost/tmp/ftp/incoming"/>
+            <u:property name="ultra.file.name_pattern" value=".*\.txt"/>
+            <u:property name="ultra.polling.start_delay" value="1000"/>
+            <u:property name="ultra.polling.repeat_interval" value="2000"/>
+            --><!--<u:property name="ultra.polling.concurrent" value="true"/>--><!--
+            --><!--<u:property name="ultra.polling.cron_expression" value="0/20/40 * * ? * MON-FRI"/>--><!--
+            <u:property name="ultra.file.move_after_process" value="/tmp/ftp/done"/>
+            <u:property name="ultra.file.move_after_failure" value="/tmp/ftp/error"/>
+            <u:property name="ultra.file.move_timestamp_format" value="yyyy_MM_dd_'T'HH_mm_ss.SSSSZ"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.file.FileConstants;"><![CDATA[
+                    String fileName = msg.getFirstTransportHeader(FileConstants.NAME);
+                    System.out.println("Got FTP file : " + fileName);
+                    if ("error.txt".equals(fileName)) {
+                        throw new Exception("This file should fail");
+                    }
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>-->
+
+    <!--Defines a proxy service that polls a SFTP location for file that match pattern '*.txt'-->
+    <!--<u:proxy id="file-proxy4">
+        <u:transport id="file">
+            <u:property name="ultra.transport.url" value="sftp://asankha@localhost:9021/?keyFilePath=/home/asankha/.ssh/id_dsa&amp;keyPassword=password"/>
+            <u:property name="ultra.file.name_pattern" value=".*\.txt"/>
+            <u:property name="ultra.polling.start_delay" value="1000"/>
+            <u:property name="ultra.polling.repeat_interval" value="2000"/>
+            --><!--<u:property name="ultra.polling.concurrent" value="true"/>--><!--
+            --><!--<u:property name="ultra.polling.cron_expression" value="0/20/40 * * ? * MON-FRI"/>--><!--
+            <u:property name="ultra.file.move_after_process" value="/tmp/ftp/done"/>
+            <u:property name="ultra.file.move_after_failure" value="/tmp/ftp/error"/>
+            <u:property name="ultra.file.move_timestamp_format" value="yyyy_MM_dd_'T'HH_mm_ss.SSSSZ"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.file.FileConstants;"><![CDATA[
+                    String fileName = msg.getFirstTransportHeader(FileConstants.NAME);
+                    System.out.println("Got FTP file : " + fileName);
+                    if ("error.txt".equals(fileName)) {
+                        throw new Exception("This file should fail");
+                    }
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>-->
+
+    <!--Defines a proxy that polls the file system and sends matching files if found to an FTPS location with a
+    different filename and a timestamp-->
+    <u:proxy id="file-proxy5">
+        <u:transport id="file">
+            <u:property name="ultra.transport.url" value="file://${java.io.tmpdir}/file/incoming/send.msg"/>
+            <u:property name="ultra.polling.start_delay" value="1000"/>
+            <u:property name="ultra.polling.repeat_interval" value="2000"/>
+            <!--<u:property name="ultra.polling.concurrent" value="true"/>-->
+            <!--<u:property name="ultra.polling.cron_expression" value="0/20/40 * * ? * MON-FRI"/>-->
+            <!--<u:property name="ultra.file.move_after_process" value="/tmp/file/done"/>-->
+            <u:property name="ultra.file.move_after_failure" value="/tmp/file/error"/>
+            <u:property name="ultra.file.move_timestamp_format" value="yyyy_MM_dd_'T'HH_mm_ss.SSSSZ"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.file.FileConstants;"><![CDATA[
+                        String fileName = msg.getFirstTransportHeader(FileConstants.NAME);
+                        System.out.println("Got file : " + fileName);
+                    ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>file://${java.io.tmpdir}/file/sent</u:address>
+                <!--<u:address>ftps://asankha:xxxx@localhost/tmp/file/sent</u:address>-->
+                <u:property name="ultra.file.name" value="send.msg"/>
+                <u:property name="ultra.file.timestamp_format" value="yyyy_MM_dd_'T'HH_mm_ss.SSSSZ"/>
+            </u:inDestination>
+        </u:target>
+    </u:proxy>
+
+</beans>

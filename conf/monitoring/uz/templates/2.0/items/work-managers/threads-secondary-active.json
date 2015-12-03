@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "work-manager-item-parent"
+    },
+    "params":{
+        "name": "Threads of the work manager ${.*}$ (secondary-active)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=WorkManagers,Name=${.*}$][Details.secondaryActiveThreads]"
+    }
+}

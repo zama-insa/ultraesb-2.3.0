@@ -1,0 +1,112 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+<!doctype html>
+<html>
+<div id="container" title="Update Appender">
+    <header class="helpedHeading">
+        <h2>Update Appender</h2>
+        <div class="ultraHelp" title="Appender Creator">
+            <p>The update appender allows to change the configuration of a defined appender. Only the configurable fields are displayed</p>
+        </div>
+    </header>
+    <section>Details of the appender being updated</section>
+    <div class="outer_wrapper">
+        <h3>Appender Details</h3>
+        <fieldset id="appenderDetails">
+        <ul>
+            <li>
+                <label>Appender Name</label>
+                <input id="name" class="disabledText" type="text" readonly/>
+            </li>
+            <li>
+                <label>Appender Pattern</label>
+                <input id="pattern" class="editableText_300"  type="text"/>
+            </li>
+            <li>
+                <label>Appender Threshold</label>
+                <select id="threshold" width= "300px">
+                    <option value="null">N/A</option>
+                    <option value="TRACE">TRACE</option>
+                    <option value="DEBUG">DEBUG</option>
+                    <option value="INFO">INFO</option>
+                    <option value="WARN">WARN</option>
+                    <option value="ERROR">ERROR</option>
+                    <option value="OFF">OFF</option>
+                    <option value="ALL">ALL</option>
+                </select>
+            </li>
+            <br/>
+            <button onclick="updateAppender();" class="clickable button" title="Update Appender">Update</button>
+            <button onclick="loadPage('index.html?pageName=diagnostics/appender-viewer.html&bc=2');" class="clickable button" title="Cancel">Cancel</button>
+        </ul>
+    </fieldset>
+    </div>
+
+    <script>
+        var appender = getURLParameter("appender");
+
+        function updateAppender() {
+            var pattern = $('input#pattern').attr('value');
+
+            var appenderUpdate = '{"name":"';
+            appenderUpdate += appender + '",';
+            appenderUpdate += '"pattern":"' + pattern + '",';
+            appenderUpdate += '"threshold":"' + $('select#threshold').val() + '"}';
+
+            $.ajax({
+                type: 'PUT',
+                url: getCallURLBase() + 'logging/appenders/' + appender,
+                data: appenderUpdate,
+                dataType: 'text',
+                contentType: 'application/json',
+                success : function(msg) {
+                    showInfo('Updated  ' + appender, 'index.html?pageName=diagnostics/appender-viewer.html&bc=2');
+
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            var jqxhr = $.getJSON(getCallURLBase() + 'logging/appenders/' + appender, function(dataset) {
+
+                var data = {appender:dataset};
+                var formDirective = {
+                    'input#name@value' : 'appender.name',
+                    'input#pattern@value'     :'appender.pattern',
+                    'select#threshold@title'      :'appender.threshold'
+                };
+
+                $('#appenderDetails').render(data, formDirective);
+                var threshold = dataset.threshold;
+                $('#threshold').val(threshold);
+
+            });
+        });
+    </script>
+</div>
+</html>

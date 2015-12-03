@@ -1,0 +1,163 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="container" title="Alert Configurations">
+    <header class="helpedHeading">
+        <h2>Alert Configurations</h2>
+        <div class="ultraHelp" title="Alert Configurations Help">
+            <div>
+                <p>This is the alerts configurations listing page. While this provides a convenient way of defining
+                    alert configurations these alert configurations are stored in JSON format in the
+                    conf/monitoring/alert-configs.json file relative to the UltraESB installation directory.</p>
+                <p>You can add new alert configurations edit existing alert configurations as well as remove and disable
+                    certain alert configuration from this interface. In-order to configure alerts please go through the
+                    UltraESB metrics and alerting documentation to understand each and every field of an alert
+                    configuration.</p>
+            </div>
+        </div>
+    </header>
+    <section>Defined alert configurations</section>
+
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+
+            var jqxhr = $.getJSON(getCallURLBase() + "alerts/config/all", function(dataset) {
+
+                var newdataset = []
+                for (var i in dataset) {
+                    for (var k in dataset[i]) {
+                        newdataset.push(dataset[i][k]);
+                    }
+                }
+                var data = {alertConfigs: newdataset};
+                var dataDir = {
+                    'tbody tr':{
+                        'alertConfig<-alertConfigs':{
+                            'td.id'                           :'alertConfig.id',
+                            'td.description'                    :'alertConfig.description',
+                            'td.stream a'                         :'alertConfig.stream',
+//                            'td.stream a@href+'                 :'alertConfig.stream',
+                            'td.severity'                           :'alertConfig.severity',
+                            'td.severity@class+'                           :'alertConfig.severity',
+                            'td.criteria'                       :function(alertConfig) {
+                                var stringView = alertConfig.item.function;
+                                var criteria = alertConfig.item.criteria;
+                                if (criteria.minThreshold != null) {
+                                    stringView += " &lt; " + formatDecimalNumber(criteria.minThreshold) + ", ";
+                                }
+                                if (criteria.maxThreshold != null) {
+                                    stringView += " > " + formatDecimalNumber(criteria.maxThreshold) + ", ";
+                                }
+                                if (criteria.hitCount > 0 && criteria.withinPeriod > 0) {
+                                    stringView += "within" + getFormattedMilli(criteria.withinPeriod) + ", for " + criteria.hitCount + " times";
+                                } else {
+                                    stringView += "within" + getFormattedMilli(Number($.cookie("metricsStepTime")))
+                                }
+                                return stringView;
+                            },
+                            'td.control img.remove@onclick'      :'{removeAlertConfig("#{alertConfig.stream}", "#{alertConfig.id}");}',
+                            'td.control img.remove@id'           : function (alertConfig) { return alertConfig.item.id + "-remove"},
+                            'td.control img.edit@onclick'      :'{editAlertConfig("#{alertConfig.stream}", "#{alertConfig.id}");}',
+                            'td.control img.edit@id'           : function (alertConfig) { return alertConfig.item.id + "-edit"}
+                        }
+                    }
+                };
+                $('#alertconfigslist').render(data, dataDir);
+                encodeURLs();
+                $('#alertconfigslist').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers",
+//                    "aaSorting": [[ 0, "desc" ]],
+                    "aoColumns": [
+                        {"bSortable": true},
+                        {"bSortable": true},
+                        {"bSortable": true},
+                        {"bSortable": true},
+                        {"bSortable": true},
+                        {"bSortable": false, "sWidth": "40px"}
+                    ]
+                });
+            });
+        });
+
+        function removeAlertConfig(stream, alertId) {
+            showConfirmation('Do you want to remove the alert ' + alertId + ' of stream ' + stream + '?' , function() {
+                $.ajax({
+                    type: 'DELETE',
+                    url: getCallURLBase() + 'alerts/config/remove/' + stream + '/' + alertId,
+                    success: function(msg) {
+                        showInfo('Successfully removed the alert ' + alertId + ' of stream ' + stream + '.', 'index.html?pageName=monitoring/alert-configurations.html');
+                    }
+                });
+            });
+        }
+
+        function editAlertConfig(stream, id) {
+            window.location.href = 'index.html?pageName=monitoring/alert-config-details.html&stream=' + stream + '&id=' + id;
+        }
+
+        function addAlertConfig() {
+            window.location.href = 'index.html?pageName=monitoring/alert-config-details.html';
+        }
+    </script>
+
+    <div class="outer_wrapper">
+        <button style="float: right; margin-bottom:5px; margin-top:-5px; margin-left:5px;" onclick="addAlertConfig()" class="clickable button">Add Config</button>
+        <table class="display" id="alertconfigslist">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Stream</th>
+                <th>Description</th>
+                <th>Severity</th>
+                <th>Criteria</th>
+                <th>Control</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="id"></td>
+                <!--<td class="stream"><a href="index.html?pageName=monitoring/metrics-details.html&stream="></a></td>-->
+                <td class="stream"><a href="#"></a></td>
+                <td class="description"></td>
+                <td class="severity metrics_alert "></td>
+                <td class="criteria"></td>
+                <td class="control">
+                    <img class="remove clickable" title="Remove" src="icons/remove.png"/>
+                    <img class="edit clickable"  title="Edit"  src="icons/edit.png"/>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</html>

@@ -1,0 +1,208 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<head profile="http://www.w3.org/2005/10/profile">
+    <link rel="icon" href="favicon.ico">
+    <title>UltraESB - Management Console</title>
+    <style type="text/css" title="mainStyle">
+        @import "ext/jqueryui/css/smoothness/jquery-ui-1.8.11.custom.css";
+        @import "css/content.css";
+        @import "css/style.css";
+    </style>
+
+    <script type="text/javascript" src="ext/jquery/js/jquery-1.5.1.min.js"></script>
+    <script type="text/javascript" src="ext/datatables/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="ext/cookie/jquery.cookie.js"></script>
+    <script type="text/javascript" src="ext/pure/pure_min.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
+    <script type="text/javascript" src="ext/jqueryui/js/jquery-ui-1.8.11.custom.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+
+            if (window.top !== window.self) {
+                window.top.location.replace(window.self.location);
+            } else {
+                document.documentElement.style.display = 'block';
+            }
+            $("input").attr("autocomplete","off");
+
+            $.cookie("cookies_enabled", "true");
+            if ($.cookie("cookies_enabled")) {
+                $.cookie("cookies_enabled", null);
+            } else {
+                window.location.href = "cookies_disabled.html";
+            }
+
+            $.ajax({
+                type: 'GET',
+                url: getCallURLBase() + 'usermgt/jmxLogin/mapped',
+                success: function(msg) {
+                    if (msg == true) {
+                        $('div.secure_jmx').hide();
+                    }
+                }
+            });
+
+            getInstances();
+        });
+
+        function loginTOConsole() {
+
+            var secured = false;
+            $.getJSON(getCallURLBase() + "usermgt/consoleMode/secured", function(dataset) {
+                if (dataset == 'true' || dataset == true) {
+                    $.cookie("secure_mode", "true", { path: '/', secure: true });
+                    secured = true;
+                } else {
+                    $.cookie("secure_mode", "false", { path: '/'});
+                }
+            });
+
+            if ($('#instanceRemote').attr('checked')) {
+                if (secured) {
+                    $.cookie("remote_jmx", $("#remoteJMXUrl").attr("value"), { path: '/', secure: true } );
+
+                    if ($('#remember').attr('checked') ) {
+                        $.cookie("remote_jmx", null, { path: '/', secure: true } );
+                        $.cookie("remote_jmx_remind", $("#remoteJMXUrl").attr("value"), { path: '/', secure: true, expires: 14 } );
+                    }
+                } else {
+                    $.cookie("remote_jmx", $("#remoteJMXUrl").attr("value"), { path: '/'} );
+
+                    if ($('#remember').attr('checked') ) {
+                        $.cookie("remote_jmx", null, { path: '/'} );
+                        $.cookie("remote_jmx_remind", $("#remoteJMXUrl").attr("value"), { path: '/', expires: 14 } );
+                    }
+                }
+            }
+
+            var params = '{';
+            if ($('#instanceLocal').attr('checked')) {
+                params += ( '"jmxURL": "' + $('#localInstances').attr('value') + '",');
+            }
+            if ($('#instanceRemote').attr('checked')) {
+                params += ('"jmxURL": "' + $("#remoteJMXUrl").attr("value") + '",');
+            }
+            if ($('#instanceDefined').attr('checked')) {
+                params += ('"jmxURL": "' + $("#definedInstances").attr("value") + '",');
+            }
+            if ($('#jmxSecurity').attr("class") == "shown") {
+                params += ('"jmxUsername": "' + $("#jmxUsername").attr("value") + '",');
+                params += ('"jmxPassword": "' + $("#jmxPassword").attr("value") + '",');
+            }
+            params += ('"username": "' + $("#username").attr("value") + '",');
+            params += ('"password": "' + $("#password").attr("value") + '"');
+            params += '}';
+
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'usermgt/login',
+                data: params,
+                dataType: 'text',
+                contentType: 'application/json',
+                success: function(msg) {
+                    if ("false" != msg) {
+                        var split_str = msg.split(":::");
+                        if (secured) {
+                            $.cookie("logged_in", "true", { path: '/', secure: true });
+                            $.cookie("server_name", split_str[1], { path: '/', secure: true });
+                            $.cookie("clustering", null, { path: '/', secure: true });
+                            $.cookie("username", split_str[0], { path: '/', secure: true });
+                        } else {
+                            $.cookie("logged_in", "true", { path: '/'});
+                            $.cookie("server_name", split_str[1], { path: '/'});
+                            $.cookie("clustering", null, { path: '/'});
+                            $.cookie("username", split_str[0], { path: '/'});
+                        }
+                        window.location.href = "index.html";
+                    } else {
+                        showError("User " + $("#username").attr("value")
+                                + " authentication failed, please check the username and password", "login.html");
+                    }
+                }
+            }).error(function() {
+                showError("Login failed for user " + $("#username").attr("value")
+                                + ", please check the JMX URL, console credentials, and JMX credentials if you are connecting to a secure JMX service", "login.html");
+            });
+        }
+
+    </script>
+</head>
+<body class="innerPage">
+    <div id="dialogs">
+        <div id="error" title="Error">
+            <p id="msgError"><span class="ui-icon ui-icon-circle-close" style="float:left; margin:0 7px 50px 0;"></span></p>
+        </div>
+    </div>
+    <!--<div id="compatibility" style="text-align:center; width:100%; padding:20px;">-->
+        <!--<h1 id="browser-warning">WARNING : UltraESB uconsole has only been tested with Mozilla Firefox and Google Chrome for the moment and there can be rendering problems on other browsers</h1>-->
+    <!--</div>-->
+    <div id="login">
+        <div id="login-header"><img src="images/ultraesb-original.png"/><span class="login-title">Administration Console - Sign in</span></div>
+		<div id="border"><img align="top" src="images/borderbg.png"></div>
+            <form action="#" class="instances" id="instances" autocomplete="off">
+                <label class="form-field local hidden"><input type="radio" name="instanceType" id="instanceLocal" onclick="hideJMXCredentialInput()"/> Local instance </label>
+                <select class="local hidden" id="localInstances" onfocus="$('#instanceLocal').attr('checked', 'checked'); hideJMXCredentialInput();">
+                    <option value="local">Local</option>
+                </select>
+                <div style="height: 5px;" class="local hidden"></div>
+                <label class="form-field defined hidden"><input type="radio" name="instanceType" id="instanceDefined"/> Defined instance </label>
+                <select id="definedInstances" class="defined hidden" onfocus="$('#instanceDefined').attr('checked', 'checked')">
+                    <option value="local">Defined</option>
+                </select>
+                <div style="height: 5px;" class="defined hidden"></div>
+                <label class="form-field"><input type="radio" name="instanceType" id="instanceRemote"/> Remote JMX URL </label>
+                <input type="text" class="jmxURL" id="remoteJMXUrl" onfocus="$('#instanceRemote').attr('checked', 'checked');"/><br/>
+                <!--<input type="checkbox" name="remember" id="remember"/> <span>Remember</span>-->
+                <br/>
+                <div class="secure_jmx">
+                    <a onclick="showHideJMXCredentialInput()" href="#">Secure JMX access</a><span id="secure_jmx_icon" title="ui-icon-triangle-1-s" class="ui-icon ui-icon-triangle-1-s secure_jmx_icon">&nbsp;</span>
+                    <div id="jmxSecurity" class="hidden">
+                        <br/>
+                        <label class="form-field">JMX Username </label><input type="text" class="jmxUsername" id="jmxUsername" value=""/>
+                        <br/>
+                        <label class="form-field">JMX Password </label><input type="password" class="jmxPassword" id="jmxPassword" value=""/>
+                    </div>
+                </div>
+                <br/>
+                <label class="form-field">Username </label><input type="text" class="username" id="username"/>
+                <br/>
+                <label class="form-field">Password </label><input type="password" class="password" id="password"/>
+                <br/>
+                <br/>
+                <a class="buttonaline"><input class="button" type="button" onclick="loginTOConsole()" value="Sign in"/>
+                <input class="button" type="reset" value="Reset"/>
+                </a>
+            </form>
+    </div>
+
+</body>
+</html>

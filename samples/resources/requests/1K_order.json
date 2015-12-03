@@ -1,0 +1,26 @@
+{
+    "header": {
+        "headerAttributes": {
+            "header-1": "A sample header attribute"
+        }
+    },
+    "payload": {
+        "promiseList": [
+            {
+                "id": "1",
+                "orderId" : "1234-5678-2345-5467-SH1",
+                "comments": "A c o m m e n t  t h a t  i s  u s e d  t o  f i x  t h e  s i z e  o f  t h e  m e s s a g e,  i n  t h i s  c a s e  t o  m a k e  i t  1 K"
+            },
+            {
+                "id": "2",
+                "orderId" : "2345-1222-6778-9999-SH2",
+                "comments": "A c o m m e n t  t h a t  i s  u s e d  t o  f i x  t h e  s i z e  o f  t h e  m e s s a g e,  i n  t h i s  c a s e  t o  m a k e  i t  1 K"
+            },
+            {
+                "id": "3",
+                "orderId" : "4568-7678-9876-1211-SH2",
+                "comments": "A c o m m e n t  t h a t  i s  u s e d  t o  f i x  t h e  s i z e  o f  t h e  m e s s a g e,  i n  t h i s  c a s e  t o  m a k e  i t  1 K"
+            }
+        ]
+    }
+}

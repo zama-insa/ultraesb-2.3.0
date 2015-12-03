@@ -1,0 +1,118 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="container" title="Node Management">
+    <header class="helpedHeading">
+        <h2>Node Management</h2>
+        <div class="ultraHelp" title="Node Management Help">
+        <div>
+        <p>Facilitates the management of a single node of the UltraESB. On a cluster of nodes, this represents the
+        currently connected node. To manage another node, one must switch the connected instance using the link at
+        the top right hand corner.</p>
+        <p>Node management allows one to manage the many aspects of an UltraESB node instance - such as the configuration,
+        Proxy services, Sequences, Endpoints, File caches, Work Managers, and Transports. Navigate to the appropriate
+        category for more information</p>
+        </div>
+    </div>
+    </header>
+    <section>Manage nodes and the artifacts of those nodes
+
+        <div class="mgt-panel">
+            <div class="panel-header fg-toolbar ui-toolbar ui-widget-header ui-corner-tl ui-corner-tr ui-helper-clearfix"><span>Node management</span></div>
+            <div class="panel-content">
+                <div class="odd">
+                    <section class="left-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=node-mgt/server-manager.html&bc=clear')" title="Server Manager">
+                        <div><div class="panel-image"><img src="icons/server-icon-48x48.png"/></div>
+                        <div class="panel-text"><h4>Server Manager</h4>
+                        Manages the root/child configurations<br/>
+                        Server operations like, stop, start, maintenance etc..</div></div>
+                    </section>
+                    <section class="right-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=node-mgt/proxy-services.html&bc=clear')" title="Proxy Services">
+                        <div><div class="panel-image"><img src="icons/proxy-48x48.png"/></div>
+                        <div class="panel-text"><h4>Proxy Services</h4>
+                        Defined proxy services of the server<br/>
+                        Proxy service listing, configurations and statistics</div></div>
+                    </section>
+                </div>
+                <div class="even">
+                    <section class="left-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=node-mgt/sequences.html&bc=clear')" title="Sequences">
+                        <div><div class="panel-image"><img src="icons/sequence-48x48.png"/></div>
+                        <div class="panel-text"><h4>Sequences</h4>
+                        Defined sequences of the server<br/>
+                        Sequence listing, configurations and statistics</div></div>
+                    </section>
+                    <section class="right-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=node-mgt/endpoints.html&bc=clear')" title="Endpoints">
+                        <div><div class="panel-image"><img src="icons/endpoint-48x48.png"/></div>
+                        <div class="panel-text"><h4>Endpoints</h4>
+                        Defined endpoints and addresses of the server<br/>
+                        Endpoint address/state management and statistics</div></div>
+                    </section>
+                </div>
+                <div class="odd">
+                    <section class="left-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=node-mgt/filecache.html&bc=clear')" title="File Caches">
+                        <div><div class="panel-image"><img src="icons/file-cache-48x48.png"/></div>
+                        <div class="panel-text"><h4>File Caches</h4>
+                        Defined file caches for use<br/>
+                        File cache configurations, usage and statistics</div></div>
+                    </section>
+                    <section class="right-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=node-mgt/work-manager.html&bc=clear')" title="Work Managers">
+                        <div><div class="panel-image"><img src="icons/work-manager-48x48.png"/></div>
+                        <div class="panel-text"><h4>Work Managers</h4>
+                        Define work manager pools<br/>
+                        Work manager configurations and operations</div></div>
+                    </section>
+                </div>
+                <div class="even">
+                    <section class="left-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=node-mgt/transportListener.html&bc=clear')" title="Transport Listeners">
+                        <div><div class="panel-image"><img src="icons/transport-listener-48x48.png"/></div>
+                        <div class="panel-text"><h4>Transport Listeners</h4>
+                        Defined transport listeners<br/>
+                        Listener configuration, operations, statistics</div></div>
+                    </section>
+                    <section class="right-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=node-mgt/transportSender.html&bc=clear')" title="Transport Senders">
+                        <div><div class="panel-image"><img src="icons/transport-sender-48x48.png"/></div>
+                        <div class="panel-text"><h4>Transport Senders</h4>
+                        Defined transport senders<br/>
+                        Sender configuration, operations, statistics</div></div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+</html>

@@ -1,0 +1,793 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!doctype html>
+<html>
+<div id="container" title="Zabbix Registration">
+    <header class="helpedHeading">
+        <h2>Zabbix Registration</h2>
+        <div class="ultraHelp" title="Zabbix Registration Help">
+            <div>
+                <p>Register Items, Trigger and Graphs against a
+                <a href="http://www.zabbix.com">Zabbix</a> server for monitoring Endpoints, Sequences, Proxy
+                Services, Work Managers, File Caches and Transports and any custom applications, using the templates
+                    defined in the <b>Template Registry</b>.</p>
+            </div>
+        </div>
+    </header>
+    <section>Registration wizard for the UltraESB Zabbix templates</section>
+
+    <script type="text/javascript" src="ext/form2wizard/formToWizard.js"></script>
+    <script type="text/javascript">
+
+        var nodes;
+        var cluster;
+        var categorySet;
+        $(document).ready(function() {
+            if ($.cookie("clustering") != "true") {
+                $('#cluster-registration').addClass("hidden");
+            }
+            $("#registrationForm").formToWizard();
+            $.getJSON(getCallURLBase() + 'uz/registration/stat', function(msg) {
+                if (msg.active) {
+                    showWarning("Registration is in-progress, please wait for it to finish", 'index.html?pageName=monitoring/zabbix-registration-log.html&bc=3')
+                }
+            })
+
+            $('#version').val(getURLParameter('version'));
+        });
+
+        function changeVersion() {
+            $.ajax({
+                type: 'PUT',
+                url: getCallURLBase() + 'uz/registration/setVersion/' + $("#version").val(),
+                success: function(msg) {}
+            });
+        }
+
+        function step0Callback() {
+
+            var url = $.trim($('input#url').val());
+            var username = $.trim($('input#username').val());
+            var password = $.trim($('input#password').val());
+            var sync = $('input#sync').is(':checked');
+            var skipUpdates = $('input#skipUpdates').is(':checked');
+            var omitSys = $('input#sys-omit').is(':checked');
+            cluster = $('input#cluster').is(':checked');
+
+            if (url.length != 0 && username.length != 0 && password.length != 0 ) {
+                var loginInfo = '{';
+                loginInfo += ('"url":"' + url + '",');
+                loginInfo += ('"username":"' + username + '",');
+                loginInfo += ('"password":"' + password + '",');
+                loginInfo += ('"sync":' + sync + ',');
+                loginInfo += ('"skipUpdates":' + skipUpdates + ',');
+                loginInfo += ('"omitSysArtifact":' + omitSys + ',');
+                loginInfo += ('"cluster":' + cluster + '}');
+
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'uz/login',
+                    data:  loginInfo,
+                    dataType: 'text',
+                    contentType: 'application/json',
+                    success: function(msg) {
+                        showInfoWithCallback("Successfully logged-in to Zabbix as " + username + "!", function() {
+                            $.getJSON(getCallURLBase() + "uz/hosts/all?clustered=" + cluster, function(dataset) {
+                                $.getJSON(getCallURLBase() + "uz/categories/all", function(categories) {
+                                    categorySet = categories;
+                                    var selectMatching = '';
+                                    var selectNM2 = '';
+                                    var createHost = '';
+
+                                    if (!cluster) {
+                                        $.each(categories, function(key, value) {
+                                            selectMatching += '<li><label for="host' + value + '">Zabbix Host for category ' + value
+                                                    + '</label><select id="host' + value + '"><option>- Select the Host -</option></select></li>';
+                                            createHost += '<li><label for="hostName' + value + '">Host Name for category ' + value + '</label><input type="text" id="hostName' + value + '"/></li>';
+                                            selectNM2 += '<li><label for="hostNM' + value + '">Zabbix Host for category ' + value
+                                                    + '</label><select id="hostNM' + value + '"><option>- Select the Host -</option></select></li>';
+                                        });
+                                        $('#hostSelection').html('<div id="hostAccordion" class="innerAccordion">' +
+                                                '<h3 id="hostSelectHeader"><a href="#">Select from the matching existing Zabbix hosts</a></h3>' +
+                                                '<div id="hostSelectBody"><ul>' +
+                                                selectMatching +
+                                                '</ul></div>' +
+                                                '<h3 id="hostCreateHeader"><a href="#">Create a new Zabbix host</a></h3>' +
+                                                '<div><ul>' +
+                                                createHost +
+                                                '</ul></div>' +
+                                                '<h3 id="hostSelectNMHeader"><a href="#">Select from the existing Zabbix hosts</a></h3>' +
+                                                '<div><ul>' +
+                                                selectNM2 +
+                                                '</ul></div>' +
+                                                '</div>');
+//                                    $('#host').html("<option>- Select the Host -</option>");
+//                                    $('#hostNM').html("<option>- Select the Host -</option>");
+                                        populateData(dataset, "", categories);
+                                    } else {
+                                        var clusteredData = new Object();
+                                        nodes = new Array();
+                                        $.each(dataset, function (key, value) {
+                                            var nodeKey = key.split(":");
+                                            var found = false;
+                                            $.each(nodes, function(key2, value2) {
+                                                if (value2 === nodeKey[0]) {
+                                                    found = true;
+                                                }
+                                            });
+                                            if (!found) {
+                                                nodes[nodes.length] = nodeKey[0];
+                                            }
+                                            if (clusteredData[nodeKey[0]] == null) {
+                                                clusteredData[nodeKey[0]] = new Object();
+                                            }
+                                            clusteredData[nodeKey[0]][nodeKey[1] + ":" + nodeKey[2]] = value;
+                                        });
+                                        var tabDivHTML = '';
+                                        var tabHeaderHTML = '<ul>';
+                                        nodes.sort();
+                                        $.each(nodes, function(key, value) {
+                                            selectMatching = '';
+                                            createHost = '';
+                                            selectNM2 = '';
+                                            $.each(categories, function(catKey, catVal) {
+                                                selectMatching += '<li><label for="host' + value + catVal + '">Zabbix Host for category ' + catVal
+                                                        + '</label><select id="host' + value + catVal + '"><option>- Select the Host -</option></select></li>';
+                                                createHost += '<li><label for="hostName' + value + catVal + '">Host Name for category ' + catVal + '</label><input type="text" id="hostName' + value + catVal + '"/></li>';
+                                                selectNM2 += '<li><label for="hostNM' + value + catVal + '">Zabbix Host for category ' + catVal
+                                                        + '</label><select id="hostNM' + value + catVal + '"><option>- Select the Host -</option></select></li>';
+                                            });
+                                            tabHeaderHTML += '<li><a href="#hostAccordion' + value + '">Node ' + value + ' Host</a></li>';
+                                            tabDivHTML += '<div id="hostAccordion' + value + '" class="innerAccordion">' +
+                                                    '<h3 id="hostSelectHeader' + value + '"><a href="#">Select from the matching existing Zabbix hosts</a></h3>' +
+                                                    '<div id="hostSelectBody' + value + '"><ul>' +
+                                                    selectMatching +
+                                                    '</ul></div>' +
+                                                    '<h3 id="hostCreateHeader' + value + '"><a href="#">Create a new Zabbix host</a></h3>' +
+                                                    '<div><ul>' +
+                                                    createHost +
+                                                    '</ul></div>' +
+                                                    '<h3 id="hostSelectNMHeader' + value + '"><a href="#">Select from the existing Zabbix hosts</a></h3>' +
+                                                    '<div><ul>' +
+                                                    selectNM2 +
+                                                    '</ul></div>' +
+                                                    '</div>'
+                                        });
+                                        tabHeaderHTML += '</ul>';
+                                        $("#hostSelection").html(tabHeaderHTML + tabDivHTML);
+                                        $.each(nodes, function(key, value) {
+                                            populateData(clusteredData[value], value, categories);
+                                        });
+                                        $("#hostSelection").tabs();
+                                    }
+                                });
+                            });
+
+                            $.getJSON(getCallURLBase() + "uz/groups/all", function(dataset) {
+                                $('#groupFilter').html("<option value='/*'>/*</option>");
+                                var data = {groups:dataset};
+                                var dir = {
+                                    'option':{
+                                        "group <- groups":{
+                                            ".":function(group) { return group.item },
+                                            "@value":function(group) { return group.item }
+                                        },
+                                        sort:function(a, b) {
+                                            return a > b ? 1 : -1;
+                                        }
+                                    }
+                                };
+
+                                $('#groupFilter').render(data, dir);
+                                $('#groupFilter option[value="/*"]').attr("selected", "selected");
+                            });
+
+                            $('#selecttemplatediv').html(
+                                    '<table class="display" id="selecttemplate"><thead><tr>' +
+                                        '<th align="left"><input id="tpl" type="checkbox" onclick="selectAll()"/></th>' +
+                                        '<th>Key</th>' +
+                                        '<th>Group</th>' +
+                                        '<th>Applications</th>' +
+                                        '<th>Artifact Type</th>' +
+                                        '<th>Template Type</th>' +
+                                    '</tr></thead>' +
+                                    '<tbody><tr>' +
+                                        '<td class="tplSelect" width="10%"><input type="checkbox"/></td>' +
+                                        '<td class="tplKey"></td>' +
+                                        '<td class="tplGroup"></td>' +
+                                        '<td class="tplApplications"></td>' +
+                                        '<td class="tplArtifactType"></td>' +
+                                        '<td class="templateType"></td>' +
+                                    '</tr></tbody></table>');
+
+                            $.getJSON(getCallURLBase() + "uz/templates/leaf", function(dataset) {
+
+                                var data = {templates:dataset};
+                                var dataDir = {
+                                    'tbody tr':{
+                                        'template<-templates':{
+                                            'td.tplSelect input@name'   :'template.key',
+                                            'td.tplKey'                 :'template.key',
+                                            'td.tplGroup'               :'template.group',
+                                            'td.tplApplications'        :function(template){if ( null == template.item.applications) {return "-";} else { return template.item.applications;}},
+                                            'td.tplArtifactType'        :'template.artifactType',
+                                            'td.templateType'           :'template.templateType'
+                                        }
+                                    }
+                                };
+                                $('#selecttemplate').render(data,dataDir);
+                                $('#selecttemplate').dataTable({
+                                    "bLengthChange": true,
+                                    "bJQueryUI": true,
+                                    "sPaginationType": "full_numbers"
+                                });
+                                $('#tpl').attr('checked', 'checked');
+                                selectAll();
+                            });
+
+                            stepForward(0);
+                        });
+                    }
+                });
+            } else {
+                showWarning("Zabbix URL, Username and Password all are mandatory, please specify those and try again");
+            }
+        }
+
+        function step1Callback() {
+            var hostArray = new Object();
+            var validate = true;
+            if (cluster) {
+                $.each(nodes, function(key, value) {
+                    $.each(categorySet, function(catKey, catVal) {
+                        var host = getHost(value, catVal);
+                        if (host === "_" || host === "create::") {
+                            showWarning("Please select the Zabbix host for category " + catVal + " of node " + value + " to proceed");
+                            validate = false;
+                        }
+                        hostArray[value + ":" + catVal] = host;
+                    });
+                });
+            } else {
+                $.each(categorySet, function(key, value) {
+                    var host = getHost("", value);
+                    if (host === "_" || host === "create::") {
+                        showWarning("Please select the Zabbix host to proceed for the category " + value);
+                        validate = false;
+                    }
+                    hostArray[":" + value] = host;
+                });
+            }
+
+            if (validate) {
+
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'uz/registration/set-host',
+                    data:JSON.stringify(hostArray),
+                    contentType: 'application/json',
+                    success: function(msg) {}
+                });
+
+                var templateKeys = new Array();
+                var oTable = $('#selecttemplate').dataTable();
+                var nodes2 = oTable.fnGetNodes();
+                var oSettings = oTable.fnSettings();
+                $.each(oSettings.aiDisplay,function(nodeId) {
+                    var trn = nodes2[oSettings.aiDisplay[nodeId]];
+                    if($('.tplSelect input', trn).is(':checked')) {
+                        templateKeys[templateKeys.length] = $('.tplKey', trn).html();
+                    }
+                });
+
+                $('#selectartifactdiv').html(
+                        '<table class="display" id="selectartifact"><thead><tr>' +
+                                '<th align="left"><input id="artfct" type="checkbox" onclick="selectAllArtifact()"/></th>' +
+                                '<th>Id</th>' +
+                                '<th>Artifact Type</th>' +
+                                '</tr></thead>' +
+                                '<tbody><tr>' +
+                                '<td class="artfctSelect" width="10%"><input type="checkbox"/></td>' +
+                                '<td class="artfctId"></td>' +
+                                '<td class="artfctType"></td>' +
+                                '</tr></tbody></table>');
+
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'uz/registration/prepare-templates',
+                    data:  JSON.stringify(templateKeys),
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function(dataset) {
+                        var data = {artifacts:dataset};
+                        var dataDir = {
+                            'tbody tr':{
+                                'artifact <- artifacts':{
+                                    'td.artfctSelect input@name'    :function(artifact) {return artifact.pos},
+                                    'td.artfctId'                   :function(artifact) {return artifact.pos},
+                                    'td.artfctType'                 :function(artifact) {return artifact.item}
+                                }
+                            }
+                        };
+                        $('#selectartifact').render(data,dataDir);
+                        $('#selectartifact').dataTable({
+                            "bLengthChange": true,
+                            "bJQueryUI": true,
+                            "sPaginationType": "full_numbers"
+                        });
+                        $('#artfct').attr('checked', 'checked');
+                        selectAllArtifact();
+                        stepForward(1);
+                    }
+                });
+            }
+        }
+
+        function getHost(suffix, category) {
+            var host = $.trim($('#host' + suffix + category).val());
+            if ($('#hostSelectHeader' + suffix).attr("aria-selected") == "true" && host !== "_" && host !== "" && host !== undefined && host !== "undefined") {
+                return host;
+            } else {
+                var createHost = $.trim($('#hostName' + suffix + category).val());
+                if ($('#hostCreateHeader' + suffix).attr("aria-selected") == "true" && createHost !== "") {
+                    host = "create::" + createHost;
+                    return host;
+                } else if (host === "_" && createHost !== "") {
+                    host = "create::" + createHost;
+                }
+                var nmHost = $.trim($('#hostNM' + suffix + category).val());
+                if ($('#hostSelectNMHeader' + suffix).attr("aria-selected") == "true" && nmHost !== "_") {
+                    return nmHost;
+                } else if (host !== "_" && host !== "" && host !== undefined && host !== "undefined") {
+                    return host;
+                } else {
+                    return nmHost;
+                }
+            }
+        }
+
+        function step2Callback() {
+
+            var artifactKeys = new Array();
+            var oTable = $('#selectartifact').dataTable();
+            var nodes = oTable.fnGetNodes();
+            var oSettings = oTable.fnSettings();
+            $.each(oSettings.aiDisplay,function(nodeId) {
+                var trn = nodes[oSettings.aiDisplay[nodeId]];
+                if($('.artfctSelect input', trn).is(':checked')) {
+                    var artifactType = $('.artfctType', trn).html();
+                    if (artifactKeys[artifactType] == null) {
+                        artifactKeys[artifactType] = new Array();
+                    }
+                    artifactKeys[artifactType][artifactKeys[artifactType].length] = $('.artfctId', trn).html();
+                }
+            });
+
+
+            var postData = "{";
+            var artifactTypeNames = ['endpoint', 'sequence', 'proxy-service', 'transport-listener', 'transport-sender', 'file-cache', 'work-manager'];
+            $.each(artifactTypeNames, function (index) {
+                if (artifactKeys[artifactTypeNames[index]] !== undefined) {
+                    if (postData !== "{") {
+                        postData += ",";
+                    }
+                    postData += ('"' + artifactTypeNames[index] +'":' + JSON.stringify(artifactKeys[artifactTypeNames[index]]));
+                }
+            });
+
+            postData += "}";
+
+            $('#confirmselectiondiv').html(
+                    '<table class="display" id="confirmSelection"><thead><tr>' +
+                            '<th>Template Key</th>' +
+                            '<th>Artifact Id</th>' +
+                            '<th>Applications</th>' +
+                            '<th>Artifact Type</th>' +
+                            '<th>Template Type</th>' +
+                            '</tr></thead>' +
+                            '<tbody><tr>' +
+                            '<td class="cfmTplKey"></td>' +
+                            '<td class="cfmArtfctId"></td>' +
+                            '<td class="cfmTplApplications"></td>' +
+                            '<td class="cfmArtifactType"></td>' +
+                            '<td class="cfmTemplateType"></td>' +
+                            '</tr></tbody></table>');
+
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'uz/registration/set-artifacts',
+                data:  postData,
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function(dataset) {
+                    var data = {contents:dataset};
+                    var dataDir = {
+                        'tbody tr':{
+                            'content <- contents':{
+                                'td.cfmTplKey'          :'content.key',
+                                'td.cfmArtfctId'        :'content.artifactId',
+                                'td.cfmTplApplications' :function(content){if ( null == content.item.applications) {return "-";} else { return content.item.applications;}},
+                                'td.cfmArtifactType'    :'content.artifactType',
+                                'td.cfmTemplateType'    :'content.templateType'
+                            }
+                        }
+                    };
+                    $('#confirmSelection').render(data,dataDir);
+                    $('#confirmSelection').dataTable({
+                        "bLengthChange": true,
+                        "bJQueryUI": true,
+                        "sPaginationType": "full_numbers"
+                    });
+                    stepForward(2);
+                }
+            });
+        }
+
+        function step3Callback() {
+
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'uz/registration/start',
+                success:function(msg) {
+                    renderResults(msg);
+                    stepForward(3);
+                }
+            });
+        }
+
+        function renderResults(msg) {
+            $('#reg-result').html('<ul><li><label for="result-server">Server URL</label><input id="result-server" type="text" readonly/></li>' +
+                    '<li><label for="result-time">Overall Time</label><input id="result-time" type="text" readonly/></li></ul>' +
+                    '<table class="display" id="result-calls"><thead><tr><th>Call Number</th><th>Time Taken</th><th>Trace Log</th><th>Call State</th></tr></thead>' +
+                    '<tbody><tr><td class="callNumber"></td><td class="callTime"></td><td class="callTrace"><a href="index.html?pageName=monitoring/call-details.html&callId="></a></td><td class="callState"></td></tr></tbody></table>');
+            $('#reg-result input#result-server').attr("value", msg.serverURL);
+            $('#reg-result input#result-time').attr("value", msg.active ? "In-Progress" : msg.overallTime + " ms");
+
+            if (msg.active) {
+                $('#clear-log').addClass("hidden");
+            } else {
+                $('#clear-log').removeClass("hidden");
+            }
+
+            var data = {calls:msg.apiCalls};
+            var dataDir = {
+                'tbody tr':{
+                    'call <- calls':{
+                        'td.callNumber'         :'call.number',
+                        'td.callTime'           :function(call) {return "" + (call.item.endTime - call.item.startTime) + " ms"},
+                        'td.callTrace a'        :'call.traceLog',
+                        'td.callTrace a@href+'  :'call.number',
+                        'td.callState'          :'call.state'
+                    }
+                }
+            };
+            $('#result-calls').render(data,dataDir);
+            $('#result-calls').dataTable({
+                "bLengthChange": true,
+                "bJQueryUI": true,
+                "sPaginationType": "full_numbers"
+            });
+
+            if (msg.active) {
+                setTimeout(function() {
+                    $.getJSON(getCallURLBase() + 'uz/registration/stat', function(msg) {
+                        renderResults(msg);
+                    });
+                }, 2000);
+            } else {
+                showInfo("Registration completed in " + msg.overallTime + " ms", null);
+            }
+        }
+
+        function stepForward(i) {
+            $("#step" + i).hide();
+            $("#step" + (i + 1)).show();
+            selectStep(i + 1);
+        }
+
+        function stepBackward(i) {
+            $("#step" + i).hide();
+            $("#step" + (i - 1)).show();
+            selectStep(i - 1);
+        }
+
+        function selectStep(i) {
+            $("#steps li").removeClass("current");
+            $("#steps li").removeClass("lastDone");
+            $("#steps li").removeClass("done");
+            $("#stepDesc" + i).addClass("current");
+            if (i > 0) {
+                $("#stepDesc" + (i - 1)).addClass("lastDone");
+            }
+            if (i > 1) {
+                for (var j = 0; j < i - 1; j++) {
+                    $("#stepDesc" + j).addClass("done");
+                }
+            }
+        }
+
+        function selectAll() {
+
+            var checked = $('#tpl').is(':checked');
+            var oTable = $('#selecttemplate').dataTable();
+            if (checked) {
+                $('input', oTable.fnGetNodes()).attr('checked','checked');
+            } else {
+                $('input', oTable.fnGetNodes()).removeAttr('checked');
+            }
+        }
+
+        function selectAllArtifact() {
+
+            var checked = $('#artfct').is(':checked');
+            var oTable = $('#selectartifact').dataTable();
+            if (checked) {
+                $('input', oTable.fnGetNodes()).attr('checked','checked');
+            } else {
+                $('input', oTable.fnGetNodes()).removeAttr('checked');
+            }
+        }
+
+        function filterTemplates(column, select) {
+            var oTable = $('#selecttemplate').dataTable();
+            var selectedVal = $('#' + select).val();
+            if (selectedVal.indexOf("/") == 0) {
+                if (!selectedVal.match("\\*$")) {
+                    selectedVal = "^" + selectedVal + "$"
+                }  else {
+                    selectedVal = "^" + selectedVal.substr(0, selectedVal.length - 1) + ".*";
+                }
+            }
+            if (selectedVal === "all") {
+               oTable.fnFilter(".*", column, true);
+            } else {
+                oTable.fnFilter(selectedVal, column, true);
+            }
+        }
+
+        function populateData(dataset, suffix, categories) {
+            var newDataSet = new Array();
+            var newDataSet2 = new Array();
+            var contains = false;
+            newDataSet[0] = new Object();
+            newDataSet[0].key = "_";
+            newDataSet[0].value = "- Select the Host -";
+            newDataSet2[0] = new Object();
+            newDataSet2[0].key = "_";
+            newDataSet2[0].value = "- Select the Host -";
+            $.each(dataset, function (key, value) {
+                if (key.indexOf("preferred:") === 0) {
+                    $.each(categories, function(catKey, catVal) {
+                        $('#hostName' + suffix + catVal).attr("value", dataset["preferred:" + catVal]);
+                    });
+                } else if (key.indexOf("_match") > 0) {
+                    contains = true;
+                    var realKey = key.substring(0, key.indexOf("_match"));
+                    var pos = newDataSet.length;
+                    newDataSet[pos] = new Object();
+                    newDataSet[pos].key = realKey;
+                    newDataSet[pos].value = value;
+                    var pos2 = newDataSet2.length;
+                    newDataSet2[pos2] = new Object();
+                    newDataSet2[pos2].key = realKey;
+                    newDataSet2[pos2].value = value;
+                } else {
+                    var pos3 = newDataSet2.length;
+                    newDataSet2[pos3] = new Object();
+                    newDataSet2[pos3].key = key.split(":")[0];
+                    newDataSet2[pos3].value = value;
+                }
+            });
+            var dir = {
+                'option':{
+                    "host <- hosts":{
+                        ".":function(host) { return host.item.value },
+                        "@title":function(host) { return host.item.value },
+                        "@value":function(host) { return host.item.key }
+                    },
+                    sort:function(a, b){
+                        return a.value > b.value ? 1 : -1;
+                    }
+                }
+            };
+
+            var data = {hosts:newDataSet};
+            var data2 = {hosts:newDataSet2};
+            $.each(categories, function(catKey, catVal) {
+                $('#host' + suffix + catVal).render(data, dir);
+                $('#hostNM' + suffix + catVal).render(data2, dir);
+                $('#host' + suffix + catVal + ' option[title*="' + catVal + '"]').attr("selected", "selected");
+            });
+
+            if (!contains) {
+                $('#hostSelectBody' + suffix).html("There were no matching hosts registered in the Zabbix");
+            }
+            var accordion = $('#hostAccordion' + suffix).accordion();
+            if (!contains) {
+                $('#hostAccordion' + suffix).accordion("option", "active", 1);
+            }
+        }
+
+        function clearLog() {
+            showConfirmation("Do you want to clear the Zabbix registration log", function() {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'uz/registration/clear-stat',
+                    success:function(msg) {
+                        showInfo("Successfully cleared the last Zabbix registration log", "index.html?pageName=monitoring/uz-template-registry.html&bc=clear")
+                    }
+                });
+            });
+        }
+    </script>
+
+    <div class="outer_wrapper">
+        <form id="registrationForm" action="#">
+            <fieldset>
+                <legend>Login to the Zabbix server</legend>
+                <p>Specify the URL, and user credentials to login to Zabbix</p>
+                <ul>
+                    <li>
+                        <label for="version" >Zabbix Version</label>
+                        <select id="version" onchange="changeVersion()">
+                            <option value="2.0">2.X</option>
+                            <option value="1.8">1.8</option>
+                        </select>
+                    </li>
+                    <li>
+                        <label for="url">Zabbix Server URL</label>
+                        <input id="url" type="text" class="editableText" value="http://localhost/zabbix/api_jsonrpc.php"/>
+                    </li>
+                    <li>
+                        <label for="username">Username</label>
+                        <input id="username" type="text" class="editableText"/>
+                    </li>
+                    <li>
+                        <label for="password">Password</label>
+                        <input id="password" type="password" class="editableText"/>
+                    </li>
+                </ul>
+                <h3>Registration Behavior</h3>
+                <p>Configure the registration behavior</p>
+                <ul>
+                    <li>
+                        <label for="sync">Synchronize Zabbix Content
+                            <div class="ultraHelp" title="Synchronize Zabbix Content" style="float:none;">
+                                <div><p>Whether to remove the non-existing content from the Zabbix Host or not</p>
+                                <p>Say you have removed a template from the template registry and re-register with this option enabled,
+                                the content related to that removed template will be removed from Zabbix host at the end of the registration
+                                synchronizing the template registry and the Zabbix registered items, graphs and triggers.</p>
+                                <p><b>Use with care</b>, if you use this option and register only a sub set of templates, the content
+                                resulted from the non-selected templates will be removed from Zabbix</p></div>
+                            </div>
+                        </label>
+                        <input type="checkbox" id="sync"/>
+                    </li>
+                    <li>
+                        <label for="skipUpdates">Skip Updates
+                            <div class="ultraHelp" title="Skip Updates" style="float:none;">
+                                <div><p>Whether to update Zabbix elements (item, trigger or a graph) if the registration templates contain an element 
+                                    already found in the Zabbix.</p>
+                                    <p>Skip updates if you are certain that there are no changes what so ever to the templates from your
+                                        previous registration, as that will improve the registration time drastically. If you have changed
+                                    the Zabbix templates it is required to turn this option off for those to be reflected in Zabbix</p></div>
+                            </div>
+                        </label>
+                        <input type="checkbox" id="skipUpdates"/>
+                    </li>
+                    <li id="cluster-registration">
+                        <label for="cluster">Cluster Wide
+                            <div class="ultraHelp" title="Synchronize Zabbix Content" style="float:none;">
+                                <div><p>Whether to register the templates cluster-wide into Zabbix</p>
+                                <p>Say you have a 3 node cluster with clustering enabled and configured, if this option is enabled,
+                                    the templates will be registered for all the 3 nodes of the cluster, on the same Zabbi server
+                                    using different Zabbix hosts for each node.</p>
+                                <p>This is convenient in registering a complete identical cluster with Zabbix</p></div>
+                            </div>
+                        </label>
+                        <input type="checkbox" id="cluster"/>
+                    </li>
+                    <li>
+                        <label for="sys-omit">Omit System Artifacts
+                            <div class="ultraHelp" title="Omit System Endpoints" style="float:none;">
+                                <div><p>Whether to omit registering the system generated artifacts such as endpoint
+                                tracking the responses from the mediation logic named <b>mediation.response</b> and so
+                                    forth</p></div>
+                            </div>
+                        </label>
+                        <input type="checkbox" id="sys-omit"/>
+                    </li>
+                </ul>
+                <br/>
+                <button class="clickable button" onclick="step0Callback()" type="button">Next > </button>
+            </fieldset>
+            <fieldset>
+                <legend>Select the host & templates</legend>
+                <div id="hostSelection">
+                </div>
+
+                <h3>Template Selection</h3>
+                <p>Select the set of templates to be registered.</p>
+                <div>
+                    <ul><li><label for="artifactFilter">Templates Filter</label>
+                    <p><select id="artifactFilter" onchange="filterTemplates(4, 'artifactFilter')">
+                        <option value="all">All Artifact</option>
+                        <option value="endpoint">Endpoint</option>
+                        <option value="sequence">Sequence</option>
+                        <option value="proxy-service">Proxy Service</option>
+                        <option value="transport-listener">Transport Listener</option>
+                        <option value="transport-sender">Transport Sender</option>
+                        <option value="file-cache">File Cache</option>
+                        <option value="work-manager">Work Manager</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <select id="templateTypeFilter" onchange="filterTemplates(5, 'templateTypeFilter')">
+                        <option value="all">All Types</option>
+                        <option value="item">Items</option>
+                        <option value="graph">Graphs</option>
+                        <option value="trigger">Triggers</option>
+                    </select> in group
+                    <select id="groupFilter" onchange="filterTemplates(2, 'groupFilter')">
+                        <option value="/*">/*</option>
+                        <option value="/">/</option>
+                    </select></p></li></ul>
+                </div>
+                <div id="selecttemplatediv"></div>
+                <br/>
+                <button class="clickable button" onclick="stepBackward(1)" type="button"> &lt; Back</button>
+                <button class="clickable button" onclick="step1Callback()" type="button">Next > </button>
+            </fieldset>
+            <fieldset>
+                <legend>Artifact selection</legend>
+                <p>Select the artifacts which are applied to the templates to generate zabbix registration content</p>
+                <div id="selectartifactdiv"></div>
+                <br/>
+                <button class="clickable button" onclick="stepBackward(2)" type="button"> &lt; Back</button>
+                <button class="clickable button" onclick="step2Callback()" type="button">Next > </button>
+            </fieldset>
+            <fieldset>
+                <legend>Confirmation</legend>
+                <p>The complete set of zabbix registration items are as follows, please check and confirm.</p>
+                <div id="confirmselectiondiv"></div>
+                <br/>
+                <button class="clickable button" onclick="stepBackward(3)" type="button"> &lt; Back</button>
+                <button class="clickable button" onclick="step3Callback()" type="button">Start Registration</button>
+            </fieldset>
+            <fieldset>
+                <legend>Registration results</legend>
+                <p>Status results of the Zabbix registration process</p>
+                <div id="reg-result"></div>
+                <br/>
+                <button class="clickable button" onclick="window.location.href='index.html?pageName=monitoring/uz-template-registry.html&bc=clear'" type="button">Finish</button>
+                <button id="clear-log" class="clickable button" onclick="clearLog()" type="button">Clear Log</button>
+            </fieldset>
+        </form>
+    </div>
+</div>
+</html>

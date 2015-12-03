@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "jvm-os-item-parent"
+    },
+    "params":{
+        "description": "File Descriptors (max)",
+        "key_": "jmx[java.lang:type=OperatingSystem][MaxFileDescriptorCount]"
+    }
+}

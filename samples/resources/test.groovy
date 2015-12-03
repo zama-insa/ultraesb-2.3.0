@@ -1,0 +1,1 @@
+println "Executing external Groovy Script from file test.groovy"

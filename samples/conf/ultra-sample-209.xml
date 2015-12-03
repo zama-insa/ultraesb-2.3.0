@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Refer to the unit test MessageChainingTest for more details about this sample and a unit test for it-->
+
+    <!--A proxy service demonstrating message chaining. The original request received is read as a String, and
+    set as a 'response correlated' property - so that it will be available as a message property on the response
+    message from te outSequence. Thus the original request is set as a response correlation named 'req'. The request
+    is then sent to the stockquote endpoint, and the response is received by the outSequence
+
+    The outSequence checks the result of the XPath expression '//return/last' and if its greater than 100, returns
+    it back to the client. A last trading price less than 100 results in setting the original request payload now
+    available as the property 'req' back as the current payload, and sending it again to the stockquote endpoint
+    definition, along with a new response correlation incase the next result also needs to be chained-->
+    <u:proxy id="soap-proxy-string">
+        <u:transport id="http-8280"/>
+        <u:target inDestination="stockquote">
+            <u:inSequence>
+                <u:java><![CDATA[
+                    msg.addResponseCorrelation("req", mediation.readPayloadAsString(msg));
+                ]]></u:java>
+            </u:inSequence>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    String last = mediation.getXMLSupport().extractAsStringUsingXPath(msg, "//return/last");
+                    if (Double.parseDouble(last) > 100) {
+                        System.out.println("Last trade price : " + last);
+                        mediation.sendToEndpoint(msg, "response");
+                    } else {
+                        System.out.println("Last trade price : " + last + " re-try...");
+                        mediation.setPayloadFromString(msg, msg.getStringMessageProperty("req"));
+                        msg.addResponseCorrelation("req", mediation.readPayloadAsString(msg));
+                        mediation.sendToEndpoint(msg, "stockquote");
+                    }
+                ]]></u:java>
+            </u:outSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--A Proxy service that performs message chaining, by detaching the request payload into a response correlation
+    property. Detached payloads are not garbage collected along with a message once processing completes in a thread
+    of execution. By default the HTTP/S transports keeps payloads as [optionally memory mapped] files. Thus when we
+    are done with a detached payload, we must now explicitly release it back to prevent a resource leak-->
+    <u:proxy id="soap-proxy-file">
+        <u:transport id="http-8280"/>
+        <u:target inDestination="stockquote">
+            <u:inSequence>
+                <u:java><![CDATA[
+                    msg.addResponseCorrelation("req", msg.detachPayload());
+                ]]></u:java>
+            </u:inSequence>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    String last = mediation.getXMLSupport().extractAsStringUsingXPath(msg, "//return/last", null);
+                    MessageFormat req = msg.getMessageProperty("req", MessageFormat.class);
+                    if (Double.parseDouble(last) > 100) {
+                        System.out.println("Last trade price : " + last);
+                        ((MessageFile) ((RawFileMessage)req).getFile()).release();
+                        mediation.sendToEndpoint(msg, "response");
+                    } else {
+                        System.out.println("Last trade price : " + last + " re-try...");
+                        msg.setCurrentPayload(req);
+                        msg.addResponseCorrelation("req", req);
+                        mediation.sendToEndpoint(msg, "stockquote");
+                    }
+                ]]></u:java>
+            </u:outSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="stockquote">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+    <u:endpoint id="response">
+        <u:address type="response"/>
+    </u:endpoint>
+
+</beans>
+
+
+
+
+

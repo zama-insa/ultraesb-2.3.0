@@ -1,0 +1,12 @@
+{
+    "uz_meta": {
+        "parent": "jvm-general-item-parent"
+    },
+    "params":{
+        "description": "JVM Uptime",
+        "key_": "jmx[java.lang:type=Runtime][Uptime]",
+        "units": "s",
+        "formula": "0.001",
+        "multiplier": "1"
+    }
+}

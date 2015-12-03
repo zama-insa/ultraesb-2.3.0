@@ -1,0 +1,163 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="tabs-4">
+    <script type="text/javascript">
+        function invokeRestartOperation(confirmOpText, infoOpText, opPath, gracePeriod, delay) {
+
+            var additionalParam = "";
+            if (gracePeriod != null) {
+                additionalParam = "/" + gracePeriod;
+            }
+            if (delay != null) {
+                additionalParam += "/roundrobin/" + delay;
+            }
+            showConfirmation("Do you want to " + confirmOpText + " ?", function() {
+                $.ajax({
+                    type: 'POST',
+                    dataType: 'text',
+                    url: getCallURLBase() + 'cluster/server/' + opPath + additionalParam,
+                    success: function(msg) {
+                        showInfo('Successfully published the ' + infoOpText + ' command into the cluster with command id : ' + msg +
+                                '. You will now be re-directed to the command page, but you may get an error due to the node you connected being restarted. Just refresh after some time',
+                                'index.html?pageName=cluster-mgt/command-details.html&commandId=' + msg);
+                    }
+                });
+            });
+        }
+
+        $(document).ready(function() {
+            $("#server-control-ops").accordion();
+        });
+    </script>
+
+    <div id="server-control-ops">
+        <h3><a href="#">Round-Robin restart the complete cluster gracefully</a></h3>
+        <div>
+            <section>Round-Robin graceful restart is considered as the most safe cluster restart, where only one
+            server node in the cluster is being restarted at a given time, yet it is done gracefully. You could
+            specify a delay for this cluster restart so that there will be a delay of the specified amount in milliseconds
+            between the restarts of the individual nodes in the cluster. This guarantees the availability of the cluster
+            while being restarted, but it may be inconsistent in state, if restart results in a different configuration. You
+            could specify a maximum grace period in-case if the restart operation cannot finalize the tasks before the maximum
+                grace period, it will force a hard restart at that moment.
+            This restart is going to take the most time to complete out of the 4 options.</section>
+            <fieldset id="rr-grace-restart-cluster">
+                <ul>
+                    <li class="control-panel-li">
+                        <label>delay</label><input type="text" id="rr-grace-delay" value="0"/>
+                    </li>
+                    <li class="control-panel-li">
+                        <label>grace period</label><input type="text" id="rr-grace-period" value="5000"/>
+                    </li>
+                    <li class="control-panel-li">
+                        <br/>
+                        <input type="button" class="button clickable" value="Restart" title="Round-Robin restart all servers in the cluster gracefully"
+                               onclick="invokeRestartOperation('Round-Robin restart all servers in the cluster gracefully', 'Round-Robin graceful restart', 'gracefulRestart', $('#rr-grace-period').attr('value'), $('#rr-grace-delay').attr('value'))"/>
+                    </li>
+                </ul>
+            </fieldset>
+        </div>
+        <h3><a href="#">Round-Robin hard restart the complete cluster</a></h3>
+        <div>
+            <section>Round-Robin hard restart guarantees the availability but it might cause some messages to be dropped. That is
+            because the restart of the individual nodes in the cluster is not graceful. You could specify the delay between the individual
+            node restarts, so that there will be a delay of the specified amount in milliseconds between restarts. This restart is not safe as the
+            first option but takes less time than that. If you do not want to make sure the restart to be delayed for serving the already
+            accepted messages you may use this restart.</section>
+            <fieldset id="rr-hard-restart-cluster">
+                <ul>
+                    <li class="control-panel-li">
+                        <label>delay</label><input type="text" id="rr-hard-delay" value="5000"/>
+                    </li>
+                    <li class="control-panel-li">
+                        <br/>
+                        <input type="button" class="button clickable" value="Restart" title="Round-Robin hard restart all servers in the cluster"
+                               onclick="invokeRestartOperation('Round-Robin hard restart all servers in the cluster now', 'Round-Robin hard restart', 'hardRestart', null, $('#rr-hard-delay').attr('value'))"/>
+                    </li>
+                </ul>
+            </fieldset>
+        </div>
+        <h3><a href="#">Graceful restart the complete cluster now</a></h3>
+        <div>
+            <section>Graceful restarts the cluster, but all nodes at nearly the same time. It doesn't guarantee the availability
+            of the cluster as all nodes are going down nearly at the same time, so there is a down time for the cluster. If you have an option to
+            decouple the load from the cluster and you quickly want to get the complete cluster restarted ASAP, you could use this. This is graceful
+            meaning that, if a server node has messages in processing state, they will be finished before the restart, provided that they are
+            finished before the maximum grace period specified. This is suitable if the restart changes the configuration, as the cluster inconsistency
+            in configuration is nearly zero in this restart.</section>
+            <fieldset id="grace-restart-cluster">
+                <ul>
+                    <li class="control-panel-li">
+                        <label>grace period</label><input type="text" id="grace-period" value="5000"/>
+                    </li>
+                    <li class="control-panel-li">
+                        <br/>
+                        <input type="button" class="button clickable" value="Restart" title="Graceful restart all servers in the cluster"
+                               onclick="invokeRestartOperation('gracefully restart all servers in the cluster now', 'graceful restart', 'gracefulRestart', $('#grace-period').attr('value'), null)"/>
+                    </li>
+                </ul>
+            </fieldset>
+        </div>
+        <h3><a href="#">Hard restart the complete cluster now</a></h3>
+        <div>
+            <section>Hard restart of the cluster is the worst option available, and should only be used if you just need hard reset
+            the complete cluster instantly without worrying about the availability nor the messages in flight (in processing).
+            This restart is the quickest among all but should be used with care. In other words do not invoke this restart if you
+            are not sure on what you are doing.</section>
+            <fieldset id="hard-restart-cluster">
+                <ul>
+                    <li class="control-panel-li">
+                        <br/>
+                        <input type="button" class="button clickable" value="Restart" title="Hard restart all servers in the cluster"
+                       onclick="invokeRestartOperation('hard restart all servers in the cluster now', 'hard restart', 'hardRestart', null, null)"/>
+                    </li>
+                </ul>
+            </fieldset>
+        </div>
+        <h3><a href="#">Refresh the complete cluster now</a></h3>
+        <div>
+            <section>Refresh the ESB servers in the cluster. This command will only send a signal to any of the server
+                interceptors which are listening for the @OnServerRefresh event, no restart, no reloading of configuration
+                or nothing else is done. This is mainly used to trigger the interceptors with a human intervention, after
+                the server is started and ready</section>
+            <fieldset id="refresh-cluster">
+                <ul>
+                    <li class="control-panel-li">
+                        <br/>
+                        <input type="button" class="button clickable" value="Refresh" title="Refresh all servers in the cluster"
+                               onclick="invokeRestartOperation('refresh all servers in the cluster now', 'refresh', 'refresh', null, null)"/>
+                    </li>
+                </ul>
+            </fieldset>
+        </div>
+    </div>
+</div>
+</html>

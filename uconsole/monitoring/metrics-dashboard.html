@@ -1,0 +1,269 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="container" title="Metrics Dashboard">
+    <header class="helpedHeading">
+        <h2>Metrics Dashboard</h2>
+        <div class="ultraHelp" title="Metrics Dashboard Help">
+            <div>
+                <p>This is a custom metrics dashboard which shows all the available metrics streams and lets you define
+                    the graphs with customization based on the priorities to monitor the specified streams in a single
+                    dashboard.</p>
+                <p>Apart from that you may see a tabular form of all the available metrics streams both gauge and events
+                    with the ability to search filer the metrics</p>
+            </div>
+        </div>
+    </header>
+    <section>Metrics Dashboard</section>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+
+            var jqxhr = $.getJSON(getCallURLBase() + "metrics/retrieveStreams/all", function(dataset) {
+
+                var gaugesData = {gauges: dataset.gauges};
+                var countersData = {counters: dataset.counters};
+                var timersData = {timers: dataset.timers};
+                var gaugesDataDir = {
+                    'tbody tr':{
+                        'gauge<-gauges':{
+                            'td.stream a'                           :'gauge.stream',
+                            'td.stream a@href+'                     :'#{gauge.stream}&streamId=#{gauge.streamId}',
+                            'td.all_count'                            :function(gauge) {return formatDecimalNumber(gauge.item.allTime.count)},
+                            'td.all_min'                            :function(gauge) {return formatDecimalNumber(gauge.item.allTime.min)},
+                            'td.all_max'                            :function(gauge) {return formatDecimalNumber(gauge.item.allTime.max)},
+                            'td.all_avg'                            :function(gauge) {return formatDecimalNumber(gauge.item.allTime.mean)},
+                            'td.window_count'                            :function(gauge) {return formatDecimalNumber(gauge.item.movingWindow.count)},
+                            'td.window_min'                            :function(gauge) {return formatDecimalNumber(gauge.item.movingWindow.min)},
+                            'td.window_max'                            :function(gauge) {return formatDecimalNumber(gauge.item.movingWindow.max)},
+                            'td.window_avg'                            :function(gauge) {return formatDecimalNumber(gauge.item.movingWindow.mean)},
+                            'td.control img.reset@onclick'      :'{resetStream("#{gauge.stream}", "#{gauge.streamId}", "gauge");}',
+                            'td.control img.reset@id'           : function (gauge) { return gauge.item.stream + "-reset"},
+                            'td.control img.graph@onclick'      :'{showGraph("#{gauge.stream}", "#{gauge.streamId}", "gauge");}',
+                            'td.control img.graph@id'           : function (gauge) { return gauge.item.stream + "-graph"}
+                        }
+                    }
+                };
+                var countersDataDir = {
+                    'tbody tr':{
+                        'counter<-counters':{
+                            'td.stream a'                           :'counter.stream',
+                            'td.stream a@href+'                     :'#{counter.stream}&streamId=#{counter.streamId}',
+                            'td.all_count'                            :function(counter) {return formatDecimalNumber(counter.item.allTime.count)},
+                            'td.all_rate'                            :function(counter) {return formatDecimalNumber(counter.item.allTime.averageRate)},
+                            'td.window_count'                            :function(counter) {return formatDecimalNumber(counter.item.movingWindow.count)},
+                            'td.window_rate'                            :function(counter) {return formatDecimalNumber(counter.item.movingWindow.averageRate)},
+                            'td.control img.reset@onclick'      :'{resetStream("#{counter.stream}", "#{counter.streamId}", "counter");}',
+                            'td.control img.reset@id'           : function (counter) { return counter.item.stream + "-reset"},
+                            'td.control img.graph@onclick'      :'{showGraph("#{counter.stream}", "#{counter.streamId}", "counter");}',
+                            'td.control img.graph@id'           : function (counter) { return counter.item.stream + "-graph"}
+                        }
+                    }
+                };
+                var timersDataDir = {
+                    'tbody tr':{
+                        'timer<-timers':{
+                            'td.stream a'                           :'timer.stream',
+                            'td.stream a@href+'                     :'#{timer.stream}&streamId=#{timer.streamId}',
+                            'td.all_median'                            :function(timer) {return formatDecimalNumber(timer.item.allTime.median/1000)},
+                            'td.all_75'                            :function(timer) {return formatDecimalNumber(timer.item.allTime._75Percentile/1000)},
+                            'td.all_99'                            :function(timer) {return formatDecimalNumber(timer.item.allTime._99Percentile/1000)},
+                            'td.window_min'                            :function(timer) {return formatDecimalNumber(timer.item.movingWindow.min/1E6)},
+                            'td.window_max'                            :function(timer) {return formatDecimalNumber(timer.item.movingWindow.max/1E6)},
+                            'td.window_avg'                            :function(timer) {return formatDecimalNumber(timer.item.movingWindow.mean/1E6)},
+                            'td.control img.reset@onclick'      :'{resetStream("#{timer.stream}", "#{gauge.streamId}", "timer");}',
+                            'td.control img.reset@id'           : function (timer) { return timer.item.stream + "-reset"},
+                            'td.control img.graph@onclick'      :'{showGraph("#{timer.stream}", "#{timer.streamId}", "timer");}',
+                            'td.control img.graph@id'           : function (timer) { return timer.item.stream + "-graph"}
+                        }
+                    }
+                };
+                $('#gaugeslist').render(gaugesData, gaugesDataDir);
+                $('#counterslist').render(countersData, countersDataDir);
+                $('#timerslist').render(timersData, timersDataDir);
+                encodeURLs();
+                $('#gaugeslist').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers"
+                });
+                $('#counterslist').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers"
+                });
+                $('#timerslist').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers"
+                });
+            });
+        });
+
+        function resetAll() {
+            showConfirmation("Are you sure you want to reset all metrics streams, this operation will result in " +
+                    "all the metrics records to be cleared ?", function() {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'metrics/reset/all',
+                    success: function(msg) {
+                        showInfo('Successfully reset all the metrics streams..', 'index.html?pageName=monitoring/metrics-dashboard.html');
+                    }
+                });
+            })
+        }
+
+        function resetStream(stream, streamId, type) {
+            showConfirmation("Are you sure you want to reset the " + type + " metrics stream " + stream + ", this operation will result in " +
+                    "all the metrics records of this stream to be cleared ?", function() {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'metrics/reset/' + type + "/" + streamId,
+                    success: function(msg) {
+                        showInfo('Successfully reset the ' + type + ' metrics streams ' + stream, 'index.html?pageName=monitoring/metrics-dashboard.html');
+                    }
+                });
+            })
+        }
+
+        function showGraph(stream, streamId, type) {
+            window.location.href = "index.html?pageName=monitoring/metrics-graph.html&type=" + type + "&stream=" + stream + "&streamId=" + streamId;
+        }
+    </script>
+
+    <div class="outer_wrapper">
+        <button style="float: right; margin-bottom:5px; margin-top:-5px; margin-left:5px;" onclick="resetAll()" class="clickable button">Reset All</button>
+        <h2>Gauge Metrics Records</h2>
+        <table class="display" id="gaugeslist">
+            <thead>
+            <tr>
+                <th rowspan="2">Stream</th>
+                <th colspan="4">All Time</th>
+                <th colspan="4">Moving Window</th>
+                <th rowspan="2">Control</th>
+            </tr>
+            <tr>
+                <th>Count</th>
+                <th>Min</th>
+                <th>Max</th>
+                <th>Mean</th>
+                <th>Count</th>
+                <th>Min</th>
+                <th>Max</th>
+                <th>Mean</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="stream"><a href="index.html?pageName=monitoring/metrics-graph.html&type=gauge&stream="></a></td>
+                <td class="all_count"></td>
+                <td class="all_min"></td>
+                <td class="all_max"></td>
+                <td class="all_avg"></td>
+                <td class="window_count"></td>
+                <td class="window_min"></td>
+                <td class="window_max"></td>
+                <td class="window_avg"></td>
+                <td class="control">
+                    <img class="reset clickable" title="Reset" src="icons/reset.png"/>
+                    <img class="graph clickable"  title="Show Graph"  src="icons/chart.png"/>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h2>Counter Metrics Records</h2>
+        <table class="display" id="counterslist">
+            <thead>
+            <tr>
+                <th rowspan="2">Stream</th>
+                <th colspan="2">All Time</th>
+                <th colspan="2">Moving Window</th>
+                <th rowspan="2">Control</th>
+            </tr>
+            <tr>
+                <th>Count</th>
+                <th>Rate</th>
+                <th>Count</th>
+                <th>Rate</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="stream"><a href="index.html?pageName=monitoring/metrics-graph.html&type=counter&stream="></a></td>
+                <td class="all_count"></td>
+                <td class="all_rate"></td>
+                <td class="window_count"></td>
+                <td class="window_rate"></td>
+                <td class="control">
+                    <img class="reset clickable" title="Reset" src="icons/reset.png"/>
+                    <img class="graph clickable"  title="Show Graph"  src="icons/chart.png"/>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h2>Timer Metrics Records</h2>
+        <table class="display" id="timerslist">
+            <thead>
+            <tr>
+                <th rowspan="2">Stream</th>
+                <th colspan="3">All Time (ms)</th>
+                <th colspan="3">Moving Window (ms)</th>
+                <th rowspan="2">Control</th>
+            </tr>
+            <tr>
+                <th>Median</th>
+                <th>75<sup>th</sup> Percentile</th>
+                <th>99<sup>th</sup> Percentile</th>
+                <th>Min</th>
+                <th>Max</th>
+                <th>Mean</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="stream"><a href="index.html?pageName=monitoring/metrics-graph.html&type=timer&stream="></a></td>
+                <td class="all_median"></td>
+                <td class="all_75"></td>
+                <td class="all_99"></td>
+                <td class="window_min"></td>
+                <td class="window_max"></td>
+                <td class="window_avg"></td>
+                <td class="control">
+                    <img class="reset clickable" title="Reset" src="icons/reset.png"/>
+                    <img class="graph clickable"  title="Show Graph"  src="icons/chart.png"/>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</html>

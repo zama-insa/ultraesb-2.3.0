@@ -1,0 +1,8 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "parent": "triggers-parent",
+        "key": "system-triggers-parent",
+        "type": "custom"
+    }
+}

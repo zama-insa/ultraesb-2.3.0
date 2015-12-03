@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+***********************************************************************************************************************
+
+    NOTE: This file is statically included from the default ultra-root.xml which is the main configuration file of the
+    UltraESB used in a production deployment. Use this file to define any custom Spring beans, or common sequences,
+    services or endpoints which will not be unloaded and reloaded at runtime.
+
+    This defines two very simple services as basic examples. Refer the screen casts and other documented articles
+    found from http://adroitlogic.org for simple or advanced configuration examples
+
+***********************************************************************************************************************
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <u:endpoint id="echo-service">
+        <u:address>http://localhost:9000/service/EchoService</u:address>
+    </u:endpoint>
+
+    <u:sequence id="error-handler">
+        <u:java><![CDATA[
+            logger.error("Custom error handler : " + msg.getLastException().toString());
+        ]]></u:java>
+    </u:sequence>
+
+    <!--The following is an example of a possible health check service for use by a HW LB to detect if an UltraESB node
+    should be considered healthy, or further traffic should be routed to another node. The example below makes use of
+    the 'user defined' status code for a node as the HTTP response code to be returned. This service could be made to
+    only reply if the request is originating from theHW LB itself (to prevent a DOS attack etc
+    See the UTerm commands server-user-defined-status-code-get and server-user-defined-status-code-set on how to set a
+    user defined status code. This would be available via UConsole too-->
+    <u:proxy id="health-check">
+        <u:transport id="http-8280"/>
+        <u:transport id="https-8443"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    msg = msg.createDefaultResponseMessage();
+                    mediation.sendResponse(msg,org.adroitlogic.ultraesb.api.management.
+                        ServerAdminImpl.getInstance().getUserDefinedStatusCode());
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

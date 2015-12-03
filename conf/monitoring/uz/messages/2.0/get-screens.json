@@ -1,0 +1,11 @@
+{
+    "jsonrpc":"2.0",
+    "method":"screen.get",
+    "params":{
+        "search": {"name": "*"},
+        "output": "extend",
+        "searchWildcardsEnabled": 1
+    },
+    "auth":"$auth$",
+    "id":2
+}

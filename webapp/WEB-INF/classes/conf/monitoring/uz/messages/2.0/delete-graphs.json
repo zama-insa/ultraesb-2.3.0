@@ -1,0 +1,7 @@
+{
+    "jsonrpc":"2.0",
+    "method":"graph.delete",
+    "params":["$[graphid]$"],
+    "auth":"$auth$",
+    "id":2
+}

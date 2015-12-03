@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Unexpected Error - ${code} - ${message}</title>
+</head>
+<body style="margin: 20px 100px;">
+    <h2 style="color: #EE6600; text-decoration: underline">Unexpected Error - ${message}</h2>
+    <div style="padding-top: 20px;">
+        <p style="color: #555555">Unexpected error encountered while serving your request to "<span style="color: #b22222; font-weight: bold">${uri}</span>". If this error persists and
+            you are sure that you are not doing something wrong, please contact the administrator and inform this error.</p>
+        <p style="color: #555555"><strong>${code} : ${message}</strong></p>
+        <br/>
+        <p><a href="#" onclick="history.back()">Go Back</a> | <a href="/uconsole">Back to UConsole</a></p>
+    </div>
+</body>
+</html>

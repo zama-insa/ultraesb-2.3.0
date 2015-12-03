@@ -1,0 +1,104 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+
+    <div id="container" title="File Caches">
+        <header class="helpedHeading">
+            <h2>File Caches</h2>
+            <div class="ultraHelp" title="File Caches Help">
+            <div>
+                <p>File Caches are used by the UltraESB for temporary files. Usually only a single file cache will
+                be defined, and the files reused. The files created by a file cache are usually memory mapped (unless
+                turned off) for best performance. When increasing the limits, please ensure that sufficient files
+                handles are allowed for a process by the underlying Operating System. You could check the limits
+                on a Linux system using the <b>ulimit</b> command</p>
+                <p>This page lists the file caches defined on the configuration, and the total files created, current
+                files available for use, and the peak usage.</p>
+            </div>
+        </div>
+        </header>
+        <section>Defined file caches for use</section>
+        <div class="outer_wrapper">
+        <table class="display" id="filecacheList">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Total files created</th>
+                    <th>Available files for use</th>
+                    <th>Peak usage</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td class="id"><a href="index.html?pageName=node-mgt/filecache-details.html&id="></a> </td>
+                    <td class="totFilesCreate numeric"></td>
+                    <td class="availableFilesCreate numeric"></td>
+                    <td class="peakUse numeric"></td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+
+        <script type="text/javascript">
+
+        $(document).ready(function() {
+            var jqxhr = $.getJSON(getCallURLBase() + "filecaches/getFilecaches", function(dataSet) {
+
+                var data = {filecaches:dataSet};
+                var dataDir = {
+                    ' tbody tr' : {
+                        'filecache <- filecaches' : {
+                            ' td.id a'                 :function(filecache){if (null == filecache.item.id) {return "-";} else { return filecache.item.id;}},
+                            ' td.id a@title'           :'filecache.id',
+                            ' td.id a@href+'           :'filecache.id',
+                            ' td.totFilesCreate'       : function(fc){ return formatNumber(fc.item.totalFilesCreated);},
+                            ' td.availableFilesCreate' : function(fc){ return formatNumber(fc.item.availableForUse);},
+                            ' td.peakUse'              : function(fc){ return formatNumber(fc.item.peakUsage);}
+                            }
+                        }
+                    };
+                $('#filecacheList').render(data, dataDir);
+                $('#filecacheList').dataTable({
+                    "bLengthChange"  : true,
+                    "bJQueryUI"      : true,
+                    "sPaginationType": "full_numbers"
+                });
+                encodeURLs();
+            });
+        });
+    </script>
+    </div>
+
+</html>
+
+
+
+

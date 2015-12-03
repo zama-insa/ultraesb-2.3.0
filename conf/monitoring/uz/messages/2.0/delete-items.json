@@ -1,0 +1,7 @@
+{
+    "jsonrpc":"2.0",
+    "method":"item.delete",
+    "params":["$[itemid]$"],
+    "auth":"$auth$",
+    "id":2
+}

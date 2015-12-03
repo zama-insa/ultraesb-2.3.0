@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+
+    <!--suppress HtmlUnknownTag -->
+    <div id="container" title="Dashboard">
+        <header class="helpedHeading">
+            <h2 id="dashboardHeader">UltraESB - Dashboard</h2>
+            <div class="ultraHelp" title="Dashboard Help">
+                <div>
+                    <p>Dashboard is the landing page of the Ultra Console which manages the
+                    UltraESB nodes as well as a cluster. This dashboard consist of 3 tabs</p>
+                    <img src="images/help/dashboard_tabs.png"/>
+                    <ol>
+                        <li><b>Overview Charts</b> - This tab is the default tab of the dashboard and
+                        it presents 4 charts giving an overall idea of the <i>Memory Heap Usage</i>,
+                            <i>Live Threads</i>, <i>CPU Usage</i>, <i>File Descriptor Usage</i></li>
+                        <li><b>System Information</b> - This tab shows the system properties and
+                        environmental variables in a tabular format.</li>
+                        <li><b>Getting Started</b> - A useful set of links to the documentation
+                            samples and articles. It also has a feed from the <a target="_blank" href="http://blog.adroitlogic.org/">UltraESB blog</a>.</li>
+                    </ol>
+                    With these 3 tabs the dashboard gives an overall idea about the logged in UltraESB instance.
+                </div>
+            </div>
+        </header>
+        <!--[if lt IE 9]><div id="dashboardSectionEmulator"><![endif]-->
+        <section>The UltraESB system dashboard showing graphs, detailed information and help on getting started</section>
+        <!--[if lt IE 9]></div><![endif]-->
+        <div id="tabs">
+            <ul>
+                <li><a href="#tabs-1">Overview Charts</a></li>
+                <li><a href="#tabs-2">System Information</a></li>
+                <li><a href="#tabs-3">Getting Started</a></li>
+            </ul>
+            <div id="tabs-1" style="min-height: 1070px; min-width: 1000px;">
+                <div class="heapMemory" style="float: left; margin-left: 10px;">
+                    <br/>
+                    <p>
+                        <span style="font-weight: bold">Heap Memory Usage (MB)</span>
+                        <span id="memAvg" class="stat avg"></span><span class="right"> Avg: </span>
+                        <span id="memMax" class="stat max"></span><span class="right"> Max: </span>
+                        <span id="memMin" class="stat min"></span><span class="right"> Min: </span>
+                    </p>
+                </div>
+                <div class="threads" style="float: left; margin-left: 50px;">
+                    <br/>
+                    <p>
+                        <span style="font-weight: bold">Live Threads</span>
+                        <span id="threadAvg" class="stat avg"></span><span class="right"> Avg: </span>
+                        <span id="threadMax" class="stat max"></span><span class="right"> Max: </span>
+                        <span id="threadMin" class="stat min"></span><span class="right"> Min: </span>
+                    </p>
+                </div>
+
+                <div class="cpu" style="float: left; margin-left: 10px;">
+                    <br/><br/>
+                    <p>
+                        <span style="font-weight: bold">CPU Usage</span>
+                        <span id="cpuAvg" class="stat avg"></span><span class="right"> Avg: </span>
+                        <span id="cpuMax" class="stat max"></span><span class="right"> Max: </span>
+                        <span id="cpuMin" class="stat min"></span><span class="right"> Min: </span>
+                    </p>
+                </div>
+                <div class="fd" style="float: left; margin-left: 50px;">
+                    <br/><br/>
+                    <p>
+                        <span style="font-weight: bold">File Descriptor Usage</span>
+                        <span id="fdAvg" class="stat avg"></span><span class="right"> Avg: </span>
+                        <span id="fdMax" class="stat max"></span><span class="right"> Max: </span>
+                        <span id="fdMin" class="stat min"></span><span class="right"> Min: </span>
+                    </p>
+                </div>
+
+                <div class="wmUsage" style="float: left; margin-left: 10px;">
+                    <br/><br/>
+                    <p>
+                        <span style="font-weight: bold">Work Manager Usage</span>
+                        <span id="wmRate" class="stat rate"></span><span class="right"> Rate: </span>
+                        <span id="wmCount" class="stat count"></span><span class="right"> Count: </span>
+                    </p>
+                </div>
+                <div class="fcUsage" style="float: left; margin-left: 50px;">
+                    <br/><br/>
+                    <p>
+                        <span style="font-weight: bold">File Cache Usage</span>
+                        <span id="fcRate" class="stat rate"></span><span class="right"> Rate: </span>
+                        <span id="fcCount" class="stat count"></span><span class="right"> Count: </span>
+                    </p>
+                </div>
+
+                <div class="receivedMsg" style="float: left; margin-left: 10px;">
+                    <br/><br/>
+                    <p>
+                        <span style="font-weight: bold">Received Messages</span>
+                        <span id="receivedMsgRate" class="stat rate"></span><span class="right"> Rate: </span>
+                        <span id="receivedMsgCount" class="stat count"></span><span class="right"> Count: </span>
+                    </p>
+                </div>
+                <div class="sentMsg" style="float: left; margin-left: 50px;">
+                    <br/><br/>
+                    <p>
+                        <span style="font-weight: bold">Sent Messages</span>
+                        <span id="sentMsgRate" class="stat rate"></span><span class="right"> Rate: </span>
+                        <span id="sentMsgCount" class="stat count"></span><span class="right"> Count: </span>
+                    </p>
+                </div>
+            </div>
+
+            <div id="tabs-2">
+                <table class="display" id="tblSystemInfo">
+                    <thead>
+                        <tr><th>Group</th><th>Key</th><th>Value</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="type"></td>
+                            <td class="key"></td>
+                            <td class="value"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="tabs-3">
+                <fieldset class="mktg-fieldset ui-corner-tl ui-corner-tr ui-corner-bl ui-corner-br">
+                    <legend class="mktg-legend ui-corner-tl ui-corner-tr ui-corner-bl ui-corner-br">First Steps</legend>
+                    <ul class="mktg-fieldset-ul">
+                        <li><a href="http://www.youtube.com/user/adroitlogic" target="_blank">5 minute Screen Casts</a> - Learn how to setup your IDE and develop your first example in 10 minutes</li>
+                        <li><a href="http://docs.adroitlogic.org" target="_blank">Documentation</a> - UltraESB documentation, References to quickstart guide, user guide, production deployment guides</li>
+                        <li><a href="http://api.adroitlogic.org/" target="_blank">http://api.adroitlogic.org/</a> - The API for mediating messages</li>
+                        <li><a href="http://docs.adroitlogic.org/display/esb/Remote+JMX+Access" target="_blank">
+                            Configuring JMX and Console Access</a> - Learn how to secure JMX access to monitor and manage the UltraESB, and also learn how to expose the graphical web console (uconsole) over a different network interface and/or port</li>
+                        <li><a href="http://docs.adroitlogic.org/display/esb/User+Guide" target="_blank">Configuring and using the IDE</a> - Configure Intellj IDEA, Eclipse or NetBeans IDE for use with UltraESB</li>
+                        <li><a href="http://docs.adroitlogic.org/display/esb/SOA+Toolbox" target="_blank">Using the ToolBox for testing</a> - Use the SOA ToolBox as a test client, service, TCP dump etc</li>
+                        <li><a href="http://docs.adroitlogic.org/display/esb/Quickstart+Guide" target="_blank">Quick start guide</a> - Learn the basics with the UltraESB to get started</li>
+                    </ul>
+                </fieldset>
+                <fieldset class="mktg-fieldset ui-corner-tl ui-corner-tr ui-corner-bl ui-corner-br">
+                    <legend class="mktg-legend ui-corner-tl ui-corner-tr ui-corner-bl ui-corner-br">Miscellaneous</legend>
+                    <ul class="mktg-fieldset-ul">
+                        <li><a href="http://docs.adroitlogic.org/display/esb/Sample+Use+Cases" target="_blank">Samples Guide</a> - Many documented samples for SOAP, REST, JMS, JTA, File etc</li>
+                        <li><a href="http://esbperformance.org" target="_blank">Performance Testing Framework, Results and Tools</a> - Execute the ESB Performance test framework and review results</li>
+                        <li><a href="http://getsatisfaction.com/adroitlogic" target="_blank">Forums and Feedback</a>- Ask a question and share feedback</li>
+                        <li><a href="https://bitbucket.org/adroitlogic/ultraesb/issues" target="_blank">Issue Tracker</a>- Request an enhancement or notify a defect</li>
+                        <li><a href="https://bitbucket.org/adroitlogic/ultraesb/src" target="_blank">Source Code</a>- Checkout and build the source code yourself using Mercurial and Maven</li>
+                        <li><a href="http://www.adroitlogic.org/services.html" target="_blank">Services/Commercial Support</a>- Information about 24x7 production support, training and consulting</li>
+                    </ul>
+                </fieldset>
+            </div>
+        </div>
+        <script type="text/javascript" src="js/graph/line-graph.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+
+                $('#tabs').tabs();
+
+                $.getJSON(getCallURLBase() + "server/getDashboard", function(dataset) {
+                    var data = {entries:dataset.systemInfo};
+                    var dataDirective = {
+                        'tbody tr':{
+                            'entry<-entries' : {
+                                'td.type'  : 'entry.type',
+                                'td.key'   : 'entry.key',
+                                'td.value' : 'entry.value'
+                            }
+                        }
+                    };
+                    $('#tblSystemInfo').render(data, dataDirective);
+                    $('#tblSystemInfo').dataTable({
+                        "bLengthChange": true,
+                        "bJQueryUI": true,
+                        "sPaginationType": "full_numbers",
+                        "iDisplayLength": 50
+                    });
+
+                    var graphs = {};
+
+                    graphs[dataset.metricsStreams.usedMemoryGauge] = {
+                        "divClass": "heapMemory", "type": "gauge",
+                        "stream": dataset.metricsStreams.usedMemoryGauge,
+                        "w": 400, "h": 150, "yAxisName": "Memory (MB)", "defaultMax": 10,
+                        "dataTransform": function(d) { d.mean = d.mean/(1024*1024); },
+                        "allDataTransform": function(d) {
+                            d.mean = d.mean/(1024*1024);
+                            d.min = d.min/(1024*1024);
+                            d.max = d.max/(1024*1024);
+                        },
+                        "stats": {
+                            "average": "memAvg",
+                            "min": "memMin",
+                            "max": "memMax"
+                        }
+                    };
+                    graphs[dataset.metricsStreams.activeThreadsGauge] = {
+                        "divClass": "threads", "type": "gauge",
+                        "stream": dataset.metricsStreams.activeThreadsGauge, "color": "orange",
+                        "w": 400, "h": 150, "yAxisName": "Thread Count", "defaultMax": 10,
+                        "stats": {
+                            "average": "threadAvg",
+                            "min": "threadMin",
+                            "max": "threadMax"
+                        }
+                    };
+                    graphs[dataset.metricsStreams.cpuUsageGauge] = {
+                        "divClass": "cpu", "type": "gauge",
+                        "stream": dataset.metricsStreams.cpuUsageGauge, "color": "red",
+                        "w": 400, "h": 150, "yAxisName": "CPU Usage", "defaultMax": 100,
+                        "dataTransform": function(d) {return d.mean = d.mean/10;},
+                        "allDataTransform": function(d) {
+                            d.mean = d.mean/10;
+                            d.min = d.min/10;
+                            d.max = d.max/10;
+                        },
+                        "stats": {
+                            "average": "cpuAvg",
+                            "min": "cpuMin",
+                            "max": "cpuMax"
+                        }
+                    };
+                    graphs[dataset.metricsStreams.openFDGauge] = {
+                        "divClass": "fd", "type": "gauge",
+                        "stream": dataset.metricsStreams.openFDGauge, "color": "green",
+                        "w": 400, "h": 150, "yAxisName": "File Descriptors", "defaultMax": 10,
+                        "stats": {
+                            "average": "fdAvg",
+                            "min": "fdMin",
+                            "max": "fdMax"
+                        }
+                    };
+                    graphs[dataset.metricsStreams.globalThreadUsage] = {
+                        "divClass": "wmUsage", "type": "counter",
+                        "stream": dataset.metricsStreams.globalThreadUsage, "color": "red",
+                        "w": 400, "h": 150, "yAxisName": "Executed Tasks", "defaultMax": 10,
+                        "yAxisData": function(d) {return d.count;},
+                        "stats": {
+                            "count": "wmCount",
+                            "rate": "wmRate"
+                        }
+                    };
+                    graphs[dataset.metricsStreams.globalFileUsage] = {
+                        "divClass": "fcUsage", "type": "counter",
+                        "stream": dataset.metricsStreams.globalFileUsage, "color": "green",
+                        "w": 400, "h": 150, "yAxisName": "Files Used", "defaultMax": 10,
+                        "yAxisData": function(d) {return d.count;},
+                        "stats": {
+                            "count": "fcCount",
+                            "rate": "fcRate"
+                        }
+                    };
+                    graphs[dataset.metricsStreams.globalReceivedMessages] = {
+                        "divClass": "receivedMsg", "type": "counter",
+                        "stream": dataset.metricsStreams.globalReceivedMessages, "color": "purple",
+                        "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                        "yAxisData": function(d) {return d.count;},
+                        "stats": {
+                            "count": "receivedMsgCount",
+                            "rate": "receivedMsgRate"
+                        }
+                    };
+                    graphs[dataset.metricsStreams.globalSentMessages] = {
+                        "divClass": "sentMsg", "type": "counter",
+                        "stream": dataset.metricsStreams.globalSentMessages, "color": "purple",
+                        "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                        "yAxisData": function(d) {return d.count;},
+                        "stats": {
+                            "count": "sentMsgCount",
+                            "rate": "sentMsgRate"
+                        }
+                    };
+
+                    dynamicMultiGraph(graphs, 3000);
+                });
+            });
+        </script>
+    </div>
+</html>

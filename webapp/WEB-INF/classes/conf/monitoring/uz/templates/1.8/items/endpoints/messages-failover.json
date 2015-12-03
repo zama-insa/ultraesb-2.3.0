@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "endpoint-item-parent"
+    },
+    "params":{
+        "description": "Messages to the endpoint ${.*}$ (failover)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.failOverMessagesCount]"
+    }
+}

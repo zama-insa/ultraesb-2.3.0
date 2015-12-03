@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xmlns:amq="http://activemq.apache.org/schema/core"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd
+http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="100"/>
+    </bean>
+
+    <!-- Define the HTTP transport listener -->
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+        <property name="requestFilters">
+            <list>
+                <bean class="org.adroitlogic.ultraesb.transport.http.ServiceResourceRequestFilter">
+                    <property name="resourcePrefix" value="http://localhost:8280"/>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <!--Define the HTTP transport sender-->
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!-- Create an embedded ActiveMQ Broker -->
+    <amq:broker useJmx="false" persistent="false">
+        <amq:transportConnectors>
+            <amq:transportConnector uri="tcp://localhost:61616"/>
+        </amq:transportConnectors>
+    </amq:broker>
+
+    <!-- JMS ConnectionFactory to use, configuring the embedded broker using XML -->
+    <amq:connectionFactory id="queueConnectionFactory" brokerURL="vm://localhost"/>
+
+    <!--Define JMS transport listener-->
+    <bean id="jms-lsnr" class="org.adroitlogic.ultraesb.transport.jms.JMSTransportListener">
+        <property name="connectionFactory" ref="queueConnectionFactory"/>
+        <!--<property name="transactionManager" ref="txManager"/>-->
+    </bean>
+
+    <!--Define JMS transport sender-->
+    <bean id="jms-sender" class="org.adroitlogic.ultraesb.transport.jms.JMSTransportSender">
+        <property name="template">
+            <bean id="jmsProducerTemplate" class="org.springframework.jms.core.JmsTemplate">
+                <property name="connectionFactory" ref="queueConnectionFactory"/>
+            </bean>
+        </property>
+    </bean>
+
+    <!--Defines the mail transport sender. See http://api.adroitlogic.org/ for a complete list of the
+    many configuration properties.
+    REPLACE the SMTP username and password as per your environment -->
+    <bean id="mail-sender" class="org.adroitlogic.ultraesb.transport.mail.MailTransportSender">
+        <property name="properties">
+            <map>
+                <entry key="mail.smtp.host" value="smtp.gmail.com"/>                <!--REPLACE THIS-->
+                <entry key="mail.smtp.port" value="587"/>                           <!--REPLACE THIS-->
+                <entry key="mail.smtp.user" value="mail.maildemo.demo"/>            <!--REPLACE THIS-->
+                <entry key="mail.smtp.password" value="xxxx--REPLACE--xxxx"/>       <!--REPLACE THIS-->
+                <entry key="mail.smtp.from" value="mail.maildemo.demo@gmail.com"/>  <!--REPLACE THIS-->
+                <entry key="mail.smtp.starttls.enable" value="true"/>               <!--REPLACE THIS-->
+                <entry key="mail.smtp.auth" value="true"/>                          <!--REPLACE THIS-->
+            </map>
+        </property>
+    </bean>
+
+    <!--Defines a SOAP proxy service, that will forward requests to another the actual SOAP service at
+    http://localhost:9000/service/SimpleStockQuoteService. The SOAP response received is sent back to
+    the original client, as well as written to a JMS queue -->
+    <u:proxy id="soap-proxy">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.wsdl_url" value="http://localhost:9000/service/SimpleStockQuoteService?wsdl"/>
+        </u:transport>
+        <u:target>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                        Message copy = msg.cloneMessage();
+                        mediation.setPayloadFromString(copy, mediation.readFullPayloadAsString(msg));
+                        mediation.sendToEndpoint(msg, "response");
+                        mediation.sendToEndpoint(copy, "jmsQueue");
+                    ]]></u:java>
+            </u:outSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="response">
+        <u:address type="response"/>
+    </u:endpoint>
+
+    <u:endpoint id="jmsQueue">
+        <u:address>jms:/Q.jmsPending</u:address>
+    </u:endpoint>
+
+    <!-- Defines a JMS proxy service that polls the JMS queue to which the above service wrote the response, and then
+    emails the messages to a specific email address-->
+    <u:proxy id="jmsToEmail">
+        <u:transport id="jms-lsnr">
+            <u:property name="ultra.jms.destination" value="Q.jmsPending"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                        logger.info("Processing queued message from JMS and sending email..");
+                        mediation.getEmailSupport().setSubject(msg, "Custom Subject for Response");
+                        msg.setDestinationURL("mailto:mail.maildemo.demo@gmail.com");           // <-- REPLACE THIS
+                        mediation.sendToEndpoint(msg, "smtp-gmail");
+                    ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--Sends email using the SMTP configuration defined as 'smtp-email', to the 'default' destination of the message-->
+    <u:endpoint id="smtp-gmail">
+        <u:address type="default"/>
+    </u:endpoint>
+
+</beans>

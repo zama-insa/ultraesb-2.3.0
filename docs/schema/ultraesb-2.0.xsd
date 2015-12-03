@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://www.adroitlogic.org/ultraesb" xmlns="http://www.adroitlogic.org/ultraesb" xmlns:u="http://www.adroitlogic.org/ultraesb" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:complexType name="templateType">
+        <xs:sequence maxOccurs="unbounded" minOccurs="0">
+            <xs:any/>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:string" use="required"/>
+        <xs:attribute name="key" type="xs:string" use="required"/>
+        <xs:attribute name="init-method" type="xs:string" use="optional"/>
+        <xs:attribute name="destroy-method" type="xs:string" use="optional"/>
+    </xs:complexType>
+    <xs:element name="template">
+        <xs:complexType>
+            <xs:complexContent>
+                <xs:extension base="u:templateType"/>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:complexType name="sequenceType">
+		<xs:choice>
+			<xs:element name="java">
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="xs:string">
+							<xs:attribute name="type" use="optional">
+								<xs:simpleType>
+									<xs:restriction base="xs:string">
+										<xs:enumeration value="snippet"/>
+										<xs:enumeration value="class"/>
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:attribute>
+                            <xs:attribute name="import" type="xs:string" use="optional"/>
+						</xs:extension>
+					</xs:simpleContent>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="script">
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="xs:string">
+							<xs:attribute name="language" type="xs:string" use="optional"/>
+						</xs:extension>
+					</xs:simpleContent>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="scriptFile">
+				<xs:complexType>
+					<xs:attribute name="language" type="xs:string" use="optional"/>
+					<xs:attribute name="filename" type="xs:string" use="required"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="javaFile">
+				<xs:complexType>
+					<xs:attribute name="filename" type="xs:string" use="required"/>
+					<xs:attribute name="className" type="xs:string" use="optional"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="class">
+				<xs:complexType>
+					<xs:attribute name="name" type="xs:string" use="required"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="bean">
+				<xs:complexType>
+					<xs:attribute name="name" type="xs:string" use="required"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:choice>
+		<xs:attribute name="onErrorInvoke" type="xs:string" use="optional"/>
+	</xs:complexType>
+	<xs:element name="sequence">
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="u:sequenceType">
+					<xs:attribute name="id" type="xs:string" use="required"/>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="endpoint">
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="u:endpointType">
+					<xs:attribute name="id" type="xs:string" use="required"/>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="endpointType">
+		<xs:sequence>
+			<xs:element maxOccurs="unbounded" minOccurs="1" name="address">
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="xs:string">
+							<xs:attribute name="type" use="optional">
+								<xs:simpleType>
+									<xs:restriction base="xs:string">
+										<xs:enumeration value="default"/>
+										<xs:enumeration value="response"/>
+										<xs:enumeration value="url"/>
+										<xs:enumeration value="prefix"/>
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:attribute>
+                            <xs:attribute name="id" type="xs:string" use="optional"/>
+                            <xs:attribute name="weight" type="xs:double" use="optional"/>
+						</xs:extension>
+					</xs:simpleContent>
+				</xs:complexType>
+			</xs:element>
+			<xs:element maxOccurs="unbounded" minOccurs="0" name="property">
+				<xs:complexType>
+					<xs:attribute name="name" type="xs:string" use="required"/>
+                    <xs:attribute name="value" type="xs:string" use="required"/>
+				</xs:complexType>
+			</xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="safeToRetryErrorCodes" type="xs:string"/>
+			<xs:element maxOccurs="1" minOccurs="0" name="temporaryFailures">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element maxOccurs="1" minOccurs="1" name="gracePeriod" type="xs:integer"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="errorCodes" type="xs:string"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element maxOccurs="1" minOccurs="0" name="suspendOnFailure">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element maxOccurs="1" minOccurs="1" name="initialDuration" type="xs:integer"/>
+						<xs:element maxOccurs="1" minOccurs="1" name="progressionFactor" type="xs:double"/>
+						<xs:element maxOccurs="1" name="maximumDuration" type="xs:integer"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="errorCodes" type="xs:string"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="type">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="single"/>
+					<xs:enumeration value="round-robin"/>
+					<xs:enumeration value="round-robin-with-fail-over"/>
+					<xs:enumeration value="fail-over"/>
+					<xs:enumeration value="weighted"/>
+					<xs:enumeration value="weighted-with-fail-over"/>
+					<xs:enumeration value="random"/>
+					<xs:enumeration value="random-with-fail-over"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+        <xs:attribute name="timeout" type="xs:integer" use="optional"/>
+        <xs:attribute name="keepalive" type="xs:integer" use="optional"/>
+	</xs:complexType>
+	<xs:element name="proxy">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element maxOccurs="unbounded" minOccurs="0" name="transport">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element maxOccurs="unbounded" minOccurs="0" name="property">
+								<xs:complexType>
+									<xs:attribute name="name" type="xs:string" use="required"/>
+                                    <xs:attribute name="value" type="xs:string" use="required"/>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="id" type="xs:string" use="required"/>
+					</xs:complexType>
+				</xs:element>
+				<xs:element maxOccurs="1" minOccurs="1" name="target">
+					<xs:complexType>
+						<xs:sequence maxOccurs="1" minOccurs="0">
+							<xs:element maxOccurs="1" minOccurs="0" name="inSequence" type="u:sequenceType"/>
+							<xs:element maxOccurs="1" minOccurs="0" name="inDestination" type="u:endpointType"/>
+							<xs:element maxOccurs="1" minOccurs="0" name="outSequence" type="u:sequenceType"/>
+                            <xs:element maxOccurs="1" minOccurs="0" name="outDestination" type="u:endpointType"/>
+                            <xs:element maxOccurs="1" minOccurs="0" name="errorSequence" type="u:sequenceType"/>
+						</xs:sequence>
+						<xs:attribute name="inSequence" type="xs:string" use="optional"/>
+						<xs:attribute name="outSequence" type="xs:string" use="optional"/>
+						<xs:attribute name="inDestination" type="xs:string" use="optional"/>
+						<xs:attribute name="outDestination" type="xs:string" use="optional"/>
+                        <xs:attribute name="errorSequence" type="xs:string" use="optional"/>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="id" type="xs:string" use="required"/>
+			<xs:attribute name="workManager" type="xs:string" use="optional"/>
+			<xs:attribute name="pinnedServers" type="xs:string" use="optional"/>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

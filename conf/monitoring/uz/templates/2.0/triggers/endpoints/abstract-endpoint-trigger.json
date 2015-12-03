@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "category":"services",
+        "parent": "triggers-parent",
+        "key": "endpoint-triggers-parent",
+        "type": "endpoint"
+    }
+}

@@ -1,0 +1,2 @@
+Optional dependency libraries that are not required by the core UltraESB, however certain features will require the
+libraries placed at this directory

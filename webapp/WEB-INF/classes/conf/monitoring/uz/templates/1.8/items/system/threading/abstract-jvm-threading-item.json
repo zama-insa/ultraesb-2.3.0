@@ -1,0 +1,11 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "parent": "items-parent",
+        "key": "jvm-threading-item-parent",
+        "type": "custom"
+    },
+    "params": {
+        "applications": ["Threading"]
+    }
+}

@@ -1,0 +1,131 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!doctype html>
+<html>
+<div id="container" title="Zabbix Registration Log">
+    <header class="helpedHeading">
+        <h2>Zabbix Registration Log</h2>
+        <div class="ultraHelp" title="Zabbix Registration Log Help">
+            <div>
+                <p>Shows the registration log of the last
+                <a href="http://www.zabbix.com">Zabbix</a> element registration based on the templates stored in the
+                    template registry.</p>
+            </div>
+        </div>
+    </header>
+    <section>Registration log of the last Zabbix registration</section>
+
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+            $.getJSON(getCallURLBase() + 'uz/registration/stat', function(msg) {
+                $('#reg-result input#result-server').attr("value", msg.serverURL);
+                $('#reg-result input#result-started').attr("value", new Date(msg.startedAt));
+                $('#reg-result input#result-time').attr("value", msg.active ? "In-Progress" : msg.overallTime + " ms");
+
+                if (msg.active) {
+                    $('#clear-log').addClass("hidden");
+                }
+
+                var data = {calls:msg.apiCalls};
+                var dataDir = {
+                    'tbody tr':{
+                        'call <- calls':{
+                            'td.callNumber'     :'call.number',
+                            'td.callTime'       :function(call) {return "" + (call.item.endTime - call.item.startTime) + " ms"},
+                            'td.callTrace a'       :'call.traceLog',
+                            'td.callTrace a@href+'       :'call.number',
+                            'td.callState'       :'call.state'
+                        }
+                    }
+                };
+                $('#result-calls').render(data,dataDir);
+                $('#result-calls').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers"
+                });
+
+                if (msg.active) {
+                    setTimeout('location.reload()', 2000);
+                }
+            });
+        });
+
+        function clearLog() {
+            showConfirmation("Do you want to clear the Zabbix registration log?", function() {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'uz/registration/clear-stat',
+                    success:function(msg) {
+                        showInfo("Successfully cleared the last Zabbix registration log", "index.html?pageName=monitoring/uz-template-registry.html&bc=clear")
+                    }
+                });
+            });
+        }
+    </script>
+
+    <div class="outer_wrapper">
+    <div id="reg-result">
+        <h3>Registration Details</h3>
+        <p>Summery of the registration</p>
+        <form id="reg-stat" class="tab_less_pane">
+            <fieldset>
+        <ul>
+            <li><label for="result-server">Server URL</label><input id="result-server" type="text" readonly/></li>
+            <li><label for="result-started">Started At</label><input id="result-started" type="text" readonly/></li>
+            <li><label for="result-time">Overall Time</label><input id="result-time" type="text" readonly/></li>
+        </ul>
+                </fieldset>
+            </form>
+        <br/>
+        <h3>Zabbix API Calls</h3>
+        <p>Individual API call details to the Zabbix front-end</p>
+        <table class="display" id="result-calls">
+            <thead><tr>
+                <th>Call Number</th>
+                <th>Time Taken</th>
+                <th>Trace Log</th>
+                <th>Call State</th>
+            </tr></thead>
+            <tbody><tr>
+                <td class="callNumber"></td>
+                <td class="callTime"></td>
+                <td class="callTrace"><a href="index.html?pageName=monitoring/call-details.html&bc=4&callId="></a></td>
+                <td class="callState"></td>
+            </tr></tbody>
+        </table>
+        <br/>
+        <button class="clickable button" onclick="window.location.href='index.html?pageName=monitoring/uz-template-registry.html&bc=clear'"> &lt; Back</button>&nbsp;&nbsp;
+        <button id="clear-log" class="clickable button" onclick="clearLog()">Clear Log</button>&nbsp;&nbsp;
+
+    </div>
+        </div>
+</div>
+</html>

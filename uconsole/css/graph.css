@@ -1,0 +1,112 @@
+div .graph {
+    font: 10px sans-serif;
+}
+
+svg {
+    box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.6)
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.grid .tick {
+    stroke: #EDEDED;
+    opacity: 0.5;
+    shape-rendering: crispEdges;
+}
+.grid path {
+    stroke-width: 5;
+}
+
+.line {
+    fill: none;
+    /*stroke: steelblue;*/
+    stroke-width: 1.5px;
+}
+.area {
+    /*fill: url(#area-gradient);*/
+}
+span.stat {
+    padding: 3px;
+    border-radius: 2px 2px 2px 2px;
+    float: right;
+}
+div.percent {
+    width: 200px;
+    float: left;
+    padding-bottom: 5px;
+}
+div.percent span.text {
+    margin-left: 30px;
+}
+span.avg, span.rate {
+    background-color: #5CB85C;
+    border:thin solid #04630d;
+    color: #ffffff;
+}
+span.min, span._98 {
+    border:thin solid #5BC0DE;
+    color: #5BC0DE;
+}
+span.max, span._75, span.count {
+    border: thin solid #F0AD4E;
+    color: #F0AD4E;
+}
+span._95 {
+    border: thin solid #5CB85C;
+    color: #5CB85C;
+}
+span._99 {
+    border: thin solid #ff77e3;
+    color: #ff77e3;
+}
+span._999 {
+    border: thin solid #ff5b56;
+    color: #ff5b56;
+}
+span._9999 {
+    border: thin solid #b4b321;
+    color: #b4b321;
+}
+svg.graph {
+    /*background-color: #CCCCCC;*/
+}
+span.right {
+    float: right;
+    padding: 3px;
+    margin-left: 5px;
+}
+span.caret {
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    content: "";
+    display: inline-block;
+    height: 0;
+    margin-left: 2px;
+    vertical-align: middle;
+    width: 0;
+    color: #4169e1;
+}
+span.down {
+    border-top: 4px solid #4169e1;
+}
+span.up {
+    border-bottom: 4px solid #4169e1;
+}
+span.link {
+    color: #4169e1;
+    cursor: pointer;
+}
+ul.stat-list {
+    padding-top: 30px;
+    margin-left: 100px;
+    width: 300px;
+}
+ul.stat-list li {
+    padding-bottom: 10px;
+    color: #444444;
+}

@@ -1,0 +1,31 @@
+import samples.drools.LoanApplication;
+
+dialect  "mvel"
+
+rule "checkLoanCredibility"
+    when
+        $E : LoanApplication(getCreditLimit() > 100000 )
+             LoanApplication(getAge() > 30)
+             LoanApplication(getPreviousApplications() < 3)
+
+    then
+       $E.setLoanApproved(true);
+end
+
+
+rule "NewYork-Interest Rate"
+    when
+        application : LoanApplication(getState() == "NY")
+
+    then
+        application.setInterestRate(3);
+end
+
+
+rule "California-Interest Rate"
+    when
+        application : LoanApplication(getState() == "CA")
+
+    then
+        application.setInterestRate(5);
+end

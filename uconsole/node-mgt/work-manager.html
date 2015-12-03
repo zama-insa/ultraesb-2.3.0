@@ -1,0 +1,186 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!DOCTYPE html>
+<html>
+    <body>
+        <div id="container" title="Work Managers">
+
+            <header class="helpedHeading">
+                <h2>Work Managers</h2>
+                <div class="ultraHelp" title="Work Managers Help">
+                <div>
+                    <p>Work Managers are basically thread pools that process messages through the Proxy Services. The UltraESB
+                    will create a default work manager on startup which will be sufficient for general use. Generally
+                    all proxy services uses this default thread pool to process messages.</p>
+                    <p>The work managers may retain a tail end of failed messages for possible retry using JMX. The
+                    <i>Message Queue</i> size indicates the number of messages currently queued for processing. The <i>primary</i>
+                    and <i>secondary</i> thread pools are generally of differing sizes, and this table shows the number of
+                    threads created at present. You may edit the work manager of a running instance, and start or stop
+                    it using the control buttons.</p>
+                </div>
+                Future versions of the UltraESB will introduce Work Managers that could save the messages into persistent
+                storage, or to JMS queues or a database before processing.
+            </div>
+            </header>
+            <section>Defined work management pools to process messages</section>
+
+            <div class="outer_wrapper">
+            <table id="workManagerList" class="display">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>State</th>
+                        <th>Message Queue</th>
+                        <th>Primary Core Threads</th>
+                        <th>Secondary Core Threads</th>
+                        <th>Control</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td id="name" title="Work Manager details"><a href="index.html?pageName=node-mgt/workManager-details.html&mode=view&wmId="></a></td>
+                        <td id="state" class="state "></td>
+                        <td id="mssgQueue" class="numeric"></td>
+                        <td id="primryCoreThrds" class="numeric"></td>
+                        <td id="secndryCoreThrds" class="numeric"></td>
+                        <td id=control>
+                            <img class="start clickable" title="Start" src="icons/start.png"/>
+                            <img class="stop clickable"  title="Stop"  src="icons/stop.png"/>
+                            <img class="edit clickable"  title="Edit"  src="icons/edit.png"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            <script type="text/javascript">
+
+            function startWorkManager(state, wmId) {
+
+                if (state == 'Starting' || state == 'Started') {
+                    showWarning('Cannot start the Work Manager:' + wmId + ', is either started or starting.');
+                } else {
+                    $.ajax({
+                        type    : 'POST',
+                        url     : getCallURLBase() + 'workManagers/startWorkManager/' + wmId,
+                        success : function(msg) {
+                            showInfo('Work Manager: ' + wmId + ' successfully started.', 'index.html?pageName=node-mgt/work-manager.html');
+                        }
+                    });
+                }
+            }
+
+            function stopWorkManager(state, wmId) {
+
+                if (state == 'Stopping' || state == 'Stopped') {
+                    showWarning('Cannot start: ' + wmId + ', is either stopped or stopping.');
+                } else {
+                    showConfirmation('Do you want to stop the work manager?' , function() {
+                        $.ajax({
+                            type : 'POST',
+                            url : getCallURLBase() + 'workManagers/stopWorkManager/' + wmId,
+                            success : function(msg) {
+                                showInfo('Work Manager: ' + wmId + ' successfully stopped.', 'index.html?pageName=node-mgt/work-manager.html');
+                            }
+                        });
+                    });
+                }
+            }
+
+            function editWorkManager(state, wmId) {
+                if (state != 'Stopped') {
+                showConfirmationWithCancelCallback("Workmanager " + wmId + " is in " + state + " state. It needs to be stopped in-order to edit. Do you want to Stop the workManager?",
+                    function() {
+                        $.ajax({
+                            type: 'POST',
+                            url: getCallURLBase() + 'workManagers/stopWorkManager/' + wmId ,
+                            success: function(msg) {
+                                loadPage('index.html?pageName=node-mgt/workManager-details.html&mode=edit&wmId=' + wmId);
+                            }
+                        });
+                    },
+                    function () {
+                        loadPage('index.html?pageName=node-mgt/workManager-details.html&mode=view&wmId=' + wmId);
+                    });
+                } else {
+                    loadPage('index.html?pageName=node-mgt/workManager-details.html&mode=edit&wmId=' + wmId);
+                }
+            }
+
+            function displayIcon(id, state) {
+                if(state=='Started') {
+                    $('img#' + id + '-start').hide();
+                    $('img#' + id + '-stop').show();
+                }
+                if(state == 'Stopped') {
+                    $('img#' + id + '-start').show();
+                    $('img#' + id + '-stop').hide();
+                }
+            }
+
+            $(document).ready(function() {
+
+                var jqxhr = $.getJSON(getCallURLBase() + 'workManagers/getWorkManagers' , function(dataset) {
+
+                    var data = {workManagers:dataset};
+
+                    var directive = {
+                        'tbody tr' : {
+                            'workManager<-workManagers' : {
+                                'td#name a'                    : function(workManager){if (null == workManager.item.id) {return "-";} else { return workManager.item.id;}},
+                                'td#name a@title'              : 'workManager.id',
+                                'td#name a@href+'              : 'workManager.id',
+                                'td#state'                     : 'workManager.state',
+                                'td#state @class+'                     : 'workManager.state',
+                                'td#mssgQueue'                 : function(wm){ return formatNumber(wm.item.messageQueueSize);},
+                                'td#primryCoreThrds'           : function(wm){ return formatNumber(wm.item.primaryCoreThreads);},
+                                'td#secndryCoreThrds'          : function(wm){ return formatNumber(wm.item.secondaryCoreThreads);},
+                                'td#control img.start@onclick' : '{startWorkManager("#{workManager.state}","#{workManager.id}");}',
+                                'td#control img.start@id'      : function (workManager) { return workManager.item.id + "-start"} ,
+                                'td#control img.stop@onclick'  : '{stopWorkManager ("#{workManager.state}","#{workManager.id}");}',
+                                'td#control img.stop@id'       : function (workManager) { return workManager.item.id + "-stop"} ,
+                                'td#control img.edit@onclick'  : '{editWorkManager ("#{workManager.state}","#{workManager.id}");}',
+                                'td#control img.start@onload'  : '{displayIcon("#{workManager.id}" ,"#{workManager.state}");}'
+                            }
+                        }
+                    };
+                    $('#workManagerList').render(data,directive);
+                    encodeURLs();
+                    $('#workManagerList').dataTable({
+                        "bLengthChange"  : true,
+                        "bJQueryUI"      : true,
+                        "sPaginationType": "full_numbers",
+                        "aoColumns"      : [null, null, null, null, null, {"sWidth": "100px"}]
+                    });
+                });
+            });
+        </script>
+        </div>
+    </body>
+</html>

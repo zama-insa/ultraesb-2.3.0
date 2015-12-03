@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "endpoint-item-parent"
+    },
+    "params":{
+        "name": "Errors of the endpoint ${.*}$ (temporary-receiving)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.temporaryErrorReceivingMessageCount]"
+    }
+}

@@ -1,0 +1,102 @@
+{
+    "uz_meta": {
+        "parent": "screens-parent",
+        "type": "endpoint",
+        "category":"services"
+    },
+    "params": {
+        "name":"Dashboard for endpoint ${.*}$ on instance $node$",
+        "vsize":"3",
+        "screenitems":[{
+            "resourcetype":"0",
+            "resourceid":"Address state counts graph of the endpoint ${.*}$",
+            "width":"500",
+            "height":"100",
+            "x":"0",
+            "y":"0",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }, {
+            "resourcetype":"1",
+            "resourceid":"$hostid$:jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.processedMessageCount]",
+            "width":"500",
+            "height":"100",
+            "x":"1",
+            "y":"0",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }, {
+            "resourcetype":"1",
+            "resourceid":"$hostid$:jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.suspendErrorReceivingMessageCount]",
+            "width":"500",
+            "height":"100",
+            "x":"0",
+            "y":"1",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }, {
+            "resourcetype":"1",
+            "resourceid":"$hostid$:jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.suspendErrorSendingMessageCount]",
+            "width":"500",
+            "height":"100",
+            "x":"1",
+            "y":"1",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }, {
+            "resourcetype":"1",
+            "resourceid":"$hostid$:jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.temporaryErrorReceivingMessageCount]",
+            "width":"500",
+            "height":"100",
+            "x":"0",
+            "y":"2",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }, {
+            "resourcetype":"1",
+            "resourceid":"$hostid$:jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.temporaryErrorSendingMessageCount]",
+            "width":"500",
+            "height":"100",
+            "x":"1",
+            "y":"2",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }]
+    }
+}

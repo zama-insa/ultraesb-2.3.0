@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Refer to the unit test TxnWithHttpTest for more details about this sample and a unit test for it-->
+    
+    <!--Proxy demonstrates use of JTA transactions during mediation. Since the message is received over the
+    non-transactional HTTP transport, the message must begin a new transaction if desired. For transactional
+    transports such as JMS, the messages will already be associated with the transaction that created them.
+
+    The example reads the stock symbol for which a stock quote is desired, and inserts it into a table using a Spring
+    JDBC template. The transaction is then suspended - pending the response from a remote endpoint to which the
+    message will be sent. On receiving a response, the last trading value is checked and if zero, the transaction
+    is resumed and then rolled back. A valid value will resume the transaction and commit it.
+
+    Note that when a JTA transaction is active, the thread of execution passes it to any JTA transaction aware
+    resources such as through the Spring JDBC template in a simple an intuitive manner such that the calls will be
+    made to participate in the active transaction-->
+    <u:proxy id="txn-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.springframework.jdbc.core.simple.*;"><![CDATA[
+                    String symbol = mediation.getXMLSupport().extractAsStringUsingXPath(msg, "//request/symbol");
+                    msg.beginTransaction();
+
+                    SimpleJdbcTemplate t = new SimpleJdbcTemplate(mediation.getDataSource("dataSource"));
+                    t.update("INSERT INTO quotes (symbol) VALUES (?)", new Object[] {symbol});
+
+                    msg.suspendTransaction();
+                    System.out.println("Suspended...");
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    if (Double.parseDouble(mediation.getXMLSupport().extractAsStringUsingXPath(msg, "//last", null)) == 0) {
+                        msg.resumeAndRollbackTransaction();
+                        System.out.println("Rollback...");
+                    } else {
+                        msg.resumeAndCommitTransaction();
+                        System.out.println("Commit...");
+                    }
+                ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--Standard Spring transactional DataSource definition-->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="org.apache.derby.jdbc.ClientDriver"/>
+        <property name="url" value="jdbc:derby://localhost:1529/../modules/sample/target/unittestdb"/>
+    </bean>
+</beans>

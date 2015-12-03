@@ -1,0 +1,108 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+<!doctype html>
+<html>
+<div id="container" title="Add Logger">
+    <header class="helpedHeading">
+        <h2>Add Logger</h2>
+        <div class="ultraHelp" title="Logger Creator">
+            <p>Fill the information about the logger and click on the "Add" button to add the logger</p>
+            <p>The logger details and the respective description is as follows;
+                <ul>
+                    <li>Logger name - name of the logger to be added</li>
+                    <li>Log level - log level the logger being added</li>
+                    <li>Additivity - additivity of the logger being added</li>
+                </ul>
+            </p>
+        </div>
+    </header>
+    <section>Details of the logger being created</section>
+    <div class="outer_wrapper">
+    <fieldset id="auth">
+        <h3>Logger Details</h3>
+        <ul>
+            <li>
+                <label>Logger name</label>
+                <input id="name" class="editableText" type="text"/>
+            </li>
+            <li>
+                <label>Log level</label>
+                <select id="level">
+                    <option>DEBUG</option>
+                    <option>INFO</option>
+                    <option>WARN</option>
+                    <option>ERROR</option>
+                </select>
+            </li>
+            <li>
+                <label>Additivity</label>
+                <select id="additivity">
+                    <option>False</option>
+                    <option>True</option>
+                </select>
+            </li>
+            <br/>
+            <button id="fetchData" onclick="addLogger();" class="clickable button" title="Add Logger">Add</button>
+            <button onclick="loadPage('index.html?pageName=diagnostics/loggers.html&bc=2')" class="clickable button" title="Cancel">Cancel</button>
+        </ul>
+    </fieldset>
+    </div>
+
+    <script type="text/javascript">
+
+        function addLogger() {
+            var additivity;
+
+            if ($('select#additivity').val() == 'False') {
+                additivity = false;
+            }
+            if ($('select#additivity').val() == 'True') {
+                additivity = true;
+            }
+
+            var details = '{"loggerName":"' + $('input#name').attr('value') + '",';
+            details += '"currLevel":"' + $('select#level').val() + '",';
+            details += '"additivity":' + additivity + '}';
+
+            if ($('input#name').attr('value') != "") {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'logging/addLogger/' + $('input#name').attr('value'),
+                    data: details,
+                    dataType: 'text',
+                    contentType: 'application/json',
+                    success : function(msg) {
+                        showInfo('Successfully added logger: ' + $('input#name').attr('value') ,'index.html?pageName=diagnostics/loggers.html&bc=2');
+                    }
+                });
+            }
+        }
+
+    </script>
+</div>
+</html>

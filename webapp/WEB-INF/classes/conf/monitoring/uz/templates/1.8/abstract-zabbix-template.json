@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "category":"default",
+        "key": "zabbix-parent"
+    },
+    "jsonrpc": "2.0",
+    "auth": "$auth$"
+}

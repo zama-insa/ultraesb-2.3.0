@@ -1,0 +1,10 @@
+{
+    "uz_meta": {
+        "parent": "jvm-memory-item-parent"
+    },
+    "params":{
+        "description": "Heap Memory Usage (maximum=Xmx)",
+        "key_": "jmx[java.lang:type=Memory][HeapMemoryUsage.max]",
+        "units": "B"
+    }
+}

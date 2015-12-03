@@ -1,0 +1,414 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!DOCTYPE html>
+<html>
+    <div id="container" title="Address Details">
+    <header class="helpedHeading">
+        <h2>Address Details</h2>
+        <div class="ultraHelp" title="Address Details Help">
+            <p>Displays the address information of an endpoint. For editing the address click on the
+                edit icon <img src="icons/edit.png"/> of the control panel on the top right corner
+                of the page and change the values as appropriate and <b>Save</b> those changes by clicking on the "Save" button.</p>
+            <p>Use the "Start" icon <img src="icons/start.png"/> and "Stop" icon <img src="icons/stop.png"/>
+                respectively to start/activate and stop/deactivate the endpoint, while you can remove the
+                address from the endpoint by using the "Remove" icon <img src="icons/remove.png">of the same control panel</p>
+        </div>
+    </header>
+    <section>Configuration and statistics information of the address</section>
+        <div id="tabs">
+            <ul>
+                <li><a id="details" href="#tabs-1"></a></li>
+                <li><a id="statistics" href="#tabs-2">Address Statistics</a></li>
+            </ul>
+
+            <div id="tabs-1">
+                <div id="address-controls" class="top-right-controls">
+            <div class="controls">
+            <ul>
+			<li title="Start address " class="start clickable left-span"><img src="icons/mga-start.png"/> <br/>Start</li>
+			<li title="Stop address " class="stop clickable"><img src="icons/mga-stop.png"/><br/> Stop</li>
+			<li title="Edit address " class="edit clickable left-span"><img src="icons/mga-edit.png"/><br/> Edit</li>
+			<li title="Reset statistics for address " class="resetStat clickable"><img src="icons/mga-reset.png"/><br/> Reset Stat</li>
+			<li title="Remove address " class="delete clickable left-span"><img src="icons/mga-remove.png"/> <br/>Remove</li>
+			</ul>
+            </div>
+        </div>
+                <div><fieldset id="addressDtls">
+                    <h3>Address Configuration Details</h3>
+                    <ul>
+                        <li>
+                            <label>Endpoint Name</label>
+                            <input id="endpointName" class="disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Address ID</label>
+                            <input id="addrssID" class="disabledText" type="text" readonly/>
+                        </li>
+                        <li>
+                            <label>Type</label>
+                            <select class="default" id="type">
+                                <option value="default">Default Destination</option>
+                                <option value="response">Response</option>
+                                <option value="url">URL</option>
+                                <option value="prefix">URL Prefix</option>
+                            </select>
+                        </li>
+                        <li class="addrStateDisp">
+                            <label>State</label>
+                            <input class="state numeric disabledText" readonly type="text">
+                        </li>
+                        <li class="addrWeigthDisp">
+                            <label class="weightLable">Weight</label>
+                            <input id="weight" class="weight numeric editableText" type="text"/>
+                        </li>
+                        <li>
+                            <label>Value</label>
+                            <input id="value" class="editableText" type="text"/>
+                        </li>
+                    </ul>
+                    <button type="button" class="button clickable" id="save" onclick="generateMssg();">Save</button>
+                </fieldset>
+                </div>
+            </div>
+
+            <div id="tabs-2">
+
+                <div id="addressStat-controls" class="top-right-controls">
+            <div class="controls">
+            <ul>
+			<li title="Start address " class="start clickable left-span"><img src="icons/mga-start.png"/><br/> Start</li>
+			<li title="Stop address " class="stop clickable"><img src="icons/mga-stop.png"/><br/> Stop</li>
+			<li title="Edit address " class="edit clickable left-span"><img src="icons/mga-edit.png"/><br/> Edit</li>
+			<li title="Reset statistics for address " class="resetStat clickable"><img src="icons/mga-reset.png"/><br/> Reset Stat</li>
+			<li title="Remove address " class="delete clickable left-span"><img src="icons/mga-remove.png"/><br/> Remove</li>
+			</ul>
+            </div>
+        </div>
+
+                <div><fieldset id="addrStat">
+                    <h3>Address Statistics Information</h3>
+                    <ul>
+                        <li>
+                            <label>Last suspended duration </label>
+                            <input class="lastSuspDur numeric disabledText" readonly type="text"/>
+                        </li>
+
+                        <br>
+                        <br>
+
+                        <li>
+                            <label>Times address was marked as Active </label>
+                            <input class="tAct numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Times address encountered temporary errors</label>
+                            <input class="tOut numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Times address encountered suspension errors</label>
+                            <input class="tSusp numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Times address was shutdown for maintenance</label>
+                            <input class="tDown numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Successful messages count </label>
+                            <input class="sucMCont numeric disabledText" readonly type="text"/>&nbsp<input class="sucMContP numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Failed message count </label>
+                            <input class="failMCont numeric disabledText" readonly type="text"/>&nbsp<input class="failMContP numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Timed out message count </label>
+                            <input class="tOutMCont numeric disabledText" readonly type="text"/>&nbsp<input class="tOutMContP numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Total message count </label>
+                            <input class="totMCont numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Temporary Error Message Count</label>
+                            <input class="temporaryErrorMessageCount numeric disabledText" readonly type="text"/>
+                        </li>
+                         <li>
+                            <label>Suspend Error Message Count</label>
+                            <input class="suspendErrorMessageCount  numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Maintenance State Count</label>
+                            <input class="maintenanceStateCount  numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Active State Count</label>
+                            <input class="activeStateCount  numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Minimum response time (ms) </label>
+                            <input class="minResT numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Maximum response time (ms)</label>
+                            <input class="maxResT numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Average response time for successful messages (ms) </label>
+                            <input class="avgResT numeric disabledText" readonly type="text"/>
+                        </li>
+
+                        <br>
+                        <br>
+
+                        <li>
+                            <label>Statistics collected window </label>
+                            <input class="statsCollWin disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Statistics last reset at</label>
+                            <input class="statsLastRes disabledText" readonly type="text"/>&nbsp<button type="button" class="reset button clickable" onclick="resetAddrValues()">Reset Now</button>
+
+                        </li>
+                    </ul>
+                </fieldset></div>
+            </div>
+        </div>
+
+    <script type="text/javascript" src="js/endpoint-support.js"></script>
+        <script>
+            var mode=getURLParameter("mode");
+            var epID=getURLParameter("epId");
+            var addrID=getURLParameter("addrId");
+            var type=getURLParameter("type");
+            /*
+            Functions for Address details
+            */
+            function generateMssg() {
+                var addressDetails = '{';
+
+                if(type == "weighted"  || type == "weighted-with-fail-over") {
+                    addressDetails += ('"id":"'           + $('#addrssID').attr("value")     + '",');
+                    addressDetails += ('"typeAsString":"' + $('#type').attr("value")         + '",');
+                    addressDetails += ('"weight":'        + ($('#weight').attr("value")).replace(/,/g,"") + ',');
+                    addressDetails += ('"addressValue":"' + $('#value').attr("value")        + '"}');
+                } else {
+                    addressDetails += ('"id":"'           + $('#addrssID').attr("value")     + '",');
+                    addressDetails += ('"typeAsString":"' + $('#type').attr("value")         + '",');
+                    addressDetails += ('"addressValue":"' + $('#value').attr("value")        + '"}');
+                }
+
+                if (mode=="edit") {
+
+                    $.ajax({
+                        type: 'PUT',
+                        url: getCallURLBase() + 'endpoints/updateAddress/' + epID + '/' + addrID,
+                        data: addressDetails,
+                        dataType: 'text',
+                        contentType: 'application/json',
+                        success: function(msg) {
+                             showInfo('Successfully updated Address : ' + addrID + ' of the endpoint ' + epID , 'index.html?pageName=node-mgt/address.html&mode=view&epId=' + epID + '&type=' + getURLParameter("type") + '&addrId=' + addrID);
+                        }
+                    });
+                }
+
+                if (mode=="add") {
+                        $.ajax({
+                        type: 'POST',
+                        url: getCallURLBase() + 'endpoints/addAddress/' + epID + '/' + $('#addrssID').attr("value"),
+                        data: addressDetails,
+                        dataType: 'text',
+                        contentType: 'application/json',
+                        success: function(msg) {
+                            showInfo('Successfully added Address : ' + $('#addrssID').attr("value") + ' to the endpoint ' + epID , 'index.html?pageName=node-mgt/endpoint-details.html&mode=' + mode + '&epId=' + epID);
+                        }
+                    });
+                }
+            }
+           /*
+            Functions for Address statistics
+            */
+            function onChangeAddress() {
+                getDetails( $('#add-select').val());
+            }
+
+            function resetAddrValues() {
+                showConfirmation('Do you want to reset the address ' + addrID +'?', function () {
+                    $.ajax({
+                        type : 'POST',
+                        url : getCallURLBase() + 'endpoints/resetAddressStatistics/' + epID + '/' + addrID,
+                        success : function(msg) {
+                            showInfo('Successfully reset address statistics' , 'index.html?pageName=node-mgt/address.html&mode=' + mode + '&epId=' + epID + '&type=' + getURLParameter("type") + '&addrId=' + addrID);
+                        }
+                    });
+                });
+            }
+
+            function getDetails() {
+                var jqxhr = $.getJSON(getCallURLBase() + 'endpoints/getAddress/' + epID + '/' + addrID, function(dataSet) {
+                    var data = {address:dataSet};
+                    var dataDir = {
+//                  ' input.nxtRetTime@value'           :'address.nextRetryTime',
+//                  ' input.remainRet@value'            :function(add){ return formatNumber(add.context.address.remainingRetries);},
+                    ' input.lastSuspDur@value'          :function(add){ return formatNumber(add.context.address.lastSuspendDuration);},
+                    ' input.tAct@value'                 :function(add){ return formatNumber(add.context.address.activeStateCount);},
+                    ' input.tOut@value'                 :function(add){ return formatNumber(add.context.address.timeoutStateCount);},
+                    ' input.tSusp@value'                :function(add){ return formatNumber(add.context.address.suspendStateCount);},
+                    ' input.tDown@value'                :function(add){ return formatNumber(add.context.address.maintenanceStateCount);},
+                    ' input.sucMCont@value'             :function(add){ return formatNumber(add.context.address.successCount);},
+                    ' input.failMCont@value'            :function(add){ return formatNumber(add.context.address.faultCount);},
+                    ' input.tOutMCont@value'            :function(add){ return formatNumber(add.context.address.timeoutCount);},
+                    ' input.totMCont@value'             :function(add){ return formatNumber(add.context.address.totalCount);},
+                    ' input.temporaryErrorMessageCount@value' :function(add){ return formatNumber(add.context.address.timeoutCount);},
+                    ' input.suspendErrorMessageCount@value'   :function(add){ return formatNumber(add.context.address.faultCount);},
+                    ' input.maintenanceStateCount@value'      :function(add){ return formatNumber(add.context.address.maintenanceStateCount);},
+                    ' input.activeStateCount@value'           :function(add){ return formatNumber(add.context.address.activeStateCount);},
+                    ' input.minResT@value'                    :function(add){ return formatNumber(add.context.address.minimumTime);},
+                    ' input.maxResT@value'                    :function(add){ return formatNumber(add.context.address.maximumTime);},
+                    ' input.avgResT@value'                    :function(add){ return formatDecimalNumber(add.context.address.averageTime);},
+                    ' input.statsCollWin@value'               :'address.metricsWindow',
+                    ' input.statsLastRes@value'               :'address.lastStatisticsResetTime'
+//                  ' button.reset@onclick'                   :'{resetAddrValues("#{address.id}");}'
+                    };
+                    $('#addrStat').render(data, dataDir);
+
+                    var select = $('#add-type').attr('title');
+                    $('#add-type').val(select);
+
+                    $('input.weightP').val((dataSet.weight)/100+" %");
+
+                    if (parseInt(dataSet.totalCount)!=0) {
+                        $('input.sucMContP').val(formatDecimalNumber(dataSet.successCount/dataSet.totalCount*100) + " %");
+                        $('input.failMContP').val(formatDecimalNumber(dataSet.faultCount/dataSet.totalCount*100) + " %");
+                        $('input.tOutMContP').val(formatDecimalNumber(dataSet.timeoutCount/dataSet.totalCount*100) + " %");
+                    } else {
+                        $('input.sucMContP').val("0 %");
+                        $('input.failMContP').val("0 %");
+                        $('input.tOutMContP').val("0 %");
+                    }
+                });
+            }
+
+            $(document).ready(function() {
+                $('#tabs').tabs();
+
+                /*
+                Functionality for Address details
+                */
+                if (mode == 'add') {
+                    $('#tabs ul li a#details').text('Add Address');
+                    $('input#endpointName').attr('value',epID);
+                    $('input#addrssID').removeAttr('readonly');
+                    $('input#addrssID').removeAttr('class');
+                    $('input#addrssID').attr('class', 'editableText');
+                    $("#tabs").tabs("remove",1)
+                    $("#address-controls").css("display", "none");
+                    $(".state").css("display", "none");
+                    $(".addrStateDisp").css("display", "none");
+
+                    if (type != "weighted"  && type != "weighted-with-fail-over") {
+                        $(".addrWeigthDisp").css("display", "none");
+                    }
+
+                } else {
+                    if (mode == 'edit') {$('#tabs ul li a#details').text('Address Configuration');}
+
+                    if (mode == 'view') {
+                        $('#tabs ul li a#details').text('Address Configuration');
+                        $('button#save').attr('disabled', 'true');
+                        $('input#endpointName').attr('readonly','true');
+                        $('input#addrssID').attr('readonly','true');
+                        $('input#weight').attr('readonly','true');
+                        $('select#type').attr('readonly','true');
+                        $('input#value').attr('readonly','true');
+
+                        $('input#endpointName').addClass('disabledText');
+                        $('input#addrssID').addClass('disabledText');
+                        $('input#weight').addClass('disabledText');
+                        $('select#type').addClass('disabledText');
+                        $('input#value').addClass('disabledText');
+                    }
+
+                    var jqxhr = $.getJSON(getCallURLBase() + "endpoints/getAddress/" + epID + "/" + addrID, function(dataset){
+                        var data = {address:dataset};
+
+                        var directive = {
+
+                            'input#endpointName@value'   :'address.endpointId',
+                            'input#endpointName@readonly':'"true"',
+                            'input#addrssID@value'       :'address.id',
+                            'input#addrssID@readonly'    :'"true"',
+                            'select#type@title'          :'address.typeAsString',
+                            'input.state@value'         :'address.state',
+                            'input#weight@value'         :'address.weight',
+                            'input#value@value'          :'address.addressValue'
+                        }
+                        $('#addressDtls').render(data,directive);
+
+                        var select = $('#type').attr('title');
+                        $('#type').val(select);
+                        if (type != "weighted"  && type != "weighted-with-fail-over") {
+                            $('.weight').css('display', 'none');
+                            $('.weightLable').css('display', 'none');
+                            $('.weightP').css('display', 'none');
+                        }
+
+                        $('.start').bind("click", new Function("startAddress('" + dataset.endpointId + "','" +  dataset.id + "','" + dataset.state + "')"));
+                        $('.start').attr("title", $('.start').attr("title") + dataset.id + " of endpoint " + dataset.endpointId);
+                        $('.stop').bind("click", new Function("stopAddress('" + dataset.endpointId + "','" +  dataset.id + "','" + dataset.state + "')"));
+                        $('.stop').attr("title", $('.stop').attr("title") + dataset.id + " of endpoint " + dataset.endpointId);
+                        $('.edit').bind("click", new Function("editAddress('" + dataset.endpointId + "','" +  dataset.id + "')"));
+                        $('.edit').attr("title", $('.edit').attr("title") + dataset.id + " of endpoint " + dataset.endpointId);
+                        $('.resetStat').bind("click", new Function("resetAddrValues()"));
+                        $('.resetStat').attr("title", $('.resetStat').attr("title") + dataset.id + " of endpoint " + dataset.endpointId);
+                        $('.delete').bind("click", new Function("deleteAddress('" + dataset.endpointId + "','" +  dataset.id + "','" + getURLParameter("type") + "','" + getURLParameter("addrCount")  +"')"));
+                        $('.delete').attr("title", $('.delete').attr("title") + dataset.id + " of endpoint " + dataset.endpointId);
+                    });
+                }
+
+                /*
+                Functionality for Address statistics
+                */
+                if (mode != 'add') {
+                    var jq = $.getJSON(getCallURLBase() + "endpoints/getAddresses/" + epID, function(dataset) {
+                        var data = {addresses:dataset};
+                        var dataDir = {
+                            'option.values':{
+                                'address<-addresses':{
+                                    '.':'address.id'
+                                }
+                            }
+                        };
+                        getDetails();
+                    });
+                }
+            });
+        </script>
+
+    </div>
+</html>

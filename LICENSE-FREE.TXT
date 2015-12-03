@@ -1,0 +1,117 @@
+License Agreement for AdroitLogic UltraESB, UConsole, SoapBox and ToolBox
+
+IMPORTANT! READ CAREFULLY: THIS IS A LEGAL AGREEMENT. BY DOWNLOADING, INSTALLING, COPYING, SAVING ON YOUR COMPUTER,
+OR OTHERWISE USING THIS SOFTWARE, YOU (LICENSEE, AS DEFINED BELOW) ARE BECOMING A PARTY TO THIS AGREEMENT AND YOU
+ARE CONSENTING TO BE BOUND BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT. IF YOU DO NOT AGREE TO THE TERMS AND
+CONDITIONS OF THIS AGREEMENT, YOU SHOULD NOT DOWNLOAD, INSTALL AND USE THE SOFTWARE.
+
+1. DEFINITIONS
+
+"Product" means AdroitLogic UltraESB software product, its associated documentation, sample source code and
+configurations, and any updates provided under this agreement.
+"Licensor" means AdroitLogic Private Ltd, having its principal place of business in the Republic of Singapore
+"Licensee" means the individual or entity (inclusive of subsidiaries) that has licensed the Product under the terms and
+conditions of this agreement.
+"Authorized Use" means the defined number of runtime instances of the Product that may be used by the Licensee.
+"License" means the right to use the Product as defined by Authorized Use.
+"OEM Distribution" means distribution of the Product as either a bundled add-on to, or embedded component of, another
+application with such application being made available to its users as, but not limited to, an on-premises application,
+a hosted application, a Software-as-a-Service offering or a subscription service for which the distributor of the
+application receives a license fee or any form of direct or indirect compensation.
+"Authorized Instances" means the number of runtime instances of the Product which the Licensee has licensed from the
+Licensor, and obtained a License Key for.
+"License Key" means a license file issued by the Licensor, that enables Authorized Instances of the product to be used.
+
+2. OWNERSHIP
+
+The Software is the property of Licensor or its suppliers. The Software is licensed, not sold. Title and copyrights to
+the Software, in whole and in part and all copies thereof, and all modifications, enhancements, derivatives and other
+alterations of the Software regardless of who made any modifications, if any, are, and will remain, the sole and
+exclusive property of Licensor and its suppliers.
+
+3. GRANT OF LICENSE
+
+Subject to the terms, conditions, and limitations set forth in this Agreement, Licensor hereby grants to Licensee a
+limited, non-exclusive, non-transferable, non-sub-licensable license to use the Software as follows:
+
+(a) Licensee may:
+    I.   install and use the Authorized Instances of the Product on any number of computers, provided that the number of
+    runtime instances used never exceeds the number of Authorized Instances specified in the License Key issued by the
+    Licensor.
+    II.  make back-up copies of the Product for archival purposes.
+
+(b) Licensee may not:
+    I.   sell, sub-license, redistribute, encumber, give, lend, circulate, disseminate, translate, rent, lease, or
+         otherwise transfer the Product, or any portions of the Product, to anyone without the prior written consent of
+         Licensor;
+    II.  reverse engineer, decompile, disassemble, modify, adapt, translate, make any attempt to discover the source
+         code of the Product, or create derivative works from the Product;
+    III. allow the use of the same License Key by a number of runtime instances exceeding the Authorized Instances
+    IV.  distribute the Product via OEM Distribution without entering into a separate OEM Distribution Agreement with
+         the Licensor.
+    V.   modify or alter license protection mechanisms that are designed to manage and protect the intellectual property
+         rights of the Licensor.
+
+
+4. MARKETING AND PUBLICITY RIGHTS
+
+(a) Licensee agrees to be identified as a user of the Product, and grants Licensor the right to refer to Licensee by name,
+logo, trade name and trademark, if applicable, and may briefly describe Licensee's business in Licensor's marketing materials,
+on Licensor's web site, in public or legal documents. Licensee hereby grants Licensor a license to use Licensee's name, logo 
+and any of Licensee's trade names and trademarks solely pursuant to this marketing section.
+
+(b) If the Licensee is not agreeable to clause (a) above, on a written request made by the Licensee to the Licensor, the
+Licensor at his sole discretion may grant a license to the Licensee, on the payment of a prescribed license fee.
+
+5. RESTRICTED USE DURING EVALUATION PERIOD
+
+(a) Subject to the terms of this Agreement, Licensee is granted a right to use the Software for evaluation purposes
+without registering the runtime instances or obtaining a License Key from the Licensor, for a period of thirty (30) days
+from the date of installation of the Software otherwise specified as the "Evaluation Period".
+
+(b) Upon expiration of Evaluation Period, Licensee must obtain a License Key for perpetual use of the Software or cease
+using the Software. The Software contains a feature that will automatically disable the Software upon expiration of
+Evaluation Period. Licensee may not disable, destroy, or remove this feature of the Software, and any attempt to do so
+will be in violation of this Agreement and will terminate Licensee's rights to use the Software.
+
+6. WARRANTY DISCLAIMER
+
+THE SOFTWARE IS PROVIDED TO LICENSEE "AS IS" AND WITHOUT WARRANTIES. LICENSOR MAKES NO WARRANTY AS TO ITS USE OR
+PERFORMANCE. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, LICENSOR, AND ITS SUPPLIERS AND RESELLERS, DISCLAIM
+ALL OTHER WARRANTIES AND CONDITIONS, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT, WITH REGARD TO THE SOFTWARE, AND THE
+PROVISION OF OR FAILURE TO PROVIDE SUPPORT SERVICES.
+
+7. THIRD PARTY SOFTWARE LICENSE
+
+Third Party Software is licensed to Licensee in accordance with a separate license agreement(s) included with the
+Software, and subject to any restrictions set forth herein. Licensee agrees to abide by the terms and conditions of the
+Third Party Software license agreements. Licensor will have no responsibility with respect to any Third Party Software,
+and Licensee will look solely to the licensor(s) of the Third Party Software for any remedy. Licensor claims no right in
+the Third Party Software, and the same is owned exclusively by the licensor(s) of the Third Party Software. LICENSOR
+PROVIDES NO WARRANTY, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT, WITH RESPECT TO ANY THIRD PARTY SOFTWARE.
+
+8. DISCLAIMER OF DAMAGES
+
+(a) REGARDLESS OF WHETHER ANY REMEDY SET FORTH HEREIN FAILS OF ITS ESSENTIAL PURPOSE, IN NO EVENT WILL LICENSOR OR ITS
+SUPPLIERS OR RESELLERS BE LIABLE TO LICENSEE UNDER ANY THEORY FOR ANY DAMAGES SUFFERED BY LICENSEE OR ANY USER OF THE
+SOFTWARE, OR FOR ANY SPECIAL, INCIDENTAL, INDIRECT, CONSEQUENTIAL, OR SIMILAR DAMAGES (INCLUDING WITHOUT LIMITATION,
+DAMAGES FOR LOSS OF BUSINESS PROFITS, BUSINESS INTERRUPTION, LOSS OF BUSINESS INFORMATION, OR ANY OTHER PECUNIARY LOSS)
+ARISING OUT OF THE USE OR INABILITY TO USE THE SOFTWARE, OR THE PROVISION OF OR FAILURE TO PROVIDE SUPPORT SERVICES,
+EVEN IF LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, AND REGARDLESS OF THE LEGAL OR EQUITABLE THEORY
+(CONTRACT, TORT OR OTHERWISE) UPON WHICH THE CLAIM IS BASED.
+
+(b) IN ANY EVENT, LICENSOR'S SOLE LIABILITY UNDER ANY PROVISION OF THIS AGREEMENT WILL BE LIMITED TO THE AMOUNT ACTUALLY
+PAID BY LICENSEE FOR THE SOFTWARE UNDER CLAUSE 4 (b).
+
+9. TERMINATION
+
+If Licensee fails to comply with the terms and conditions of this Agreement, this Agreement and Licensee's right and
+license to use the Product will terminate immediately. Licensee may terminate this Agreement at any time by notifying
+Licensor.
+
+11. GOVERNING LAW
+
+This agreement is governed by the laws of the Republic of Singapore, and the parties irrevocably and unconditionally
+submit to the exclusive jurisdiction of the courts of the Republic of Singapore.

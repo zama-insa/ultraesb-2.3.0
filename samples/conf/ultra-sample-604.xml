@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="100"/>
+    </bean>
+
+    <!-- Define the HTTP transport listener -->
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+        <property name="requestFilters">
+            <list>
+                <bean class="org.adroitlogic.ultraesb.transport.http.ServiceResourceRequestFilter">
+                    <property name="resourcePrefix" value="http://localhost:8280"/>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <!--Define the HTTP transport sender-->
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Defines proxy services , with invalid a urls, and a port number. Mainly used for testing purposes
+        Error sequence is invoked when the error is detected and appropriate error messages are sent as the response-->
+    <u:proxy id="invalid-url-with-err-handler">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.wsdl_url" value="http://localhost:9000/service/EchoService?wsdl"/>
+        </u:transport>
+        <u:target>
+            <u:inDestination>
+                <u:address>htp://localhost:9000/service/EchoService</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    System.out.println("Executing Error Handler");
+                    mediation.setPayloadFromString(msg, "Invalid Url");
+                    mediation.sendResponse(msg, 200);
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="invalid-port">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.wsdl_url" value="http://localhost:9000/service/EchoService?wsdl"/>
+        </u:transport>
+        <u:target>
+            <u:inDestination>
+                <u:address>http://localhost:9999/service/EchoService</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    System.out.println("Executing Error Handler");
+                    mediation.setPayloadFromString(msg, "Invalid Port");
+                    mediation.sendResponse(msg, 200);
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--Defines a proxy service with a invalid url number. Mainly used for testing purposes
+        Error sequence is invoked when the error is detected and appropriate error messages are sent as the response-->
+    
+    <u:proxy id="invalid-url-no-err-handler">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.wsdl_url" value="http://localhost:9000/service/EchoService?wsdl"/>
+        </u:transport>
+        <u:target>
+            <u:inDestination>
+                <u:address>htp://localhost:9000/service/EchoService</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--Defines a proxy service with a invalid addresses. Used for testing purposes
+        An error sequence is invoked so a response is not sent-->
+    <u:proxy id="invalid-addresses-rr">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.wsdl_url" value="http://localhost:9000/service/EchoService?wsdl"/>
+        </u:transport>
+        <u:target>
+            <u:inDestination type="round-robin">
+                <u:address id="port-9001">http://localhost:9002/service/Echoservice</u:address>
+                <u:address id="port-9002">http://localhost:9003/service/Echoservice</u:address>
+                <u:address id="port-9003">http://localhost:9004/service/Echoservice</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    System.out.println("Executing Error Handler");
+                    mediation.setPayloadFromString(msg, "Invalid Port");
+                    mediation.sendResponse(msg, 200);
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--Defines a proxy service with a valid addresses, with a time out. Used for testing purposes-->
+    <u:proxy id="rr-failover-timeout-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inDestination type="round-robin-with-fail-over" timeout="2000">
+                <u:address id="port-9000">http://localhost:9000/service/EchoService</u:address>
+                <u:address id="port-9001">http://localhost:9001/service/EchoService</u:address>
+                <u:safeToRetryErrorCodes>all</u:safeToRetryErrorCodes>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    mediation.setPayloadFromString(msg, "failed");
+                    mediation.sendResponse(msg, 200);
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+    
+</beans>

@@ -1,0 +1,53 @@
+== You are welcome to make any contributions to improve and/or enhance the AdroitLogic UltraESB or its other products ==
+== under the following contributor license agreement, if you so desire.                                               ==
+
+
+AdroitLogic Private Ltd.
+Contributions intended for inclusion in AdroitLogic products
+
+1. Definitions
+
+“Work” shall mean any product or service of AdroitLogic or any of its successors.
+
+“Contribution” shall mean the code, documentation or other original works of authorship, as well as any original work
+of authorship, including any modifications or additions to an existing work, that is intentionally submitted by You to
+AdroitLogic for inclusion in, or documentation of, any of the Works. For the purposes of this definition, “submitted”
+means any form of electronic, verbal, or written communication sent to AdroitLogic or its representatives, including
+but not limited to communication on electronic mailing, source code control systems, and issue tracking systems that
+are managed by, or on behalf of, AdroitLogic for the purpose of discussing and improving the Work.
+
+“You” (or “Your”) shall mean the individual making any Contribution
+
+
+2. Grant of Copyright License. You hereby grant to AdroitLogic a perpetual, worldwide, non-exclusive, no-charge,
+royalty-free, irrevocable Copyright license to reproduce, prepare derivative works of, publicly display, publicly
+perform, sub-license, and distribute, with the right to sub-license such rights through multiple tiers of sub-licensees
+Your Contributions.
+
+
+3. Grant of Patent License. You hereby grant to AdroitLogic a perpetual, worldwide, non-exclusive, no-charge,
+royalty-free, irrevocable patent license, with the right to sub-license such rights through multiple tiers of
+sub-licensees, under Your Patents to make, have made, use, offer to sell, sell, import, and otherwise transfer the Work,
+that are necessarily infringed by Your Contribution(s) alone or by combination of Your Contribution(s) with the Work to
+which such Contribution(s) was submitted.
+
+
+4. Ability to Grant License. You represent that You are legally entitled to grant the above licenses specified in
+Sections 2 and 3. If your employer(s) has rights to intellectual property that You create that includes your
+Contributions, You represent that You have received permission to make Contributions on behalf of that employer or that
+your employer has waived such rights for your Contributions to AdroitLogic.
+
+
+5. Original Creation. You represent that, except as disclosed in Your Contribution submission(s), each of Your
+Contributions is your original creation.
+
+
+Limitation of Liability. IN NO EVENT SHALL EITHER PARTY BE LIABLE TO ANYONE FOR ANY CONSEQUENTIAL, SPECIAL, INCIDENTAL
+OR INDIRECT DAMAGES OF ANY KIND ARISING OUT OF THE USE OF YOUR CONTRIBUTIONS, EVEN IF THE USER HAS BEEN ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGES. IN NO EVENT WILL YOU OR ADROITLOGIC HAVE ANY LIABILITY FOR ANY CLAIM, WHETHER IN CONTRACT,
+TORT OR ANY OTHER THEORY OF LIABILITY.
+
+
+
+
+

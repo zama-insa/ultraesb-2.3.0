@@ -1,0 +1,3 @@
+PURE -> rendering the HTML from the JSON, coming from the console BE via a JAX-RS JSON service hosted over Apache Wink
+jQuery -> standard JS library being used across the console
+DataTables -> jQuery extension to render tables with styles, pagination, sorting and so forth

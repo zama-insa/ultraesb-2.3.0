@@ -1,0 +1,141 @@
+/*
+ * This style sheet is only for IE, to get rid of the IE styling issues
+ */
+#content #main {
+    height: 600px !important;
+    width:100%;
+}
+span.menu {
+    height:25px !important;
+    padding-top:2px;
+    padding-bottom:2px;
+    margin-top:-5px !important;
+}
+#container section {
+    clear:both;
+}
+.helpedHeading {
+    height:30px;
+}
+#VerColMenu li a{
+    height:10px;
+    padding-top:5px;
+    padding-bottom:5px;
+}
+.panel-header {
+    height: 40px !important;
+}
+#breadcrumbs {
+    padding-top:8px;
+    height: 30px;
+}
+.mktg-fieldset {
+    width:940px;
+}
+.dataTables_wrapper {
+    width:940px;
+}
+.panel-content {
+    width:1000px;
+}
+.panel-image {
+    width:60px;
+}
+.panel-content div section div.panel-text{
+    width:390px;
+}
+.even .right-control, .odd .right-control {
+    float:none;
+}
+.odd .left-control, .even .left-control {
+    margin-right:30px;
+}
+.disabledText, .editableText {
+    border:1px solid #AAAAAA;
+    text-align:left;
+    width: 220px !important;
+    height:22px;
+    padding:4px 4px 4px 4px;
+    font-size: 12px;
+    font-family: "Arial",Helvetica,Verdana,sans-serif;
+} 
+input.button {
+    border:none;
+}
+#content #main header.helpedHeading h2 {
+    float:left;
+}
+h2#dashboardHeader {
+    position: relative;
+}
+.ultraHelp {
+    position: relative;
+}
+#jscontext header, #jscontext .generatedHelp {
+    width:400px !important;
+}
+#controlPanel table tr td{
+    font-size:12px;
+}
+.ui-tabs .ui-tabs-panel {
+    height:100%;
+}
+#proxy-controls{
+    position: relative;
+    width:100%;
+    background:none;
+    margin-left:10px;
+}
+#proxyDetails {
+    position: relative;
+    float:left;
+    width:100%;
+    padding:20px;
+    margin-top:20px;
+}
+.graph-legend  {
+    font-size: 12px;
+    font-family: "Arial",Helvetica,Verdana,sans-serif;
+}
+#liveHeapMemory, #liveThreadCount, #cpuAvg, #liveFileCounts {
+    font-size: 12px;
+    padding-left:10px;
+}
+table.display {
+    font-size:12px;
+}
+.dataTables_wrapper {
+    width:100%;
+}
+.button {
+    background: url("../images/btn-bg.png") repeat-x scroll right top transparent;
+    border: none;
+    border-radius: 4px 4px 4px 4px;
+    color: #FFFFFF;
+    font-family: "Arial",Helvetica,Verdana,sans-serif;
+    font-weight: bold;
+    height: 25px;
+    min-width: 90px;
+    padding: 3px 5px;
+    text-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+#transportDtls, .sub-tables {
+    background: none;
+    border: 0px;
+}
+#appenderDetails ul  {
+    padding-top:10px;
+}
+#appenderDetails .button {
+    margin-right:10px;
+}
+#tabs-root ul li.ui-state-default a{
+    color:#FFFFFF !important;
+}
+#tabs-root ul li.ui-tabs-selected a {
+    color:#212121 !important;
+}
+
+.mktg-fieldset {
+    padding-top:20px !important;
+}

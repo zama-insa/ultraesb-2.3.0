@@ -1,0 +1,410 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+<!doctype html>
+<html>
+<div id="container" title="Server Manager">
+    <header class="helpedHeading">
+        <h2>Server Manager</h2>
+        <div class="ultraHelp" title="Server Manager Help">
+            <div>
+                <p>The Server Manager tab allows you to manage the configuration of the UltraESB instance. An UltraESB instance
+        configuration consists of a root deployment unit, plus zero or more other deployment units. The root deployment unit
+        is the main configuration file - that usually defines the more static aspects of a configuration such as
+        Transports, Work Managers, JMX configuration, JMS/JDBC configurations, or other Spring beans if used etc.</p>
+                <p>The deployment units may define fragments of configurations that defines Proxy services, Endpoints
+        and Sequences.</p>
+                <ol>
+                    <li><b>Deployment Units</b> tab shows UltraESB deployment units available in the "conf/deployments"
+        directory of the instance. In addition, any other configuration file maybe used by specifying the path.
+                        Please remember that the path expected is the path of the configuration file on the remote UltraESB
+        server.</li>
+                    <li><b>Root Deployment Unit and Server Operations</b> tab allows you to stop, start, restart or shutdown the
+        instance or put the instance into maintenance mode</li>
+                </ol>
+            </div>
+            Please refer to the article <a href="http://adroitlogic.org/samples-articles-and-tutorials/16/83">Runtime
+            Configuration Updates for more details</a>
+        </div>
+    </header>
+    <section>Manages the root configuration, deployment units and exposes the server operations</section>
+    <div id="tabs">
+        <ul>
+            <li><a href="#tabs-1">Server Configurations</a></li>
+            <li><a href="#tabs-2">Server Operations</a></li>
+        </ul>
+        <div id="tabs-1">
+            <fieldset id="server-details">
+                <h3>Server Information</h3>
+                <ul id="attributes">
+                    <li>
+                        <label>Root Configuration</label>
+                        <input id="rootConfig" readonly class="disabledText" type="text"/>
+                    </li>
+                    <li>
+                        <label>State</label>
+                        <input id="state" readonly class="disabledText" type="text"/>
+                    </li>
+                    <li>
+                        <label>User defined server status</label>
+                        <input id="statusCode" type="text"/>
+                        <button style="margin-left: 10px;" class="clickable button" onclick="updateStatus()">Update</button>
+                    </li>
+                </ul>
+            </fieldset>
+            <div class="sub-tables">
+            <h3>Deployment Units</h3>
+            <div id="loadedTblDiv">
+            <table id="tblAllContexts" class="display">
+                <thead>
+                    <tr><th>Id</th><th>Status</th><th>Control</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="id"><a href="index.html?pageName=node-mgt/deploymentUnit-details.html&id="></a></td>
+                        <td class="status"></td>
+                        <td class="control">
+                            <img class="unload clickable" title="Unload" src="icons/unload.png" alt="Unload"/>
+                            <img class="load clickable" title="Load / Reload" src="icons/load.png" alt="Load / Reload"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            <input type="button" class="button clickable" value="Unload All" id="unloadAll" onclick="unloadAll();"/>&nbsp;
+            <input type="button" class="button clickable" value="Purge Outdated" id="purgeAll" onclick="purgeAll();"/><br/>
+            <div id="controlPanel">
+                <table>
+				  <tr>
+					<td width="280px">Add or update deployment unit</td>
+					<td width="220px"><input id="lFileName" class="editableText" type="text" value="default"/></td>
+					<td><input type="button" class="button clickable" value="Add or Update" onclick="loadConfig($('#lFileName').val())"/></td>
+					</tr>
+				</table>
+            </div>
+            </div>
+        </div>
+
+        <div id="tabs-2">
+            <fieldset id="server-operations">
+                <h3>Server Information</h3>
+                <ul id="opnAttributes">
+                    <li id="rootConfigLi">
+                        <label>Root configuration</label>
+                        <input id="opnRootConfig" readonly class="disabledText" type="text"/>
+                    </li>
+                    <li>
+                        <label>State</label>
+                        <input id="opnState" readonly class="disabledText" type="text"/>
+                    </li>
+                    <br/>
+                </ul>
+            </fieldset>
+        </div>
+
+        <div id="dialog-form" title="Maintenance Shutdown">
+            <p class="validateTips">Please specify delay in seconds</p>
+            <fieldset>
+                <label>Delay (s)</label><input class="time numeric" type="text" name="name" id="delay" />
+            </fieldset>
+        </div>
+    </div>
+    <script type="text/javascript">
+    // operations tab
+    function stop() {
+        showConfirmation('Do you want to stop the UltraESB server?', function() {
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'server/stop',
+                success: function(msg) {
+                    showInfo('Successfully stopped the UltraESB server', 'index.html?pageName=node-mgt/server-manager.html');
+                }
+            });
+        });
+    }
+
+    function refresh() {
+        showConfirmation('Do you want to refresh the the server?', function() {
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'server/refresh',
+                success: function(msg) {
+                    showInfo('Successfully refreshed the server', 'index.html?pageName=node-mgt/server-manager.html');
+                }
+            });
+        });
+    }
+
+    function shutdown() {
+        showConfirmation('Do you want to shutdown the UltraESB?', function() {
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'server/shutdown',
+                success: function(msg) {
+                    showInfo('Successfully shutdown the UltraESB', 'index.html?pageName=node-mgt/server-manager.html');
+                }
+            });
+        });
+    }
+
+    function shutdownGracefully() {
+        $( "#dialog-form" ).dialog( "open" );
+    }
+
+    $(function() {
+        $( "#dialog-form" ).dialog({
+            autoOpen: false,
+            height: 190,
+            width: 300,
+            modal: true,
+            buttons: {
+                Shutdown: function() {
+                    var delay = $("#delay").attr("value");
+                    if (checkRegexp( delay, /^[0-9]+$/, "Delay must be a number")) {
+                        $(this).dialog("close");
+                            $.ajax({
+                            type: 'POST',
+                            url: getCallURLBase() + 'server/shutdownGracefully?delay=' + delay,
+                            success: function(msg) {
+                                showInfo('Successfully completed graceful shutdown', 'index.html?pageName=node-mgt/server-manager.html');
+                            }
+                        });
+                    }
+                }
+            }
+        });
+    });
+
+    function checkRegexp(o, regexp, n) {
+        if (!(regexp.test(o))) {
+            $(".validateTips").text(n);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    function startMaintenance() {
+        showConfirmation('Do you want place the node on maintenance?', function() {
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'server/startMaintenance',
+                success: function(msg) {
+                    showInfo('Successfully placed node on maintenance', 'index.html?pageName=node-mgt/server-manager.html');
+                }
+            });
+        });
+    }
+
+    function endMaintenance() {
+        showConfirmation('Do you want to take out the node from maintenance?', function() {
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'server/endMaintenance',
+                success: function(msg) {
+                    showInfo('Successfully resumed normal operations and exit maintenance', 'index.html?pageName=node-mgt/server-manager.html');
+                }
+            });
+        });
+    }
+
+    function restart() {
+        showConfirmation('Do you want to restart the node?', function() {
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'server/restart',
+                success: function(msg) {
+                    showInfo('Successfully restarted the node', 'index.html?pageName=node-mgt/server-manager.html');
+                }
+            });
+        });
+    }
+
+    function startCurrent() {
+        showConfirmation('Do you want to start the server from default root configuration?', function() {
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'server/startCurrent',
+                success: function(msg) {
+                    showInfo('Successfully started the server with default root configuration', 'index.html?pageName=node-mgt/server-manager.html');
+                }
+            });
+        });
+    }
+
+    function startSelected(path) {
+        showConfirmation('Do you want to start the server with root configuration from: ' + path + '?', function() {
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'server/start?path=' + path,
+                success: function(msg) {
+                    showInfo('Successfully started with root configuration: ' + path, 'index.html?pageName=node-mgt/server-manager.html');
+                }
+            });
+        });
+    }
+
+    // configurations tab
+    function unloadAll() {
+        showConfirmation('Do you want to unload all loaded deployment units?', function() {
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'server/unloadAllDeploymentUnits',
+                success: function(msg) {
+                    showInfo('Successfully unloaded all deployment units', 'index.html?pageName=node-mgt/server-manager.html');
+                }
+            });
+        });
+    }
+
+    function purgeAll() {
+        showConfirmation('Do you want to purge all outdated deployment units?', function() {
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'server/purgeAllOutdatedDeploymentUnits',
+                success: function(msg) {
+                    showInfo('Successfully purged all outdated deployment units', 'index.html?pageName=node-mgt/server-manager.html');
+                }
+            });
+        });
+    }
+
+    function unloadConfig(key) {
+        showConfirmation('Do you want to unload the deployment unit : ' + decodeURIComponent(key) + '?', function() {
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'server/unloadDeploymentUnit?key=' + key,
+                success: function(msg) {
+                    showInfo('Successfully unloaded the deployment unit : ' + decodeURIComponent(key), 'index.html?pageName=node-mgt/server-manager.html');
+                }
+            });
+        });
+    }
+
+    function loadConfig(key) {
+        showConfirmation('Do you want to load/re-load the deployment unit : ' + decodeURIComponent(key) + '?', function() {
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'server/addOrUpdateDeploymentUnit?key=' + key,
+                success: function(msg) {
+                    showInfo('Successfully loaded the deployment unit : ' + decodeURIComponent(key), 'index.html?pageName=node-mgt/server-manager.html');
+                }
+            });
+        });
+    }
+
+    function updateStatus() {
+        var status = $('#statusCode').val();
+
+        if (isNaN(status) == false) {
+            showConfirmation('Do you want to update the user defined server status to : ' + status + '?', function() {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'server/userDefinedStatus?code=' + status,
+                    success: function(msg) {
+                        showInfo('Successfully updated the user defined server status to : ' + status, 'index.html?pageName=node-mgt/server-manager.html');
+                    }
+                });
+            });
+        } else {
+            showError("The user defined status code has to be a numeric value, found : " + status);
+        }
+    }
+
+    $(document).ready(function() {
+        $('#tabs').tabs();
+
+        var jq = $.getJSON(getCallURLBase() + "server/getDetails", function(view) {
+            $('#rootConfig').val(view.rootConfig);
+            $('#state').val(view.state);
+            $('#statusCode').val(view.userDefinedStatus);
+
+            var dus = [];
+            $.each(view.deploymentUnits, function (key, value) {
+                dus[dus.length] = value;
+            });
+            var data = {entries:dus};
+            var dataDirective = {
+                'tbody tr':{
+                    'entry<-entries' : {
+                        'td.id a' : function(arg) { return arg.entry.item.name; },
+                        'td.id a@href+' : function(arg) { return arg.entry.item.name; },
+                        'td.id a@title' : function(arg) { return arg.entry.item.name; },
+                        'td.status' : function(arg) {
+                            return arg.entry.item.state; },
+
+                        // unloading only for loaded
+                        'td.control img.unload@onclick' : function(arg) {
+                            return arg.entry.item.state == 'ACTIVE' ? 'unloadConfig("' + encodeURIComponent(arg.entry.item.name) + '");' : ''; },
+                        'td.control img.unload@src' : function(arg) {
+                            return arg.entry.item.state == 'ACTIVE' ? 'icons/unload.png' : 'icons/blank.png'},
+
+                        // loading for notloaded and loaded
+                        'td.control img.load@onclick' : function(arg) {
+                            return 'loadConfig("' + encodeURIComponent(arg.entry.item.name) + '");';
+                        },
+                        'td.control img.load@src' : function(arg) {
+                            return 'icons/load.png'
+                        }
+                    }
+                }
+            };
+
+            $('#tblAllContexts').render(data, dataDirective);
+            encodeURLs();
+            $('#tblAllContexts').dataTable({
+                "bLengthChange": true,
+                "bJQueryUI": true,
+                "sPaginationType": "full_numbers",
+                "aoColumns" : [null, {"sWidth": "25px"}, {"sWidth": "55px"}]
+            });
+
+            // operations tab
+            $('#opnRootConfig').val(view.rootConfig);
+            $('#opnState').val(view.state);
+
+            if (view.state == 'Started') {
+                $('#opnAttributes').append('<input type="button" class="button clickable" value="Maintenance" title="Start Maintenance" onclick="startMaintenance();"/>');
+                $('#opnAttributes').append('&nbsp;&nbsp;<input type="button" class="button clickable" value="Refresh" title="Refresh" onclick="refresh();"/>');
+                $('#opnAttributes').append('&nbsp;&nbsp;<input type="button" class="button clickable" value="Stop" title="Stop" onclick="stop();"/>');
+                $('#opnAttributes').append('&nbsp;&nbsp;<input type="button" class="button clickable" value="Shutdown" title="Immediate Shutdown" onclick="shutdown();"/>');
+                $('#opnAttributes').append('&nbsp;&nbsp;<input type="button" class="button clickable" value="Graceful" title="Graceful Shutdown" onclick="shutdownGracefully();"/>');
+                $('#opnAttributes').append('&nbsp;&nbsp;<input type="button" class="button clickable" value="Restart" title="Restart" onclick="restart();"/>');
+
+            } else if (view.state == 'Stopped' || view.state == 'Failed') {
+                $('#opnAttributes').append('<label>Load root configuration from file</label><input id="rootFileToLoad" class="editableText" type="text"/>');
+                $('#opnAttributes').append('&nbsp;<input type="button" class="button clickable" value="Start Selected" onclick="startSelected($(\'#rootFileToLoad\').val());"/>');
+                $('#rootConfigLi').append('&nbsp;<input type="button" class="button clickable" value="Start" onclick="startCurrent();"/>');
+
+            } else if (view.state == 'Paused') {
+                $('#opnAttributes').append('<input type="button" class="button clickable" value="End Maintenance" title="End Maintenance" onclick="endMaintenance();"/>');
+            }
+        });
+    });
+</script>
+</div>
+</html>

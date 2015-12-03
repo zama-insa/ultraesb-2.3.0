@@ -1,0 +1,12 @@
+{
+    "uz_meta": {
+        "parent": "proxy-service-item-parent"
+    },
+    "params":{
+        "name": "State of the proxy service ${.*}$",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=ProxyServices,Name=${.*}$][Details.state]",
+        "value_type": 1,
+        "history": 12,
+        "delay": 180
+    }
+}

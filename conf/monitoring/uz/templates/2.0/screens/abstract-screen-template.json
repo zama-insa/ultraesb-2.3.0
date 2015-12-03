@@ -1,0 +1,13 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "parent": "zabbix-parent",
+        "key": "screens-parent"
+    },
+    "method":"screen.$action$",
+    "params": {
+        "hsize":"2",
+        "vsize":"2"
+    },
+    "id":2
+}

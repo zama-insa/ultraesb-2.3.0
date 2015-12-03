@@ -1,0 +1,112 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="container" title="Cluster Management">
+    <header class="helpedHeading">
+        <h2>Cluster Management</h2>
+        <div class="ultraHelp" title="Cluster Management Help">
+            <div>This gives you an overall idea of the cluster management functionality available on the UltraESB.
+                If clustering is disabled this page will only just state that. If you want to see clustering in action
+                you need to enable clustering on the ultra-root.xml spring configuration found at the conf directory
+                of the UltraESB installation home. For that matter open up the per-said file and search for the key
+                <b>cluster</b>, you will be able to see something like follows;
+                <br/>
+                <br/>
+                <img src="images/help/ultra-root-clustering.png"/>
+                <br/>
+                <br/>
+                Change the <b>constructor-arg</b> value from "false" to "true" in that configuration, and you have enabled
+                clustering. Running a cluster requires a ZooKeeper instance running too and UltraESB has a pre-configured
+                ZooKeeper instance shipped with it, you should first start the ZooKeeper by issuing the following command;
+                <br/>
+                <br/>
+                sh bin/zkServer.sh start
+                <br/>
+                <br/>
+                and then re-start the UltraESB, come back here to see the following options.
+                <ol>
+                    <li><b>Cluster Navigator</b> - Navigate through the nodes in the UltraESB cluster</li>
+                    <li><b>Control Panel</b> - Invoke control operations in the cluster like Round-Robin graceful restart</li>
+                    <li><b>Command History</b> - History of the cluster control commands</li>
+                </ol>
+                With those UltraESB clustering gives you a centralized control of your complete cluster in a single console. For more information refer
+                to the article on the <a target="_blank" href="http://docs.adroitlogic.org/display/esb/Scalability+and+High-Availability">UltraESB clustering concept</a> and
+                <a target="_blank" href="http://docs.adroitlogic.org/display/esb/Clustering+Guide">Clustered deployment of UltraESB</a>
+            </div>
+        </div>
+    </header>
+    <section id="cluster-disabled">Clustering is disabled, please follow the instructions on the guide on <a href="http://docs.adroitlogic.org/display/esb/Clustered+Deployment" style="color: #4682b4;">Clustered deployment of UltraESB</a> to enable clustering and re-login to view clustering information</section>
+    <section id="cluster-enabled">The one stop shop for the cluster view of the ESB, with cluster level control operations
+
+        <div class="mgt-panel">
+            <div class="panel-header fg-toolbar ui-toolbar ui-widget-header ui-corner-tl ui-corner-tr ui-helper-clearfix"><span>Cluster management</span></div>
+            <div class="panel-content">
+                <div class="odd">
+                    <section class="left-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=cluster-mgt/cluster.html&bc=clear')" title="Cluster Navigator">
+                        <div><div class="panel-image"><img src="icons/cluster-nav-48x48.png"/></div>
+                        <div class="panel-text"><h4>Cluster Navigator</h4>
+                        Navigate through the UltraESB cluster<br/>
+                        View nodes/sessions and related operations</div></div>
+                    </section>
+                    <section class="right-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=cluster-mgt/control-ops.html&bc=clear')" title="Control Panel">
+                        <div><div class="panel-image"><img src="icons/cluster-control-48x48.png"/></div>
+                        <div class="panel-text"><h4>Control Panel</h4>
+                        Invoke control operations in the cluster<br/>
+                        Cluster wide state management, restart, etc..</div></div>
+                    </section>
+                </div>
+                <div class="even">
+                    <section class="left-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=cluster-mgt/commands.html&bc=clear')" title="Command History">
+                        <div><div class="panel-image"><img src="icons/command-history-48x48.png"/></div>
+                        <div class="panel-text"><h4>Command History</h4>
+                        History of the cluster control commands<br/>
+                        View/manage cluster commands, execution results</div></div>
+                    </section>
+                </div>
+                </div>
+            </div>
+        </section>
+    <script type="text/javascript">
+    $(document).ready(function() {
+
+        if ($.cookie("clustering") != "true") {
+            $('#cluster-disabled').addClass("shown");
+            $('#cluster-enabled').addClass("hidden");
+        } else {
+            $('#cluster-disabled').addClass("hidden");
+            $('#cluster-enabled').addClass("shown");
+        }
+    });
+</script>
+</div>
+</html>

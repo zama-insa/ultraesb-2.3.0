@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Refer to the unit tests SOAPToJSONTest for more details about this sample and a unit test for it-->
+    
+    <!--Exposes a proxy service over HTTP that extracts request query parameters from a GET request, and uses the
+    'symbol' parameter by passing it into an XQuery script 'samples/resources/sample5.xq' to generate a new message
+    payload. This new payload is then sent to the http://localhost:9000/service/SimpleStockQuoteService as a POST
+    request, to which a SOAP response is returned. The SOAP message is converted into a simplified REST format-->
+    <u:proxy id="json-stockquote-1">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.BaseConstants; org.adroitlogic.ultraesb.api.transport.http.HttpConstants;"><![CDATA[
+                        // there are many ways to create a request - e.g. XSLT, XQuery, Scripting languages. For now a simple text manipulation
+                        mediation.setPayloadFromString(msg,
+                                "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:soap=\"http://soap.services.samples/\">" +
+                                        "<soapenv:Body><soap:getQuote><request><symbol>" +
+                                        mediation.getHTTPSupport().getFirstRequestParameter(msg, "symbol") +
+                                        "</symbol></request></soap:getQuote></soapenv:Body></soapenv:Envelope>");
+
+                        mediation.getHTTPSupport().setMethod(msg, HttpConstants.Method.POST);
+                        msg.setContentType(BaseConstants.ContentType.TEXT_XML);
+                    ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    mediation.getSOAPSupport().convertSOAPToJSONStream(msg);
+                ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--This is a similar example using XSLT 2.0 from the xml-t0-json project http://www.bramstein.com/projects/xsltjson/
+    You will need an XSLT 2.0 processor such as Saxon. The open source Saxon-HE library JAR can be freely downloaded
+    from http://sourceforge.net/projects/saxon/ into lib/optional run this example-->
+    <u:proxy id="json-stockquote-2">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.BaseConstants; org.adroitlogic.ultraesb.api.transport.http.HttpConstants;"><![CDATA[
+                        // there are many ways to create a request - e.g. XSLT, XQuery, Scripting languages. For now a simple text manipulation
+                        mediation.setPayloadFromString(msg,
+                                "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:soap=\"http://soap.services.samples/\">" +
+                                        "<soapenv:Body><soap:getQuote><request><symbol>" +
+                                        mediation.getHTTPSupport().getFirstRequestParameter(msg, "symbol") +
+                                        "</symbol></request></soap:getQuote></soapenv:Body></soapenv:Envelope>");
+
+                        mediation.getHTTPSupport().setMethod(msg, HttpConstants.Method.POST);
+                        msg.setContentType(BaseConstants.ContentType.TEXT_XML);
+                    ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.BaseConstants;"><![CDATA[
+                        // retain only the first child of a SOAP 1.1 message (extend the XPath for SOAP 1.2 if required)
+                        mediation.getXMLSupport().retainElementAsPayload(msg, "/s11:Envelope/s11:Body/child::*[position()=1]",
+                                new String[] {"s11", "http://schemas.xmlsoap.org/soap/envelope/"});
+
+                        // See sample #206 on how the XSLT parameters can be further tuned as per
+                        // http://www.bramstein.com/projects/xsltjson/ - Note, the output from this transformation is not XML
+                        mediation.getXMLSupport().transform(msg, "conf/xml-to-json-xslt-2.xsl");
+                        msg.setContentType(BaseConstants.ContentType.APPLICATION_JSON);
+                    ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+</beans>

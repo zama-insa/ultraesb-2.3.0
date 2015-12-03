@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="20"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <!--Demonstrates a basic query-only JSON data service. This only supports GET method, and is able to return one
+    or all rows from a table using the specified queries-->
+    <u:proxy id="basicEmployeeService">
+        <u:transport id="http-8280">
+            <u:property name="ultra.transport.url" value="basicEmployeeService*"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    mediation.getJSONSupport().processBasicJSONDataServiceRequest(msg, "empJsonSvc", "dataSource");
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <bean id="empJsonSvc" class="org.adroitlogic.ultraesb.core.helper.BasicJSONDataService" init-method="init">
+        <property name="queryMap">
+            <map>
+                <entry key="/getPermanentEmployees" value="select * from employee where permanent = 1"/>
+                <entry key="/getTaxPayers" value="select * from employee where salary > 20000"/>
+                <entry key="/getEmployee?{id:INTEGER}" value="SINGLE: select * from employee where employeeId = :id"/>
+                <entry key="/byDeptAndDivision/{department:INTEGER}/{division:INTEGER}?{age:INTEGER},{sex:VARCHAR}"
+                    value="select * from employee where division = :division and department = :department and sex = :sex and age > :age"/>
+                <entry key="/{id:INTEGER}" value="SINGLE: select * from employee where employeeId = :id"/>
+                <entry key="" value="select * from employee"/>
+            </map>
+        </property>
+    </bean>
+
+    <!--Demonstrates a custom JSON data service, that supports GET, POST, PUT and DELETE operations on the Employee
+     domain object. Uses the Springframework to invoke JDBC calls, and the Jackson parser to generate and parse
+     requests and responses as JSON. Is exposed at a user specified custom URL /employees. The sequence may be easily
+     step-through debugged with a standard Java IDE -->
+    <u:proxy id="employees">
+        <u:transport id="http-8280">
+            <u:property name="ultra.transport.url" value="/employees*"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:class name="samples.json.JsonCRUDSequence"/>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--Standard Spring transactional DataSource definition-->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="org.apache.derby.jdbc.ClientDriver"/>
+        <property name="url" value="jdbc:derby://localhost:1529/../modules/sample/target/unittestdb;user=admin;password=admin"/>
+    </bean>
+
+</beans>

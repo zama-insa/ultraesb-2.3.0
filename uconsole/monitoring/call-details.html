@@ -1,0 +1,133 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!doctype html>
+<html>
+<div id="container" title="Zabbix Registration API Call Log">
+    <header class="helpedHeading">
+        <h2>Zabbix Registration Call Details</h2>
+        <div class="ultraHelp" title="Zabbix Registration API Call Details Help">
+            <div>
+                <p>Shows the registration log call details of the specified call of the last
+                    <a href="http://www.zabbix.com">Zabbix</a> element registration based on the templates stored in the
+                    template registry.</p>
+            </div>
+        </div>
+    </header>
+    <section>Registration call details of the last Zabbix registration</section>
+
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+            $.getJSON(getCallURLBase() + 'uz/registration/stat/' + getURLParameter("callId"), function(msg) {
+                $('#reg-result input#call-num').attr("value", msg.number);
+                $('#reg-result input#call-started').attr("value", new Date(msg.startTime));
+                $('#reg-result input#call-end').attr("value", new Date(msg.endTime));
+                $('#reg-result input#call-time').attr("value", (msg.endTime - msg.startTime) + " ms");
+                $('#reg-result input#call-log').attr("value", msg.traceLog);
+                $('#reg-result input#call-stat').attr("value", msg.state);
+                populateEditAreas(msg.request, 'call-request', false);
+                populateEditAreas(msg.response, 'call-response', true);
+
+            });
+        });
+
+        function populateEditAreas(data, item, convertToJSON) {
+            var templateContent = JSON.stringify(JSON.parse(data), undefined, 2);
+            var lines = templateContent.split('\n');
+            var count = 0;
+            $.each(lines, function() {
+                count += 1 + Math.floor( this.length / 110 ); // take into account long lines
+            });
+            if (count < 10) {
+                count = 10;
+            }
+            $('#' + item).append('<li><label></label><textarea id="templateContent' + item + '" cols="110" rows="' + count + '"></textarea></li>');
+            $('#templateContent' + item).text(templateContent);
+
+            editAreaLoader.init({
+                id : "templateContent" + item,
+                language: "en",
+                syntax: "Json",
+                start_highlight: true,
+                allow_toggle: false,
+                is_editable: false,
+                word_wrap: true
+            });
+        }
+
+        function clearLog() {
+            showConfirmation("Do you want to clear the Zabbix registration log?", function() {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'uz/registration/clear-stat',
+                    success:function(msg) {
+                        showInfo("Successfully cleared the last Zabbix registration log", "index.html?pageName=monitoring/uz-template-registry.html&bc=clear")
+                    }
+                });
+            });
+        }
+    </script>
+
+    <div class="outer_wrapper">
+        <div id="reg-result">
+            <h3>Registration Call Meta Information</h3>
+            <p>Meta information for the call</p>
+            <form id="reg-stat" class="tab_less_pane">
+                <fieldset>
+                    <ul>
+                        <li><label for="call-num">Call Number</label><input id="call-num" type="text" readonly/></li>
+                        <li><label for="call-started">Started At</label><input id="call-started" type="text" readonly/></li>
+                        <li><label for="call-end">Completed At</label><input id="call-end" type="text" readonly/></li>
+                        <li><label for="call-time">Call Time</label><input id="call-time" type="text" readonly/></li>
+                        <li><label for="call-log">Call Log</label><input id="call-log" type="text" readonly/></li>
+                        <li><label for="call-stat">Call Status</label><input id="call-stat" type="text" readonly/></li>
+                    </ul>
+                    <h3>API Call Request Sent</h3>
+                    <p>The JSON message sent to the Zabbix front end in this call</p>
+                    <ul class="attributes" id="call-request">
+
+                    </ul>
+                    <h3>API Call Response Received</h3>
+                    <p>The JSON message received by the Zabbix front end for this call</p>
+                    <ul class="attributes" id="call-response">
+
+                    </ul>
+                </fieldset>
+            </form>
+            <br/>
+
+
+            <br/>
+            <button class="clickable button" onclick="window.location.href='index.html?pageName=monitoring/zabbix-registration-log.html&bc=3'"> &lt; Back to View Log</button>&nbsp;&nbsp;
+            <!--<button id="clear-log" class="clickable button" onclick="clearLog()">Clear Log</button>&nbsp;&nbsp;-->
+
+        </div>
+    </div>
+</div>
+</html>

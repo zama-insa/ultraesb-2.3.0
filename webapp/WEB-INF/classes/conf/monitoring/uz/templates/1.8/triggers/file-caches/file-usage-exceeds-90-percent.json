@@ -1,0 +1,12 @@
+{
+    "uz_meta": {
+        "parent": "file-cache-triggers-parent",
+        "key": "file-usage-exceeds-90-percent",
+        "dependsOn": "file-cache-disk-overflow"
+    },
+    "params":{
+        "description": "File usage exceeds 90% of the file cache ${.*}$",
+        "expression": "{$host$:jmx[org.adroitlogic.ultraesb.detail:Type=FileCaches,Name=${.*}$][Details.availableForUse].last(0)}/{$host$:jmx[org.adroitlogic.ultraesb.detail:Type=FileCaches,Name=${.*}$][Details.totalFilesCreated].last(0)}<0.1",
+        "priority": "4"
+    }
+}

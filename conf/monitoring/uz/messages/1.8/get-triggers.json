@@ -1,0 +1,13 @@
+{
+    "jsonrpc":"2.0",
+    "method":"trigger.get",
+    "params":{
+        "filter":{
+            "host": ["$host$"]
+        },
+        "output": "extend",
+        "select_dependencies": "refer"
+    },
+    "auth":"$auth$",
+    "id":2
+}

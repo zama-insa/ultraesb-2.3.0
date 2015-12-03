@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+***********************************************************************************************************************
+
+    NOTE: This file is statically included from the default ultra-root.xml which is the main configuration file of the
+    UltraESB used in a production deployment. Use this file to define and configure metrics and alerting related
+    Spring beans, which will not be unloaded and reloaded at runtime.
+
+    Please refer to the metrics documentation on UltraESB (http://docs.adroitlogic.org) to see a detailed guide on the
+    metrics configurations
+
+***********************************************************************************************************************
+-->
+<!--suppress SpringBeanNameConventionInspection -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+    <bean id="metrics-engine" class="org.adroitlogic.metrics.core.MetricsEngineImpl">
+        <!-- Uncomment this and the respective tuner bean to tune the behaviour of the metrics engine -->
+        <!--<constructor-arg name="tuner" ref="me-tuner"/>-->
+
+        <!-- Uncomment the following 2 lines to configure the metrics engine capacity parameters -->
+        <!--<constructor-arg name="stepTime" value="3000"/>-->
+        <!--<constructor-arg name="maxSteps" value="600"/>-->
+
+
+        <!--<property name="alertConfigRegistry" ref="alert-config-registry"/>-->
+
+        <!-- Uncomment to add data-point listeners -->
+        <!--<property name="dataPointListeners">-->
+            <!--<list>-->
+                <!--<bean class="org.adroitlogic.metrics.core.TestDPL"/>-->
+            <!--</list>-->
+        <!--</property>-->
+
+        <!-- Uncomment to add eviction handlers -->
+        <!--<property name="evictionHandlers">-->
+            <!--<list>-->
+                <!--<bean class="org.adroitlogic.metrics.core.TestEH"/>-->
+            <!--</list>-->
+        <!--</property>-->
+    </bean>
+
+    <!-- Uncomment and refer in the metrics engine bean to tune the metrics engine -->
+    <!--<bean id="me-tuner" class="org.adroitlogic.metrics.api.MetricsEngineTuner">-->
+        <!-- Disables the metrics engine and metrics collection completely -->
+        <!--<constructor-arg type="boolean" name="turnedOff" value="true"/>-->
+
+        <!-- Alternatively uncomment the following 2 constructor args and configure to selectively disable default
+        all time or window collections -->
+        <!--<constructor-arg type="boolean" name="defaultCollectionEnabled" value="true"/>-->
+        <!--<constructor-arg type="boolean" name="windowCollectionEnabled" value="false"/>-->
+
+        <!-- Disables all alerts generated from the metrics engine -->
+        <!--<property name="disableAlerts" value="true"/>-->
+        <!--<property name="percentilesEnabled" value="true"/>-->
+    <!--</bean>-->
+
+    <!-- Uncomment and configure to change the alert configuration JSON file paths -->
+    <!--<bean id="alert-config-registry" class="org.adroitlogic.metrics.core.alert.JSONAlertConfigRegistry">-->
+        <!-- Uncomment to configure the json file paths -->
+        <!--<constructor-arg name="alertConfigPath" value="conf/monitoring/alert-configs.json"/>-->
+        <!--<constructor-arg name="defaultActionsPath" value="conf/monitoring/default-alert-actions.json"/>-->
+    <!--</bean>-->
+
+    <bean id="template-provider" class="org.adroitlogic.ultraesb.util.ESBAlertInfoProvider"/>
+
+    <!-- Notification manager used by the metrics implementation to send out the notifications, please make sure to
+    configure the relevant senders such as mail sender bean etc prior to enabling this bean -->
+    <!--<bean id="notification-manager" class="org.adroitlogic.metrics.util.NotificationManager">
+        <property name="mailSender" ref="mailSender"/>
+    </bean>
+
+    <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="host" value="smtp.gmail.com" />
+        <property name="port" value="587" />
+        <property name="username" value="username" />
+        <property name="password" value="password" />
+
+        <property name="javaMailProperties">
+            <props>
+                <prop key="mail.smtp.auth">true</prop>
+                <prop key="mail.smtp.starttls.enable">true</prop>
+                <prop key="mail.smtp.socketFactory.port">465</prop>
+                <prop key="mail.smtp.socketFactory.class">javax.net.ssl.SSLSocketFactory</prop>
+                <prop key="mail.smtp.socketFactory.fallback">false</prop>
+            </props>
+        </property>
+    </bean>-->
+
+</beans>

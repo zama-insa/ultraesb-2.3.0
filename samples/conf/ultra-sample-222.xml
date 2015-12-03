@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="20"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <bean id="poolExecutor" class="java.util.concurrent.ScheduledThreadPoolExecutor">
+        <constructor-arg value="100"/>
+    </bean>
+
+    <!--Demonstrates a child sequence invocation by a proxy service that accepts a "buyStocks" request
+    (See samples/resources/requests) and splits it into multiple messages using an XPath expression.
+    Each fragment is then passed to a child sequence which sends it to one of two possible endppoints.
+    Note that one endpoint "stockquote-err" is configured to fail, and thus the error handler sequence
+    will get invoked for "SUN" symbol requests.
+
+    The inSequence also shows how another sequence "sendResponse" is invoked to send a response back to the client-->
+    <u:proxy id="json-scatter-gather">
+        <u:transport id="http-8280"/>
+        <u:target errorSequence="serviceErrorHandler">
+            <u:inSequence onErrorInvoke="sequenceErrorHandler">
+                <u:java><![CDATA[
+                        mediation.getJSONSupport().splitAndProcess(msg, "payload/promiseList", "splitSeq", false,
+                                new org.adroitlogic.ultraesb.json.SampleSplitGroupCriteria(), 30000, true,
+                                mediation.getSpringBean("poolExecutor", java.util.concurrent.ScheduledExecutorService.class));
+                    ]]></u:java>
+            </u:inSequence>
+            <u:outSequence onErrorInvoke="sequenceErrorHandler">
+                <u:java><![CDATA[
+                        logger.info("Received response : " + mediation.readPayloadAsString(msg));
+                        mediation.getJSONSupport().aggregateAndProcess(msg, "payload/promiseList", "aggregate", false);
+                    ]]></u:java>
+            </u:outSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:sequence id="splitSeq">
+        <u:java><![CDATA[
+            mediation.sendToEndpoint(msg, "echo");
+        ]]></u:java>
+    </u:sequence>
+
+    <u:sequence id="aggregate">
+        <u:java><![CDATA[
+                mediation.sendResponse(msg, 200);
+            ]]></u:java>
+    </u:sequence>
+
+    <u:sequence id="sequenceErrorHandler">
+        <u:java><![CDATA[
+                logger.debug("Failed Message : {}", mediation.readPayloadAsString(msg));
+            ]]></u:java>
+    </u:sequence>
+
+    <u:sequence id="serviceErrorHandler">
+        <u:java><![CDATA[
+                mediation.getLogSupport().getServiceLogger().error("Service error handler called");
+                mediation.setPayloadFromString(msg,"Generic service error : " + msg.getLastException().toString());
+                mediation.sendResponseAndDrop(msg, 500);
+            ]]></u:java>
+    </u:sequence>
+
+    <u:endpoint id="echo">
+        <u:address>http://localhost:9000/service/EchoService</u:address>
+    </u:endpoint>
+
+</beans>

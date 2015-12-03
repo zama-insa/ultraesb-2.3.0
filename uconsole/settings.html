@@ -1,0 +1,69 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!doctype html>
+<html>
+<div id="container" title="Console Settings">
+    <header class="helpedHeading">
+        <h2>Console Settings</h2>
+        <div class="ultraHelp" title="Console Settings Help">
+        <div>
+        <p>Settings related to the uconsole, including the console user management and the server connection management</p>
+        <p>While user management lets you add new users, roles and associated permissions to the console, it also
+            lets you edit existing users.</p>
+        <p>The server connection management lets you define server connection urls with a given key with security
+            information if required for that particular connection and also lets you edit those</p>
+        </div>
+    </div>
+    </header>
+    <section>Settings of the Ultra management console</section>
+    <div id="tabs">
+        <ul>
+            <li><a href="settings/servers.html">Servers</a></li>
+            <li id="users"><a href="settings/users.html">Users</a></li>
+            <li id="roles"><a href="settings/roles.html">Roles</a></li>
+            <li><a href="settings/access.html">Access Control</a></li>
+        </ul>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $.ajax({
+                type: 'GET',
+                url: getCallURLBase() + 'usermgt/management/enabled',
+                success: function(msg) {
+                    if (msg != true) {
+                        $('#users').hide();
+                        $('#roles').hide();
+                    }
+                }
+            });
+            $('#tabs').tabs();
+        });
+    </script>
+</div>
+</html>

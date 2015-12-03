@@ -1,0 +1,25 @@
+{ "OutterNode": {
+    "InnerNode1": [
+        {   "id": 55555,
+            "string_id": "55555A",
+            "node_value": 25,
+            "object": {"aa":1},
+            "valueNull": null,
+            "booleanVal":true,
+            "valueArray":[ 1, 2, [ [], [{"inner_id": 5000}] ] ]
+        },
+        {   "id": 66666,
+            "string_id": "66666B",
+            "node_value": 15,
+            "object": {"bb":2},
+            "valueNull": null,
+            "booleanVal":false,
+            "valueArray":[ 1, 2, [ [], [{"inner_id": 6000}] ] ]
+        }
+    ],
+    "InnerNode2": {
+        "name": "second_innerNode",
+        "value": 200.15
+    }
+    }
+}

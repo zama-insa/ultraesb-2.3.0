@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--A simple protocol buffer mock service that reads the message as a dynamic message without the type classes and
+    prints the message fields before responding back with the same message -->
+    <u:proxy id="pb-generic">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="com.google.protobuf.DynamicMessage;"><![CDATA[
+                    String descFile = "samples/resources/misc/addressbook.desc";
+                    mediation.getProtocolBufferSupport().convertToProtocolBuffer(msg, descFile);
+                    DynamicMessage dm = mediation.getProtocolBufferSupport().getMessage(msg, DynamicMessage.class);
+                    System.out.println("Reading protocol buffer fields as a dynamic message :\n" + dm.getAllFields());
+                    mediation.sendResponse(msg, 200);
+                    ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <!-- A simple protocol buffer proxy mock service that reads the protocol buffer message as a typed message and
+    alter the content to add a new entry before responding back with the modified message -->
+    <u:proxy id="pb-typed">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:class name="org.adroitlogic.ultraesb.core.SamplePBSequence"/>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

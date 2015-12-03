@@ -1,0 +1,208 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+<!doctype html>
+<html>
+<div id="tabs-3">
+    <div id="roleInfo" class="hidden">
+        <h3>Role Information</h3>
+        <fieldset id="roleInfoForm">
+            <ul>
+                <li>
+                    <label>Role name</label>
+                    <input type="text" id="roleName" class="editableText">
+                </li>
+                <li>
+                    <label>Role permissions</label>
+                    <input type="text" id="permissions" class="editableText">
+                </li>
+                <br/>
+                <button type="button" class="button clickable hidden" title="Add" id="roleInfoAdd" onclick="addRole();">Add</button>
+                <button type="button" class="button clickable hidden" title="Update" id="roleInfoUpdate" onclick="updateRole();">Update</button>
+                <button type="button" class="button clickable" title="Cancel" id="roleInfoCancel" onclick="displayRoles();">Cancel</button>
+            </ul>
+        </fieldset>
+    </div>
+    <div id="userRoles" class="shown" style="width:100%">
+        <h3>Defined Roles</h3>
+        Roles defined in the uconsole user manager
+        <input type="button" class="button clickable" style="float: right; margin-bottom: 5px;" value="Add Role" onclick="displayAddRole()">
+        <div id="rolesTable"></div>
+    </div>
+    <script type="text/javascript">
+
+        function editRole(roleName) {
+            var jqxhr = $.getJSON(getCallURLBase() + "usermgt/roles/" + roleName, function(dataset) {
+
+                $('#roleName').attr('readonly', 'readonly');
+                $('#roleName').removeClass('editableText');
+                $('#roleName').addClass('disabledText');
+                var data = {role:dataset};
+                var formDirective = {
+                    'input#roleName@value'          :'role.name',
+                    'input#permissions@value'       :'role.permissions'
+                };
+                $('#roleInfoForm').render(data, formDirective);
+                $('#roleInfoUpdate').removeClass('hidden');
+                $('#roleInfoUpdate').addClass('shown');
+                $('#userRoles').slideUp('fast');
+                $('#roleInfo').slideDown('slow');
+            });
+        }
+
+        function displayAddRole() {
+            $('#roleName').removeAttr('readonly');
+            $('#roleName').removeClass('disabledText');
+            $('#roleName').addClass('editableText');
+            $('#roleName').attr('value', '');
+            $('#permissions').attr('value', '');
+            $('#roleInfoAdd').removeClass('hidden');
+            $('#roleInfoAdd').addClass('shown');
+            $('#userRoles').slideUp('fast');
+            $('#roleInfo').slideDown('slow');
+        }
+
+        function displayRoles() {
+            $('#roleInfoAdd').removeClass('shown');
+            $('#roleInfoUpdate').removeClass('shown');
+            $('#roleInfoAdd').addClass('hidden');
+            $('#roleInfoUpdate').addClass('hidden');
+            $('#roleInfo').slideUp('fast');
+            $('#userRoles').slideDown('slow');
+        }
+
+        function removeRole(roleName) {
+            showConfirmation("Do you want to remove the role with name " + roleName, function() {
+                $.ajax({
+                    type: 'DELETE',
+                    url: getCallURLBase() + 'usermgt/roles/' + roleName,
+                    success: function(msg) {
+                        showInfoWithCallback("Successfully removed the role with name " + roleName, function() {
+                            loadRoleData();
+                            displayRoles();
+                        });
+                    }
+                }).error(function () {
+                    showError("Error in removing the role with the name " + roleName, null);
+                });
+            });
+        }
+
+        function addRole() {
+            var roleName = $('#roleName').attr('value');
+            var params = '{';
+            params += '"name": "' + roleName + '",';
+            params += '"permissions": [';
+            var permissions = $('#permissions').attr('value').split(',');
+            for (var permissionId in permissions) {
+                params += permissionId != 0 ? ',' : '';
+                params += '"' + permissions[permissionId] + '"';
+            }
+            params += ']}';
+
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'usermgt/roles/' + roleName,
+                data: params,
+                contentType: 'application/json',
+                success: function(msg) {
+                    showInfoWithCallback("Successfully added the role with name " + roleName, function() {
+                        loadRoleData();
+                        displayRoles();
+                    });
+                }
+            }).error(function () {
+                showError("Error in adding the role information", null);
+            });
+        }
+
+        function updateRole() {
+            var params = '{';
+            var roleName = $('#roleName').attr('value');
+            params += '"name": "' + roleName + '",';
+            params += '"permissions": [';
+            var permissions = $('#permissions').attr('value').split(',');
+            for (var permissionId in permissions) {
+                params += permissionId != 0 ? ',' : '';
+                params += '"' + permissions[permissionId] + '"';
+            }
+            params += ']}';
+
+            $.ajax({
+                type: 'PUT',
+                url: getCallURLBase() + 'usermgt/roles/' + roleName,
+                data: params,
+                contentType: 'application/json',
+                success: function(msg) {
+                    showInfoWithCallback("Successfully updated the role with name " + roleName, function() {
+                        loadRoleData();
+                        displayRoles();
+                    });
+                }
+            }).error(function () {
+                showError("Error in updating the role information", null);
+            });
+        }
+
+        function loadRoleData() {
+
+            $('#rolesTable').html('<table class="display" id="roleList">'
+                    + '<thead><tr><th>Role Name</th><th>Permissions</th><th>Controls</th></tr></thead>'
+                    + '<tbody><tr><td class="roleName"></td><td class="permissions"></td>'
+                    + '<td class="controls"><img class="edit clickable" title="Edit" src="icons/edit.png"/>'
+                    + '<img class="remove clickable" title="Remove" src="icons/remove.png"/></td></tr></tbody></table>');
+
+            var jqxhr = $.getJSON(getCallURLBase() + "usermgt/roles/all", function(dataset) {
+
+                var data = {roles:dataset};
+                var dataDir = {
+                    'tbody tr':{
+                        'role<-roles':{
+                            'td.roleName'       :'role.name',
+                            'td.permissions'    :function(role) {return role.item.permissions.toString();},
+                            'td.controls img.edit@onclick' :'{editRole("#{role.name}");}',
+                            'td.controls img.remove@onclick' :'{removeRole("#{role.name}");}'
+                        }
+                    }
+                };
+                $('#roleList').render(data,dataDir);
+                encodeURLs();
+                $('#roleList').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers"
+                });
+            });
+        }
+
+        $(document).ready(function() {
+            loadRoleData();
+        });
+    </script>
+</div>
+</html>
+

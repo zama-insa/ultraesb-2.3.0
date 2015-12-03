@@ -1,0 +1,8 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "parent": "graphs-parent",
+        "key": "file-cache-graphs-parent",
+        "type": "file-cache"
+    }
+}

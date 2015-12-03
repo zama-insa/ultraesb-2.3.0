@@ -1,0 +1,172 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!doctype html>
+<html>
+<div id="container" title="Zabbix Template Details">
+    <header class="helpedHeading">
+        <h2>Zabbix Template Details</h2>
+        <div class="ultraHelp" title="Zabbix Template Details Help">
+            <div>
+                <p>Details of the
+                <a href="http://www.zabbix.com">Zabbix</a> templates and editing/updating of template meta
+                    information and content.</p>
+            </div>
+        </div>
+    </header>
+    <section>Template details including meta information and it's content</section>
+
+    <script type="text/javascript" src="js/zabbix-monitoring-support.js"/>
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+
+            var editMode = getURLParameter("mode");
+
+            var jqxhr = $.getJSON(getCallURLBase() + "uz/templates/" + getURLParameter("templateKey"), function(dataset) {
+
+                if (editMode === "edit") {
+                    $('#templateMetaInf').attr("style", "display:none");
+                    $('#templateMetaInfH3').attr("style", "display:none");
+                } else {
+                    $('#templateid').val(dataset.key);
+                    $('#group').val(dataset.group);
+                    $('#parent').val(dataset.parent);
+                    $('#templatetype').val(dataset.templateType);
+                    $('#artifacttype').val(dataset.artifactType);
+                    $('#abstract').val(dataset.concrete ? "Leaf" : "Abstract");
+                    $('#state').val(dataset.disable ? "Disabled" : "Active");
+                }
+
+                var templateContent = JSON.stringify(dataset.actualTemplate, undefined, 2);
+                var lines = templateContent.split('\n');
+                var count = 0;
+                $.each(lines, function() {
+                    count += 1 + Math.floor( this.length / 110 ); // take into account long lines
+                });
+                if (count < 20) {
+                    count = 20;
+                }
+                $('#actualTemplate').append('<li><label></label><textarea id="templateContent" cols="110" rows="' + count + '"></textarea></li>');
+                $('#templateContent').text(templateContent);
+
+                if (editMode === "edit") {
+                    editAreaLoader.init({
+                        id : "templateContent",
+                        language: "en",
+                        syntax: "Json",
+                        start_highlight: true,
+                        allow_toggle: false
+                    });
+                    $('#actualTemplate').append('<ul><li><br/><button type="button" value="get value" class="button clickable" title="Update" onclick="updateTemplate()">Update</button>&nbsp;&nbsp;<button type="button" value="get value" class="button clickable" title="Cancel" onclick="cancelEdit()">Cancel</button>&nbsp;&nbsp;</li></ul>');
+                } else {
+                    editAreaLoader.init({
+                        id : "templateContent",
+                        language: "en",
+                        syntax: "Json",
+                        start_highlight: true,
+                        allow_toggle: false,
+                        is_editable: false,
+                        word_wrap: true
+                    });
+                }
+            });
+        });
+
+        function cancelEdit() {
+            window.location.href = 'index.html?pageName=monitoring/template-details.html&templateKey=' + getURLParameter('templateKey') + '&mode=view';
+        }
+
+        function updateTemplate() {
+            var templateKey = getURLParameter("templateKey");
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'uz/templates/' + templateKey,
+                data:  editAreaLoader.getValue('templateContent'),
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function(msg) {
+                    showInfo("Successfully updated the template with key : " + templateKey, 'index.html?pageName=monitoring/template-details.html&templateKey=' + templateKey + '&mode=view&bc=3')
+                }
+            });
+        }
+        </script>
+
+    <div id="details" class="outer_wrapper">
+        <div id="trpLst-controls" class="top-right-controls">
+            <div class="controls">
+                <ul>
+                    <li onclick="editTemplate(getURLParameter('templateKey'));" title="Edit template " class="edit clickable left-span"><img src="icons/mga-edit.png"/><br/> Edit</li>
+                    <li onclick="enableTemplate(getURLParameter('templateKey'));" title="Enable template " class="enable clickable left-span"><img src="icons/mga-resume.png"/><br/> Enable</li>
+                    <li onclick="disableTemplate(getURLParameter('templateKey'));" title="Disable template " class="disable clickable"><img src="icons/mga-pause.png"/> <br/>Disable</li>
+                    <li onclick="removeTemplate(getURLParameter('templateKey'));" title="Remove template " class="remove clickable"><img src="icons/mga-remove.png"/> <br/>Remove</li>
+                </ul>
+            </div>
+        </div>
+        <form id="templateDtls" class="tab_less_pane">
+            <fieldset>
+                <h3 id="templateMetaInfH3">Template Meta-Information</h3>
+            <ul class="attributes" id="templateMetaInf">
+                <li>
+                    <label for="templateid"> Template ID </label>
+                    <input id="templateid" class="disabledText" readonly type="text"/>
+                </li>
+                <li>
+                    <label for="group"> Group </label>
+                    <input id="group" class="disabledText" readonly type="text"/>
+                </li>
+                <li>
+                    <label for="templatetype"> Type </label>
+                    <input id="templatetype" class="disabledText" readonly type="text"/>
+                </li>
+                <li>
+                    <label for="parent"> Parent </label>
+                    <input id="parent" class="disabledText" readonly type="text"/>
+                </li>
+                <li>
+                    <label for="artifacttype"> Artifact Type </label>
+                    <input id="artifacttype" class="disabledText" readonly type="text"/>
+                </li>
+                <li>
+                    <label for="abstract"> Level </label>
+                    <input id="abstract" class="disabledText" readonly type="text"/>
+                </li>
+                <li>
+                    <label for="state"> State </label>
+                    <input id="state" class="disabledText" readonly type="text"/>
+                </li>
+            </ul>
+                <h3>Template Content</h3>
+                <ul class="attributes" id="actualTemplate">
+
+                </ul>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</html>

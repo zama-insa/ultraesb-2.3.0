@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "jvm-threading-item-parent"
+    },
+    "params":{
+        "description": "Thread count (peak)",
+        "key_": "jmx[java.lang:type=Threading][PeakThreadCount]"
+    }
+}

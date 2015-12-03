@@ -1,0 +1,181 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="container" title="Session Details">
+    <header class="helpedHeading">
+        <h2>Session Details</h2>
+        <div class="ultraHelp" title="Session Details Help">
+            <div>This page gives you an idea of a particular session and its command history. States
+                whether the session is currently active or not with session start time, up time and the
+                commands table with command states of the session.
+                <p>Navigate to the command using the linked command id from the command table to get a
+                more detailed view of the command including the other sessions of the nodes which have
+                executed the same command and there execution results. If you found any commands to be
+                failed in this session and it has not been re-tried to make it successful, and given
+                the associated node is currently alive (running), you may re-try that command with the
+                retry icon <img src="icons/retry.png"/> on the controls (right most) column.</p>
+                <p>If you have many commands in a session you could adjust the number of command entries shown
+                per page in the command table by adjusting the <b>Show</b> value of the top left corner of the command table.
+                <img src="images/help/show-entries.png"/></p>
+                <p>Or use the <b>Search</b> box on the top right corner of the table to filter commands to be displayed.
+                <img src="images/help/search-box.png"/></p>
+                Apart from that you could use the pagination on the bottom of the table to move between pages.
+            </div>
+        </div>
+    </header>
+    <section>Detailed information about the session</section>
+    <div id="sessionDetails" class="outer_wrapper">
+        <fieldset id="sessionView">
+            <h3>Session Metadata</h3>
+            <ul>
+                <li>
+                    <label for="sessionId">Session ID</label>
+                    <input id="sessionId" type="text" value="" class="disabledText" readonly="readonly">
+                </li>
+                <li>
+                    <label for="cNodeName">Node name</label>
+                    <input id="cNodeName" type="text" value="" class="disabledText" readonly="readonly">
+                </li>
+                <li>
+                    <label for="beginState">Session begin command state</label>
+                    <input id="beginState" type="text" value="" class="disabledText" readonly="readonly">
+                </li>
+                <li>
+                    <label for="finalState">Session final command state</label>
+                    <input id="finalState" type="text" value="" class="disabledText" readonly="readonly">
+                </li>
+                <li>
+                    <label for="startTime">Session start time</label>
+                    <input id="startTime" type="text" value="" class="disabledText" readonly="readonly">
+                </li>
+                <li>
+                    <label for="endTime">Session end time</label>
+                    <input id="endTime" type="text" value="" class="disabledText" readonly="readonly">
+                </li>
+                <li>
+                    <label for="upTime">Session up time</label>
+                    <input id="upTime" type="text" value="" class="disabledText" readonly="readonly">
+                </li>
+            </ul>
+            <h3>Session Commands</h3>
+            <section>Executed control commands in this session</section>
+            <table cellpadding="0" cellspacing="0" border="0" class="display" id="commandList">
+                <thead>
+                <tr>
+                    <th>Command ID</th>
+                    <th>Received Time</th>
+                    <th>Command</th>
+                    <th>Execution Result</th>
+                    <th>State</th>
+                    <th>Control</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="commandId"><a href="index.html?pageName=cluster-mgt/command-details.html&commandId="></a></td>
+                    <td class="receivedTime"></td>
+                    <td class="command"></td>
+                    <td class="result"></td>
+                    <td class="state"></td>
+                    <td class="control" style="padding-bottom:0px;">
+                        &nbsp;&nbsp;<img src="icons/retry.png" title="Retry command " class="repub clickable"/>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </fieldset>
+    </div>
+    <script type="text/javascript" src="js/clustering-support.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function(){
+            var sessionId = getURLParameter("sessionId");
+            var nodeName = getURLParameter("nodeName");
+            var jqxhr = $.getJSON(getCallURLBase() + 'cluster/getSessionDetails/' + nodeName + '/' + sessionId, function(dataset) {
+                var data = {session:dataset};
+                var dataDir = {
+                    'input#sessionId@value'     :'session.sessionId',
+                    'input#cNodeName@value'      :'session.nodeName',
+                    'input#beginState@value'    :'session.beginCommandState',
+                    'input#finalState@value'    :'session.finalCommandState',
+                    'input#startTime@value'     :function() {return formattedLocaleDateTime(dataset.startTime);},
+                    'input#endTime@value'       :function() {if (!dataset.alive) {return formattedLocaleDateTime(dataset.endTime);} else {return "Currently active"}},
+                    'input#upTime@value'        :function() {return formattedTimeDif(dataset.endTime - dataset.startTime);}
+                };
+
+                var allCommands = new Array();
+                for (var t1 in dataset.successCommands) {
+                    var tmpCmd1 = dataset.successCommands[t1];
+                    tmpCmd1.result = "Successful";
+                    allCommands[allCommands.length] = tmpCmd1;
+                }
+
+                for (var t2 in dataset.failedCommands) {
+                    var tmpCmd2 = dataset.failedCommands[t2];
+                    tmpCmd2.result = "Failed";
+                    allCommands[allCommands.length] = tmpCmd2;
+                }
+
+                var commandData = {commands:allCommands};
+                var commandDir = {
+                    'tbody tr':{
+                        'command<-commands':{
+                            'td.commandId a'        :'command.commandId',
+                            'td.commandId@title'    :'command.commandId',
+                            'td.commandId a@href+'  :'command.commandId',
+                            'td.receivedTime'       :function(command) {return formattedLocaleDateTime(command.item.receivedTime);},
+                            'td.receivedTime@title' :function(command) {return formattedLocaleDateTime(command.item.receivedTime);},
+                            'td.command'            :function(command) {var commandClass = command.item.command.split("?")[0].split("."); return commandClass[commandClass.length - 1];},
+                            'td.command@title'      :'command.command',
+                            'td.state'              :function(command) {if(command.item.archived){return "Archived";}else{return "Live";}},
+                            'td.state@title'        :function(command) {if(command.item.archived){return "Archived";}else{return "Live";}},
+                            'td.control img.repub@style'        :function(command) {if(command.item.result!="Failed" || !command.item.retry){return "display:none";}else {return "";}},
+                            'td.control img.repub@onclick'      :function(command) {return '{reTryCommand("' + command.item.commandId + '", "'+ dataset.nodeName +'")}';},
+                            'td.control img.repub@title+'       :function(command) {return command.item.commandId + ' on ' + dataset.nodeName;},
+                            'td.result'            :'command.result',
+                            'td.result@title'      :'command.result'
+                        }
+                    }
+                };
+
+                $("#sessionView").render(data, dataDir);
+                $('#commandList').render(commandData, commandDir);
+                $('#commandList').dataTable({
+                    "aaSorting": [[ 1, "desc" ]],
+                    "bLengthChange"  : true,
+                    "bJQueryUI"      : true,
+                    "sPaginationType": "full_numbers"
+                });
+                encodeURLs();
+            });
+        });
+    </script>
+</div>
+</html>

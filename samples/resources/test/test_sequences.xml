@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. All Rights Reserved.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment" ref="environment"/>
+    </bean>
+
+    <bean id="environment" class="org.adroitlogic.ultraesb.api.Environment">
+        <constructor-arg name="name" value="unit_test"/>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg value="10" type="int"/>
+    </bean>
+
+    <u:sequence id="myseq1">
+        <u:java><![CDATA[
+        System.out.println("Message target :  " + msg.getDestinationURL());
+        if ("gold".equals(msg.getFirstTransportHeader("ClientID"))) {
+            mediation.sendToEndpoint(msg, "test1");
+        } else {
+            mediation.sendToEndpoint(msg, "test2");
+        }]]></u:java>
+    </u:sequence>
+    <u:sequence id="myseq2">
+        <u:java type="class"><![CDATA[
+        import org.adroitlogic.ultraesb.api.*;
+        public class myseq2 implements JavaClassSequence {
+            private long startTime;
+            private int count;
+
+            public void execute(Message msg, Mediation mediation) throws Exception {
+                System.out.println("Message target :  " + msg.getDestinationURL());
+                if ("gold".equals(msg.getFirstTransportHeader("ClientID"))) {
+                    mediation.sendToEndpoint(msg, "test1");
+                } else {
+                    mediation.sendToEndpoint(msg, "test2");
+                }
+                count++;
+            }
+
+            public void init(Configuration config) {
+                startTime = System.currentTimeMillis();
+                System.out.println("Class inited");
+            }
+
+            public void destroy() {
+                System.out.println("Execution time : " + (System.currentTimeMillis() - startTime) +
+                    "ms. Processed : " + count + " messages");
+            }
+        }]]></u:java>
+    </u:sequence>
+    <u:sequence id="myseq3">
+        <u:script><![CDATA[
+        println('Message target : ' + msg.getDestinationURL());
+        if ('gold'.equals(msg.getFirstTransportHeader('ClientID'))) {
+            mediation.sendToEndpoint(msg, 'test1')
+        } else {
+            mediation.sendToEndpoint(msg, 'test2')
+        }]]></u:script>
+    </u:sequence>
+    <u:sequence id="myseq4">
+        <u:javaFile filename="samples/resources/test/java_seq.jav"/>
+    </u:sequence>
+    <u:sequence id="myseq5">
+        <u:scriptFile filename="samples/resources/test/script_seq.js"/>
+    </u:sequence>
+    <u:sequence id="myseq6">
+        <u:class name="org.adroitlogic.ultraesb.core.SampleByteCodeSequence"/>
+    </u:sequence>
+    <u:sequence id="myseq7">
+        <u:bean name="mybean"/>
+    </u:sequence>
+
+    <bean name="mybean" class="org.adroitlogic.ultraesb.core.SampleByteCodeSequence"/>
+
+    <u:endpoint id="test1">
+        <u:address type="default"/>
+    </u:endpoint>
+    <u:endpoint id="test2">
+        <u:address type="default"/>
+    </u:endpoint>
+
+    <u:proxy id="unittest">
+        <u:transport id="x"/>
+        <u:target>
+            <u:inSequence>
+                <u:java></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <bean id="null-sender" class="org.adroitlogic.ultraesb.NullTransportSender"/>
+</beans>

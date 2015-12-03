@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "endpoint-item-parent"
+    },
+    "params":{
+        "name": "Messages to the endpoint ${.*}$ (successful)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.successfulMessageCount]"
+    }
+}

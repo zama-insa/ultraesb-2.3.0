@@ -1,0 +1,13 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "parent": "zabbix-parent",
+        "key": "triggers-parent",
+        "type": "endpoint"
+    },
+    "method":"trigger.$action$",
+    "params": {
+        "status": 0
+    },
+    "id":3
+}

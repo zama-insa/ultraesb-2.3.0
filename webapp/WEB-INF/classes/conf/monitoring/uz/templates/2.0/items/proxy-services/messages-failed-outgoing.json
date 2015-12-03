@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "proxy-service-item-parent"
+    },
+    "params":{
+        "name": "Messages failed in the proxy service ${.*}$ (outgoing)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=ProxyServices,Name=${.*}$][Details.failedOutCount]"
+    }
+}

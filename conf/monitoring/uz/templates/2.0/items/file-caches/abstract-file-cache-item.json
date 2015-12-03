@@ -1,0 +1,11 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "parent": "items-parent",
+        "key": "file-cache-item-parent",
+        "type": "file-cache"
+    },
+    "params": {
+        "applications": ["File Cache"]
+    }
+}

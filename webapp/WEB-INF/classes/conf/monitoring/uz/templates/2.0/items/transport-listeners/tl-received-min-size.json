@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "transport-listener-item-parent"
+    },
+    "params":{
+        "name": "Message sizes received by the transport listener ${.*}$ (min)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=TransportListeners,Name=${.*}$][Details.minSizeReceived]"
+    }
+}

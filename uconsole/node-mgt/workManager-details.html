@@ -1,0 +1,415 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!DOCTYPE html>
+<html>
+    <body>
+        <div id="container" title="Work Manager Details">
+
+            <header class="helpedHeading">
+                <h2>Work Manager Details</h2>
+                <div class="ultraHelp" title="Work Manager Details Help">
+                <div>
+                    <p>The work manager details page allows you to view properties of the work manager and start/stop or
+                    edit the instance parameters. However, a work manager must be first stopped before properties can be
+                    edited</p>
+                    <ol>
+                    <li><b>Pending Message Queue Size</b> indicates the number of messages currently queued for processing.</li>
+                    <li><b>Work In Progress Map Size</b> indicates the number of messages being currently processed</li>
+                    <li><b>Error Map Size</b> indicates the current number of messages retained after failure</li>
+                    <li><b>Failed Messages to Retain</b> indicates the maximum number of messages to be retained on failure</li>
+                    </ol>
+                    <p>The <b>Thread Pools</b> section shows details of the <i>primary</i> and <i>secondary</i> thread pools.
+                    The core, max, keep alive and queue size all correspond to the Java
+                    <a href="http://download.oracle.com/javase/6/docs/api/java/util/concurrent/ThreadPoolExecutor.html" target="_blank">ThreadPoolExecutor</a>
+                    configuration properties.
+                    <br/>
+                    <p>One may define Work Managers of different sizes and priorities, and assign these to selected
+                    Proxy Services to ensure true priority based processing of messages. To assign a custom work manager
+                    specify its ID as shown below</p>
+                    <pre>&lt;u:proxy id="echo-proxy" workManager="priority-1-wm"&gt;</pre>
+                    <p>See the bean <b>ultra-config</b> on the default <i>conf/ultra-root.xml</i> root confirguation
+                    on how to optionally tune the default work manager. Creating a new work manager would require
+                    the definition of a new work manager as follows</p>
+<pre>&lt;bean id=&quot;priority-1-wm&quot; class=&quot;org.adroitlogic.ultraesb.core.work.SimpleQueueWorkManager&quot;&gt;
+    &lt;constructor-arg ref=&quot;ultra-config&quot;/&gt;
+    &lt;property name=&quot;primaryCoreThreads&quot; value=&quot;100&quot;/&gt;
+    &lt;property name=&quot;primaryMaxThreads&quot; value=&quot;100&quot;/&gt;
+    &lt;property name=&quot;primaryKeepaliveSeconds&quot; value=&quot;5&quot;/&gt;
+    &lt;property name=&quot;primaryQueueSize&quot; value=&quot;0&quot;/&gt;
+    &lt;property name=&quot;secondaryCoreThreads&quot; value=&quot;10&quot;/&gt;
+    &lt;property name=&quot;secondaryMaxThreads&quot; value=&quot;10&quot;/&gt;
+    &lt;property name=&quot;secondaryKeepaliveSeconds&quot; value=&quot;5&quot;/&gt;
+    &lt;property name=&quot;secondaryQueueSize&quot; value=&quot;-1&quot;/&gt;
+&lt;/bean&gt;
+</pre>
+                </div>
+                Future versions of the UltraESB will introduce Work Managers that could save the messages into persistent
+                storage, or to JMS queues or a database before processing.
+            </div>
+            </header>
+            <section>Details of the work manager its thread pool</section>
+
+            <div id="tabs">
+                <ul>
+                    <li><a href="#tabs-2">WorkManager Statistics</a></li>
+                    <li><a href="#tabs-1">WorkManager Configuration</a></li>
+                </ul>
+
+                <div id="tabs-1">
+                    <div id="wkm-controls" class="top-right-controls">
+                        <div class="controls">
+                            <ul>
+                                <li onclick="startWorkManager();" title="Start work manager " class="start clickable left-span"><img src="icons/mga-start.png"/><br/>Start</li>
+                                <li onclick="stopWorkManager();" title="Stop work manager " class="stop clickable"><img src="icons/mga-stop.png"/><br/>Stop</li>
+                                <li onclick="editWorkManager();" title="Edit work manager " class="edit clickable left-span"><img src="icons/mga-edit.png"/><br/>Edit</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <fieldset id="details">
+                        <h3>Work Manager Configuration</h3>
+                        <ul>
+                            <li>
+                                <label>Work Manager Name</label>
+                                <input id="name" class="disabledText" type="text" readonly/>
+                            </li>
+                            <li>
+                                <label>Status</label>
+                                <input id="state" class="disabledText" type="text" readonly/>
+                            </li>
+                        </ul>
+                        <h3>Primary Thread Pool Configuration</h3>
+                        <ul>
+                            <li>
+                            <label>Primary Core Threads</label>
+                            <input id="primaryCoreThreads" class="numeric editableText" type="text"/>
+                        </li>
+                        <li>
+                            <label>Primary Max Threads</label>
+                            <input id="primaryMaxThreads" class="numeric editableText" type="text"/>
+                        </li>
+                        <li>
+                            <label>Primary Keep alive Seconds</label>
+                            <input id="primaryKeepAliveSecs" class="numeric editableText" type="text"/>
+                        </li>
+                        <li>
+                            <label>Primary Queue Size</label>
+                            <input id="primaryQSize" class="numeric editableText" type="text"/>
+                        </li>
+                    </ul>
+                            <h3>Secondary Thread Pool Configuration</h3>
+                    <ul>
+                        <li>
+                            <label>Secondary Core Threads</label>
+                            <input id="scndryCoreThreads" class="numeric editableText" type="text"/>
+                        </li>
+                        <li>
+                            <label>Secondary Max Threads</label>
+                            <input id="scndryMaxThreads" class="numeric editableText" type="text"/>
+                        </li>
+                        <li>
+                            <label>Secondary Keep alive Seconds</label>
+                            <input id="scndryKeepAliveSecs" class="numeric editableText" type="text"/>
+                        </li>
+                        <li>
+                            <label>Secondary Queue Size</label>
+                            <input id="scndryQSize" class="numeric editableText" type="text"/>
+                        </li>
+                        </ul>
+                    </fieldset>
+
+                    <div class="control-button-panel">
+                        <button type="button" id="save" class="button clickable" onclick="updateWorkManager()" title="Save">Save</button>
+                    </div>
+                </div>
+
+                <div id="tabs-2">
+                    <div id="wkm-stat-controls" class="top-right-controls">
+                        <div class="controls">
+                            <ul>
+                                <li onclick="startWorkManager();" title="Start work manager " class="start clickable left-span"><img src="icons/mga-start.png"/><br/>Start</li>
+                                <li onclick="stopWorkManager();" title="Stop work manager " class="stop clickable"><img src="icons/mga-stop.png"/><br/>Stop</li>
+                                <li onclick="editWorkManager();" title="Edit work manager " class="edit clickable left-span"><img src="icons/mga-edit.png"/><br/>Edit</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <fieldset id="thread">
+
+                        <header><h3>Work Manager Metrics Dashboard &ndash; <span id="wmId"></span><span><select id="wmClusterSelector" class="clusteraware hidden" style="margin-left: 20px; margin-bottom: 2px;" onchange="redrawGraphs('wmClusterSelector')">
+                            <option value="cluster">Cluster</option>
+                            <option value="node">Node</option>
+                        </select></span></h3></header>
+                        <div class="stats">
+                            <div>
+
+                                <ul class="stat-list">
+                                    <li>
+                                        <span>Work In Progress Map Size</span>
+                                        <span id="wipMapSize" class="stat _75"></span>
+                                    </li>
+                                    <li>
+                                        <span>Total Active Threads</span>
+                                        <span id="totalActiveThreads" class="stat _95"></span>
+                                    </li>
+                                    <li>
+                                        <span>Pending Message Queue Size</span>
+                                        <span id="mssgQSize" class="stat _98"></span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="primaryUsage" style="float: left; margin-right: 20px;">
+                            <div class="stats">
+                                <p>
+                                    <span style="font-weight: bold;">Primary Thread Pool Usage</span>
+                                    <span id="primaryActive" class="stat avg"></span><span class="right"> Active: </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="secondaryUsage" style="float: left">
+                            <div class="stats">
+                                <p>
+                                    <span style="font-weight: bold;">Secondary Thread Pool Usage</span>
+                                    <span id="secondaryActive" class="stat avg"></span><span class="right"> Active: </span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div style="clear: both"></div>
+                    </fieldset>
+                </div>
+            </div>
+
+            <script type="text/javascript" src="js/graph/line-graph.js"></script>
+            <script type="text/javascript">
+            var mode = getURLParameter("mode");
+            var wmId = getURLParameter("wmId");
+            var state = null;
+
+            function checkState() {
+                var jqxhr = $.getJSON(getCallURLBase() + 'workManagers/getWorkManager/' + wmId, function(dataset) {
+                    return dataset.state;
+                });
+            }
+
+            function updateWorkManager() {
+
+                var workManagerDetails = '{';
+                workManagerDetails += ('"id":"' + wmId + '",');
+                workManagerDetails += ('"secondaryCoreThreads":'      +  ($('#scndryCoreThreads').attr('value')).replace(/,/g,"")   + ',');
+                workManagerDetails += ('"secondaryMaxThreads":'       +  ($('#scndryMaxThreads').attr('value')).replace(/,/g,"")    + ',');
+                workManagerDetails += ('"secondaryKeepaliveSeconds":' +  ($('#scndryKeepAliveSecs').attr('value')).replace(/,/g,"") + ',');
+                workManagerDetails += ('"secondaryQueueSize":'        +  ($('#scndryQSize').attr('value')).replace(/,/g,"")         + ',');
+                workManagerDetails += ('"primaryCoreThreads":'        +  ($('#primaryCoreThreads').attr('value')).replace(/,/g,"")  + ',');
+                workManagerDetails += ('"primaryMaxThreads":'         +  ($('#primaryMaxThreads').attr('value')).replace(/,/g,"")   + ',');
+                workManagerDetails += ('"primaryKeepaliveSeconds":'   +  ($('#primaryKeepAliveSecs').attr('value')).replace(/,/g,"")+ ',');
+                workManagerDetails += ('"primaryQueueSize":'          +  ($('#primaryQSize').attr('value')).replace(/,/g,"")        + '}');
+
+                $.ajax({
+                    type : 'PUT',
+                    url : getCallURLBase() + 'workManagers/updateWorkManager' ,
+                    data : workManagerDetails,
+                    dataType : 'text',
+                    contentType : 'application/json',
+                    success : function(msg) {
+                        showConfirmationWithCancelCallback('Successfully updated the workManager : ' + wmId + '. Do you want to start this workManager?',
+                            function () {
+                                $.ajax({
+                                    type: 'POST',
+                                    url: getCallURLBase() + 'workManagers/startWorkManager/' + wmId ,
+                                    success: function(msg) {
+                                        showInfo('Successfully started the workManager : ' + wmId + '.', 'index.html?pageName=node-mgt/workManager-details.html&mode=view&wmId=' + wmId);
+                                    }
+                                });
+                            },
+                            function() {
+                                loadPage('index.html?pageName=node-mgt/workManager-details.html&mode=view&wmId=' + wmId);
+                            });
+                    }
+                });
+            }
+
+            $(document).ready(function() {
+                $('#tabs').tabs();
+                if (mode == 'edit') {
+                    $('.edit').attr("style", "display:none");
+                }
+
+                if (mode == 'view') {
+                    $('#save').attr('disabled','true');
+
+                    $('#scndryCoreThreads').attr('readonly','true');
+                    $('#scndryMaxThreads').attr('readonly','true');
+                    $('#scndryKeepAliveSecs').attr('readonly','true');
+                    $('#scndryQSize').attr('readonly','true');
+                    $('#primaryCoreThreads').attr('readonly','true');
+                    $('#primaryMaxThreads').attr('readonly','true');
+                    $('#primaryKeepAliveSecs').attr('readonly','true');
+                    $('#primaryQSize').attr('readonly','true');
+                    $('#scndryCoreThreads').attr('class','numeric disabledText');
+                    $('#scndryMaxThreads').attr('class','numeric disabledText');
+                    $('#scndryKeepAliveSecs').attr('class','numeric disabledText');
+                    $('#scndryQSize').attr('class','numeric disabledText');
+                    $('#primaryCoreThreads').attr('class','numeric disabledText');
+                    $('#primaryMaxThreads').attr('class','numeric disabledText');
+                    $('#primaryKeepAliveSecs').attr('class','numeric disabledText');
+                    $('#primaryQSize').attr('class','numeric disabledText');
+
+                }
+
+                var jqxhr = $.getJSON(getCallURLBase() + 'workManagers/getWorkManager/' + wmId, function(dataset) {
+
+                    if (mode=="edit" && dataset.state!="Stopped") {
+                        showConfirmationWithCancelCallback("Workmanager " + wmId + " is in " + dataset.state + " state. It needs to be stopped in-order to edit. Do you want to Stop the workManager?",
+                            function() {
+                                $.ajax({
+                                    type: 'POST',
+                                    url: getCallURLBase() + 'workManagers/stopWorkManager/' + wmId ,
+                                    success: function(msg) {
+                                        window.location.reload(true);
+                                    }
+                                });
+                            },
+                            function () {
+                                loadPage('index.html?pageName=node-mgt/workManager-details.html&mode=view&wmId=' + wmId);
+                            });
+                        return;
+                    }
+
+                    $('input#name').val(dataset.id);
+                    $('#wmId').text(dataset.id);
+
+                    $('input#scndryCoreThreads').val(function(){ return formatNumber(dataset.secondaryCoreThreads);});
+                    $('input#scndryMaxThreads').val(function(){ return formatNumber(dataset.secondaryMaxThreads);});
+                    $('input#scndryKeepAliveSecs').val(function(){ return formatNumber(dataset.secondaryKeepaliveSeconds);});
+                    $('input#scndryQSize').val(function(){ return formatNumber(dataset.secondaryQueueSize);});
+
+                    $('input#primaryCoreThreads').val(function(){ return formatNumber(dataset.primaryCoreThreads);});
+                    $('input#primaryMaxThreads').val(function(){ return formatNumber(dataset.primaryMaxThreads);});
+                    $('input#primaryKeepAliveSecs').val(function(){ return formatNumber(dataset.primaryKeepaliveSeconds);});
+                    $('input#primaryQSize').val(function(){ return formatNumber(dataset.primaryQueueSize);});
+
+                    state = dataset.state;
+                    $('#state').val(state);
+
+                    if ('Started' == state) {
+                        $('#save').attr('readonly','true');
+                        $('#save').attr('title','Please stop the work manager before updating');
+                    }
+
+                    $('.start').attr("title", $('.start').attr("title") + wmId);
+                    $('.stop').attr("title", $('.stop').attr("title") + wmId);
+                    $('.edit').attr("title", $('.edit').attr("title") + wmId);
+
+                    var graphs = {};
+
+                    graphs[dataset.metricsStreams.primaryUsageStream] = {
+                        "divClass": "primaryUsage", "type": "counter",
+                        "stream": dataset.metricsStreams.primaryUsageStream,
+                        "w": 400, "h": 150, "yAxisName": "Usage", "defaultMax": 20,
+                        "yAxisData": function(d) {return d.count;},
+                        "drawCallback": function (dAll) {
+                            $.getJSON(getCallURLBase() + 'workManagers/getWorkManager/' + wmId, function(dataset) {
+
+                                $('span#primaryActive').html(formatNumber(dataset.primaryActiveThreads));
+                                $('span#secondaryActive').html(formatNumber(dataset.secondaryActiveThreads));
+
+                                $('span#mssgQSize').html(formatNumber(dataset.messageQueueSize));
+                                $('span#wipMapSize').html(formatNumber(dataset.wipMapSize));
+                                $('span#totalActiveThreads').html(formatNumber(dataset.totalActiveThreads));
+                            });
+                        }
+                    };
+                    graphs[dataset.metricsStreams.secondaryUsageStream] = {
+                        "divClass": "secondaryUsage", "type": "counter",
+                        "stream": dataset.metricsStreams.secondaryUsageStream, "color": "orange",
+                        "w": 400, "h": 150, "yAxisName": "Usage", "defaultMax": 20,
+                        "yAxisData": function(d) {return d.count;}
+                    };
+
+                    if ($.cookie("clustering") == "true") {
+                        $('.clusteraware').show();
+                        var wmClusterSelector = $.cookie('wmClusterSelector');
+                        if (wmClusterSelector == null) {
+                            dynamicClusterMultiGraph(graphs, 3000);
+                        } else {
+                            $('#wmClusterSelector').val(wmClusterSelector);
+                            if (wmClusterSelector == "cluster") {
+                                dynamicClusterMultiGraph(graphs, 3000);
+                            } else {
+                                dynamicMultiGraph(graphs, 3000);
+                            }
+                        }
+                    } else {
+                        dynamicMultiGraph(graphs, 3000);
+                    }
+                });
+            });
+
+            function startWorkManager() {
+
+                if (state == 'Starting' || state == 'Started') {
+                    showWarning(wmId + ' work manager is either already started or starting');
+                } else {
+                    $.ajax({
+                        type    : 'POST',
+                        url     : getCallURLBase() + 'workManagers/startWorkManager/' + wmId,
+                        success : function(msg) {
+                            showInfo('Work manager: ' + wmId + ' is started', 'index.html?pageName=node-mgt/workManager-details.html&mode=view&wmId=' + wmId);
+                        }
+                    });
+                }
+            }
+
+            function stopWorkManager() {
+                if (state == 'Stopping' || state == 'Stopped') {
+                    showWarning(wmId + ' work manager is either already stopped or stopping');
+                } else{
+                    $.ajax({
+                        type : 'POST',
+                        url : getCallURLBase() + 'workManagers/stopWorkManager/' + wmId,
+                        success : function(msg) {
+                            showInfo('Work manager: ' + wmId + ' is stopped', 'index.html?pageName=node-mgt/workManager-details.html&mode=edit&wmId=' + wmId);
+                        }
+                    });
+                }
+            }
+
+            function editWorkManager() {
+                loadPage('index.html?pageName=node-mgt/workManager-details.html&mode=edit&wmId=' + wmId);
+            }
+
+            function redrawGraphs(selector) {
+                $.cookie(selector, $('#' + selector).val());
+                window.location.reload();
+            }
+        </script>
+        </div>
+    </body>
+</html>

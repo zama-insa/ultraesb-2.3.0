@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg value="10" type="int"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Defines the mail transport listener. See http://api.adroitlogic.org/ for a complete list of the many configuration properties -->
+    <bean id="mail-listener" class="org.adroitlogic.ultraesb.transport.mail.MailTransportListener">
+        <property name="properties">
+            <map>
+                <entry key="mail.pop3.socketFactory.fallback" value="false"/>
+                <entry key="mail.pop3.host" value="pop.gmail.com"/>
+                <entry key="mail.pop3.socketFactory.class" value="javax.net.ssl.SSLSocketFactory"/>
+                <entry key="mail.pop3.socketFactory.port" value="995"/>
+                <entry key="mail.pop3.port" value="995"/>
+                <!--<entry key="removeHeaders" value="RemoveHeader, AnotherHeaderToRemove"/>-->
+                <!--<entry key="preserveHeaders" value="To, Subject, From"/>-->
+            </map>
+        </property>
+    </bean>
+
+    <!--Defines the mail transport sender. See http://api.adroitlogic.org/ for a complete list of the many configuration properties -->
+    <bean id="mail-sender" class="org.adroitlogic.ultraesb.transport.mail.MailTransportSender">
+        <property name="properties">
+            <map>
+                <entry key="mail.smtp.host" value="smtp.gmail.com"/>
+                <entry key="mail.smtp.port" value="587"/>
+                <entry key="mail.smtp.user" value="username"/>
+                <entry key="mail.smtp.password" value="password"/>
+                <entry key="mail.smtp.from" value="username@gmail.com"/>
+                <entry key="mail.smtp.starttls.enable" value="true"/>
+                <entry key="mail.smtp.auth" value="true"/>
+                <!--uncomment to debug any issues entry key="mail.debug" value="true"/-->
+            </map>
+        </property>
+    </bean>
+
+    <!--A POP3 mail proxy service that checks an email account, and if new mails are present,
+    those mails will be fetched and forwarded to SimpleStockQuoteService. The response from
+    the SimpleStockQuoteService will be emailed back to the original email sender
+    For more information, please refer http://docs.adroitlogic.org/display/esb/Invoking+a+Web+Service+via+Email
+    -->
+    <u:proxy id="demo-proxy">
+        <u:transport id="mail-listener">
+            <u:property name="ultra.transport.url" value="mail.maildemo.demo@gmail.com"/>
+            <u:property name="mail.pop3.user" value="mail.maildemo.demo"/>
+            <u:property name="mail.pop3.password" value="password"/>
+            <u:property name="ultra.polling.start_delay" value="2000"/>
+            <u:property name="ultra.polling.repeat_interval" value="10000"/>
+            <u:property name="ultra.mail.preserve_headers" value="From"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    logger.info("Sender Address : " + msg.getFirstTransportHeader("From"));
+                    msg.addResponseCorrelation("correlatedFrom", msg.getFirstTransportHeader("From"));
+                    msg.setContentType("text/xml");
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    msg.addTransportHeader("subject", "Custom Subject for Response");
+                    msg.setDestinationURL("mailto:" + msg.getMessageProperty("correlatedFrom"));
+                    logger.info("Sending Reply to : " + msg.getDestinationURL() + " : " + mediation.readPayloadAsString(msg));
+                    mediation.sendToEndpoint(msg, "smtp-gmail");
+                ]]></u:java>
+            </u:outSequence>
+        </u:target>
+    </u:proxy>
+    <u:endpoint id="smtp-gmail">
+        <u:address type="default"/>
+    </u:endpoint>
+
+</beans>
+

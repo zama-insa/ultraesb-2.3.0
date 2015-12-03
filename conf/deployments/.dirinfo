@@ -1,0 +1,4 @@
+The deployments directory of the UltraESB where all the deployment units are placed at.
+
+A deployment unit can either be an archive of type .uda (ultra deployment archive) or a directory containing a file
+named ultra-unit.xml which should have the deployment unit configuration

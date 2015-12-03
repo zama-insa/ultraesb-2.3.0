@@ -1,0 +1,10 @@
+{
+    "uz_meta": {
+        "parent": "transport-listener-item-parent"
+    },
+    "params":{
+        "name": "State of the transport listener ${.*}$",
+        "value_type": 4,
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=TransportListeners,Name=${.*}$][Details.state]"
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "uz_meta": {
+        "parent": "system-triggers-parent",
+        "dependsOn": "fd-increase-more-than-6550-in-300s"
+    },
+    "params":{
+        "description": "Increase of file descriptors more than 4000 within last 5 minutes",
+        "expression": "{$host$:jmx[java.lang:type=OperatingSystem][OpenFileDescriptorCount].last(0)}-{$host$:jmx[java.lang:type=OperatingSystem][OpenFileDescriptorCount].min(300)}>4000",
+        "priority": "1"
+    }
+}

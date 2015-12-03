@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "transport-sender-item-parent"
+    },
+    "params":{
+        "name": "Message sizes sent by the transport sender ${.*}$ (min)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=TransportSenders,Name=${.*}$][Details.minSizeSent]"
+    }
+}

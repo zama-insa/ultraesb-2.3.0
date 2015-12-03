@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <bean id="file-rcv" class="org.adroitlogic.ultraesb.transport.file.FileTransportListener"/>
+    <bean id="file" class="org.adroitlogic.ultraesb.transport.file.FileTransportSender"/>
+
+    <!--Defines the AS2Manager instance, that configures the AS2 protocol for use-->
+    <bean id="as2Manager" class="org.adroitlogic.as2.manager.AS2Manager">
+        <constructor-arg value="UltraESB-AS2"/>                     <!--User Agent string to use-->
+        <constructor-arg value="adroitlogic"/>                      <!--Local AS2 Identifier-->
+        <constructor-arg value="as2@adroitlogic.com"/>              <!--Local email address-->
+        <constructor-arg ref="ksManager"/>
+        <constructor-arg ref="fileCache"/>
+        <property name="metricsEngine" ref="metrics-engine"/>
+    </bean>
+
+    <!--A bean that defines keystores for use with AS2-->
+    <bean id="ksManager" class="org.adroitlogic.as2.util.KeystoreManager">
+        <constructor-arg value="samples/conf/keys/server1.jks"/>    <!--Identity store file-->
+        <constructor-arg value="JKS"/>                              <!--Identity store type-->
+        <constructor-arg value="password"/>                         <!--Identity store password-->
+        <constructor-arg value="samples/conf/keys/trust.jks"/>      <!--Trust store file-->
+        <constructor-arg value="JKS"/>                              <!--Trust store type    -->
+        <constructor-arg value="password"/>                         <!--Trust store password-->
+        <property name="identityAlias" value="server1"/>            <!--Alias for identity-->
+        <property name="identityKeypass" value="password"/>         <!--Identity Key password-->
+    </bean>
+
+    <!--Handles incoming AS2 messages and sends sync MDNs or the transport closure.
+
+    Received messages are processed with the Smooks library (http://www.smooks.org) and converted from EDI to XML
+    via Smooks. See the edi-to-xml-order-mapping.xml mapping file for more details on the transformation
+
+    The transformed XML message is now saved to /tmp/AS2/received with a filename 'received.xml' timestamped
+    with the format defined by the property 'ultra.file.timestamp_format'
+    -->
+    <u:proxy id="AS2Receiver">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.as2.manager.*; org.milyn.*; org.milyn.container.*;
+                    javax.xml.transform.dom.DOMResult; javax.xml.transform.stream.StreamSource;
+                    org.w3c.dom.*;"><![CDATA[
+
+                    org.adroitlogic.as2.api.ReceiveInfo rcvInfo = mediation.getAS2Manager().processIncomingAS2Message(msg);
+                    logger.info("Received from : {} as\n{}", rcvInfo.getFrom(), rcvInfo);
+
+                    Smooks smooks = new Smooks("samples/resources/smooks-config.xml");
+                    try {
+                        ExecutionContext executionContext = smooks.createExecutionContext();
+                        org.milyn.payload.StringResult result = new org.milyn.payload.StringResult();
+
+                        // Filter the input message to the outputWriter, using the execution context...
+                        smooks.filterSource(executionContext,
+                            new StreamSource(msg.getCurrentPayload().getInputStream()), result);
+
+                        msg.setCurrentPayload(new org.adroitlogic.ultraesb.core.format.StringMessage(result.getResult()));
+                    } finally {
+                        smooks.close();
+                    }
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>file:///tmp/AS2/received</u:address>
+                <u:property name="ultra.file.name" value="received.xml"/>
+                <u:property name="ultra.file.timestamp_format" value="yyyy_MM_dd_'T'HH_mm_ss.SSSSZ"/>
+            </u:inDestination>
+        </u:target>
+    </u:proxy>
+
+    <bean id="metrics-engine" class="org.adroitlogic.metrics.core.MetricsEngineImpl"/>
+
+</beans>

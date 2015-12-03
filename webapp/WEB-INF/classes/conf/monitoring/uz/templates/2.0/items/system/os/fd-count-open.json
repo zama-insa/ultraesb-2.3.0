@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "jvm-os-item-parent"
+    },
+    "params":{
+        "name": "File Descriptors (open)",
+        "key_": "jmx[java.lang:type=OperatingSystem][OpenFileDescriptorCount]"
+    }
+}

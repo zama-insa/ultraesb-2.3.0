@@ -1,0 +1,12 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "category":"services",
+        "parent": "items-parent",
+        "key": "endpoint-item-parent",
+        "type": "endpoint"
+    },
+    "params": {
+        "applications": ["Endpoints"]
+    }
+}

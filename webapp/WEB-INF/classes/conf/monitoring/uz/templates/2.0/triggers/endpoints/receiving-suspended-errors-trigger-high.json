@@ -1,0 +1,10 @@
+{
+    "uz_meta": {
+        "parent": "endpoint-triggers-parent",
+        "key": "recev-susp-err-trigger-high"
+    },
+    "params":{
+        "description": "Trigger for suspended error count while receiving the messages to the endpoint ${.*}$",
+        "expression": "{$host$:jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.suspendErrorReceivingMessageCount].last(0)}>10"
+    }
+}

@@ -1,0 +1,2 @@
+This is used by built-in ZooKeeper process by default to store the ZooKeeper data nodes if you are running the ZooKeeper
+shipped with the UltraESB to start an UltraESB cluster

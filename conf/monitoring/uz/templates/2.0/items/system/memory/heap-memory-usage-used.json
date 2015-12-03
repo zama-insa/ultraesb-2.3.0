@@ -1,0 +1,10 @@
+{
+    "uz_meta": {
+        "parent": "jvm-memory-item-parent"
+    },
+    "params":{
+        "name": "Heap Memory Usage (used)",
+        "key_": "jmx[java.lang:type=Memory][HeapMemoryUsage.used]",
+        "units": "B"
+    }
+}

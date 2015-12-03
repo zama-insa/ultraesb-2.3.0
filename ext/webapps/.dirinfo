@@ -1,0 +1,3 @@
+Drop your external web-applications that needs to be run on the UConsole embedded jetty server. Please note that the
+webapp is expected to be in this directory as an exploded war with the name of the root directory being the context path
+expected to serve the application by jetty.

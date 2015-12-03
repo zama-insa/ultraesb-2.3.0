@@ -1,0 +1,12 @@
+{
+    "uz_meta": {
+        "parent": "sequence-item-parent"
+    },
+    "params":{
+        "description": "State of the sequence ${.*}$",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=Sequences,Name=${.*}$][Details.state]",
+        "value_type": 1,
+        "history": 12,
+        "delay": 180
+    }
+}

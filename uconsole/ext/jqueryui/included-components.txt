@@ -1,0 +1,16 @@
+UI Core
+-------
+core
+widget
+mouse
+position
+
+Interactions
+------------
+Resizable
+
+Widgets
+-------
+Button
+Dialog
+Tabs

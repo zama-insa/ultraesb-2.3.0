@@ -1,0 +1,52 @@
+<configuration xmlns="urn:hornetq"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="urn:hornetq /schema/hornetq-configuration.xsd">
+
+    <connectors>
+        <connector name="netty">
+            <factory-class>org.hornetq.core.remoting.impl.netty.NettyConnectorFactory</factory-class>
+            <param key="host" value="${hornetq.remoting.netty.host:localhost}"/>
+            <param key="port" value="${hornetq.remoting.netty.port:5445}"/>
+        </connector>
+    </connectors>
+
+    <acceptors>
+        <acceptor name="netty">
+            <factory-class>org.hornetq.core.remoting.impl.netty.NettyAcceptorFactory</factory-class>
+            <param key="host" value="${hornetq.remoting.netty.host:localhost}"/>
+            <param key="port" value="${hornetq.remoting.netty.port:5445}"/>
+        </acceptor>
+    </acceptors>
+
+    <security-settings>
+        <security-setting match="#">
+            <permission type="createTempQueue" roles="guest"/>
+            <permission type="deleteTempQueue" roles="guest"/>
+            <permission type="consume" roles="guest"/>
+            <permission type="send" roles="guest"/>
+        </security-setting>
+    </security-settings>
+
+    <address-settings>
+        <!--default for catch all-->
+        <address-setting match="#">
+            <dead-letter-address>jms.queue.DLQ</dead-letter-address>
+            <expiry-address>jms.queue.ExpiryQueue</expiry-address>
+            <redelivery-delay>0</redelivery-delay>
+            <max-size-bytes>-1</max-size-bytes>
+            <page-size-bytes>10485760</page-size-bytes>
+            <message-counter-history-day-limit>10</message-counter-history-day-limit>
+        </address-setting>
+    </address-settings>
+
+    <!--<paging-directory>${hornetq.data.dir}/paging</paging-directory>-->
+    <!--<bindings-directory>${hornetq.data.dir}/bindings</bindings-directory>-->
+    <!--<journal-directory>${hornetq.data.dir}/journal</journal-directory>-->
+    <!--<large-messages-directory>${hornetq.data.dir}/large-messages</large-messages-directory>-->
+
+    <paging-directory>/tmp/paging</paging-directory>
+    <bindings-directory>/tmp/bindings</bindings-directory>
+    <journal-directory>/tmp/journal</journal-directory>
+    <large-messages-directory>/tmp/large-messages</large-messages-directory>
+</configuration>
+

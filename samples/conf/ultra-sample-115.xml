@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+
+    <u:proxy id="query">
+        <u:transport id="http-8280">
+        </u:transport>
+        <u:target>
+            <u:inDestination>
+                <u:address>http://localhost:8280/service/stub</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                        Message res = msg.createDefaultResponseMessage();
+                        mediation.setPayloadFromString(res, "Error");
+                        mediation.sendResponse(res, 500);
+                    ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="stub">
+        <u:transport id="http-8280">
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                        Message res = msg.createDefaultResponseMessage();
+                        mediation.setPayloadFromString(res, "Hello world");
+                        mediation.sendResponse(res, 200);
+                    ]]></u:java>
+            </u:inSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+</beans>

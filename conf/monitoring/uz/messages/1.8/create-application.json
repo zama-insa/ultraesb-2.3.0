@@ -1,0 +1,10 @@
+{
+    "jsonrpc":"2.0",
+    "method":"application.create",
+    "params":[{
+        "name": "$[application]$",
+        "hostid": "$hostid$"
+    }],
+    "auth": "$auth$",
+    "id": 2
+}

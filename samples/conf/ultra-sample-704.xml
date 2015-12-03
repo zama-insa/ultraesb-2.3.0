@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This is the default configuration file for the UltraESB and is picked up when the bin/ultraesb.sh or .bat scripts are
+used, or the UltraESB is started as a service with the ultraesb-daemon.sh
+
+To simplify management, the configuration is broken into two separate files, The ultra-root.xml (this file) is used to
+define the transports, common configuration, JMX management etc, and the ultra-dynamic.xml which is used to define the
+[more dynamic] proxy services to be hosted on the instance. When executing a sample configuration
+(e.g. bin/ultraesb.sh -sample <n>), all configuration is held in one file for simplicity.
+
+An UltraESB configuration is a Spring framework configuration file, and thus maybe broken into multiple fragments for
+easier administration for a large configuration.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xmlns:amq="http://activemq.apache.org/schema/core"
+xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd
+http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core-5.3.0.xsd ">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <!--This example demonstrates the use of multiple JTA transactions to process JMS messages and
+    apply changes to a RDBMS and File system. Refer to the corresponding article on the AdroitLogic
+    site for a detailed description-->
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg value="tmp"/>
+        <constructor-arg value="200" type="int"/>
+    </bean>
+
+    <!-- Create an embedded ActiveMQ Broker -->
+    <amq:broker useJmx="false" persistent="false">
+        <amq:transportConnectors>
+            <amq:transportConnector uri="tcp://localhost:61616"/>
+        </amq:transportConnectors>
+    </amq:broker>
+
+    <!--Define JMS transport listener-->
+    <bean id="jms-lsnr" class="org.adroitlogic.ultraesb.transport.jms.JMSTransportListener">
+        <property name="connectionFactory" ref="queueConnectionFactory"/>
+        <property name="transactionManager" ref="txManager"/>
+        <property name="sessionTransacted" value="true"/>
+    </bean>
+
+    <!-- This is a special wrapper transaction manager to be set as the transaction manager for a JMS Listener. It
+    allows transaction suspend and resume from different threads -->
+    <bean id="txManager" class="org.adroitlogic.ultraesb.core.spring.SpringPlatformTransactionManager">
+        <property name="txnManager" ref="transactionManager"/>
+    </bean>
+    <!-- This is the standard JTA transaction manager from Spring, that auto-configures against the transaction
+     manager implementation available -->
+    <bean id="transactionManager"  class="org.springframework.transaction.jta.JtaTransactionManager">
+        <property name="transactionManager" ref="atomikosTransactionManager"/>
+        <property name="userTransaction" ref="atomikosUserTransaction"/>
+    </bean>
+
+    <bean id="atomikosTransactionManager" class="com.atomikos.icatch.jta.UserTransactionManager" init-method="init" destroy-method="close">
+        <property name="forceShutdown" value="true"/>
+    </bean>
+
+    <bean id="atomikosUserTransaction" class="com.atomikos.icatch.jta.UserTransactionImp"/>
+
+    <bean id="queueConnectionFactory" class="com.atomikos.jms.QueueConnectionFactoryBean" init-method="init">
+        <property name="resourceName" value="Execution_Q"/>
+        <property name="xaQueueConnectionFactory" ref="xaFactory"/>
+    </bean>
+
+    <bean id="xaFactory" class="org.apache.activemq.ActiveMQXAConnectionFactory">
+        <constructor-arg value="tcp://localhost:61616"/>
+        <property name="redeliveryPolicy">
+            <bean class="org.apache.activemq.RedeliveryPolicy">
+                <property name="initialRedeliveryDelay" value="1000" />
+                <property name="useExponentialBackOff" value="false" />
+                <property name="maximumRedeliveries" value="3" />
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="dataSource" class="com.atomikos.jdbc.SimpleDataSourceBean" init-method="init" destroy-method="close">
+        <property name="uniqueResourceName" value="XADBMS"/>
+        <property name="xaDataSourceClassName" value="org.apache.derby.jdbc.ClientXADataSource40"/>
+        <property name="xaDataSourceProperties" value="user=ermanno;password=ermanno;serverName=127.0.0.1;portNumber=1527;databaseName=ermanno"/>
+        <property name="exclusiveConnectionMode" value="true"/>
+        <property name="connectionPoolSize" value="10"/>
+    </bean>
+
+    <!--Proxy Service definition-->
+    <u:proxy id="message-processor">
+        <u:transport id="jms-lsnr">
+            <u:property name="ultra.jms.destination" value="QUEUE.IN"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.springframework.jdbc.support.*; org.springframework.jdbc.core.*; java.sql.*;"><![CDATA[
+                    final String clientName = "ermanno"; //msg.getFirstTransportHeader("client");
+                    final String payload = mediation.readPayloadAsString(msg);
+                    logger.info("Received message from client {} within transaction t1 as : {}", clientName, payload);
+
+                    KeyHolder keyHolder = new GeneratedKeyHolder();
+                    JdbcTemplate t = new JdbcTemplate(mediation.getDataSource("dataSource"));
+                    t.update(new PreparedStatementCreator() {
+                        public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+                            PreparedStatement ps = connection.prepareStatement(
+                                "INSERT INTO APP.MESSAGE (CLIENT_NAME, PAYLOAD) VALUES (?,?)", Statement.RETURN_GENERATED_KEYS);
+                            ps.setString(1, clientName);
+                            ps.setString(2, payload);
+                            return ps;
+                        }
+                    }, keyHolder);
+                    Integer generatedId = new Integer(keyHolder.getKey().intValue());
+
+                    t.update("INSERT INTO APP.HISTORY (FK_MESSAGE_ID, TIMESTAMP, STATE) VALUES (?,?,?)",
+                        new Object[] {generatedId, new java.util.Date(), "RECEIVED"});
+
+                    // simulate a failure if the payload is "fail"
+                    if ("fail".equals(payload)) {
+                        msg.rollbackTransaction();
+                        logger.info("Rolled back JTA transaction : t1");
+                    } else {
+                        msg.commitTransaction();
+                        logger.info("Committed JTA transaction : t1");
+                    }
+
+                    logger.info("Starting transaction : t2");
+                    msg.beginTransaction("txManager");
+                    boolean clientExists = t.queryForInt(
+                        "SELECT COUNT(*) FROM APP.CLIENT WHERE CLIENT_NAME = ?", new Object[] {clientName}) == 1;
+                    logger.info("Client Exists : {}", clientExists);
+                    final String filePath = "/tmp/" + (clientExists ? "correct" : "error") + "/";
+                    final String fileName = "message_" + generatedId;
+
+                    try {
+                        mediation.savePayloadToFile(msg, filePath + fileName);
+                        t.update("INSERT INTO APP.FILE (FK_MESSAGE_ID, FILE_PATH, FILE_NAME) VALUES (?,?,?)",
+                            new Object[] {generatedId, filePath, fileName});
+                        t.update("INSERT INTO APP.HISTORY (FK_MESSAGE_ID, TIMESTAMP, STATE) VALUES (?,?,?)",
+                            new Object[] {generatedId, new java.util.Date(), "CENSUS_OK"});
+                        msg.commitTransaction();
+
+                    } catch (Exception e) {
+                        logger.error("Rolling back transaction by removing file : {}", filePath + fileName);
+                        java.io.File f = new java.io.File(filePath + fileName);
+                        if (f.exists()) {
+                            if (!f.delete()) {
+                                f.deleteOnExit();
+                            }
+                        }
+                        msg.rollbackTransaction();
+                    }
+                    logger.info("Processing of message : {} is complete", generatedId);
+
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

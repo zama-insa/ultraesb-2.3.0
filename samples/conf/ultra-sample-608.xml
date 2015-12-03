@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="100"/>
+    </bean>
+
+    <!-- Define the HTTP transport listener -->
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <!--Define the HTTP transport sender-->
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <u:proxy id="custom-stat-proxy1">
+        <u:transport id="http-8280"/>
+        <u:target inSequence="genericSequence">
+
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/EchoService</u:address>
+            </u:inDestination>
+
+            <u:outSequence>
+                <u:java><![CDATA[
+                        String account = mediation.getXMLSupport().extractAsStringUsingXPath(msg, "customer/account");
+                        if ("platinum".equals(account)) {
+                            mediation.getMetricsSupport().incrementForSequence(account);
+                        } else if ("gold".equals(account)) {
+                            mediation.getMetricsSupport().resetForSequence(account);
+                        } else if ("silver".equals(account)) {
+                            mediation.getMetricsSupport().decrementForSequence(account);
+                        } else if ("bronze".equals(account)) {
+                            mediation.getMetricsSupport().resetForSequence(account);
+                        }
+                    ]]></u:java>
+            </u:outSequence>
+
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="custom-stat-proxy2">
+        <u:transport id="http-8280"/>
+        <u:target inSequence="genericSequence">
+
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/EchoService</u:address>
+            </u:inDestination>
+
+            <u:outSequence>
+                <u:java><![CDATA[
+                        String customer = mediation.getXMLSupport().extractAsStringUsingXPath(msg, "customer/first-name");
+                        if ("Amindri".equals(customer)) {
+                            mediation.getMetricsSupport().increment(customer);
+                        } else if ("Sunil".equals(customer)) {
+                            mediation.getMetricsSupport().increment(customer);
+                        } else if ("Nimal".equals(customer)) {
+                            mediation.getMetricsSupport().increment(customer);
+                        } else if ("Jhon".equals(customer)) {
+                            mediation.getMetricsSupport().increment(customer);
+                        }
+                    ]]></u:java>
+            </u:outSequence>
+
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+
+        </u:target>
+    </u:proxy>
+
+    <u:sequence id="genericSequence">
+        <u:java><![CDATA[
+                String bank = mediation.getXMLSupport().extractAsStringUsingXPath(msg, "customer/bank");
+                if ("commercial".equals(bank)) {
+                    mediation.getMetricsSupport().incrementForProxy(bank);
+                } else if ("seylan".equals(bank)) {
+                    mediation.getMetricsSupport().incrementForProxy(bank);
+                } else if ("hnb".equals(bank)) {
+                    mediation.getMetricsSupport().incrementForProxy(bank);
+                } else if ("sampath".equals(bank)) {
+                    mediation.getMetricsSupport().incrementForProxy(bank);
+                }
+
+                String account = mediation.getXMLSupport().extractAsStringUsingXPath(msg, "customer/account");
+                if ("platinum".equals(account)) {
+                    mediation.getMetricsSupport().incrementForSequence(account);
+                } else if ("gold".equals(account)) {
+                    mediation.getMetricsSupport().incrementForSequence(account);
+                } else if ("silver".equals(account)) {
+                    mediation.getMetricsSupport().incrementForSequence(account);
+                } else if ("bronze".equals(account)) {
+                    mediation.getMetricsSupport().incrementForSequence(account);
+                }
+            ]]></u:java>
+    </u:sequence>
+</beans>

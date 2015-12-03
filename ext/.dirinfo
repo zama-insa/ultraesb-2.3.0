@@ -1,0 +1,3 @@
+External application related components will be put in here, do not confuse this with external jar files required to
+run the UltraESB configurations which needs to be placed at lib/custom or conf/deployments/${DEPLOYMENT_NAME}/lib (where
+the ${DEPLOYMENT_NAME} refers to the deployment unit name) if it is only related to that deployment unit.

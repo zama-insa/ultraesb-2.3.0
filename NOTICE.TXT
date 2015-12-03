@@ -1,0 +1,166 @@
+AdroitLogic UltraESB
+
+Copyright (c) 2010-2014 AdroitLogic Private Ltd. All Rights Reserved
+
+
+===================================================================================================
+                 COPYRIGHT NOTICES FOR DEPENDENCIES BUNDLED WITH THE ULTRAESB DISTRIBUTION
+===================================================================================================
+
+This product contains software developed by The Apache Software Foundation (http://www.apache.org/).
+
+This product includes software developed by The Spring Framework Project (http://www.springframework.org).
+    spring-tx-3.2.4.RELEASE.jar
+    spring-core-3.2.4.RELEASE.jar
+    spring-context-3.2.4.RELEASE.jar
+    spring-beans-3.2.4.RELEASE.jar
+    spring-context-support-3.2.4.RELEASE.jar
+    spring-jdbc-3.2.4.RELEASE.jar
+    spring-web-3.2.4.RELEASE.jar
+    spring-jms-3.2.4.RELEASE.jar
+    spring-expression-3.2.4.RELEASE.jar
+    spring-aop-3.2.4.RELEASE.jar
+    spring-security-core-3.1.4.RELEASE.jar
+    spring-security-config-3.1.4.RELEASE.jar
+    spring-security-web-3.1.4.RELEASE.jar
+
+Copyright (c) 2005-2008 The Apache Software Foundation.  All rights reserved.
+    logging-api-1.0.0.jar
+    logging-slf4j-impl-1.0.0.jar
+    commons-codec-1.6.jar
+    commons-lang-2.5.jar
+    commons-logging-1.1.1.jar
+    httpcore-4.3-alpha1.jar
+    httpcore-nio-4.3-alpha1.jar
+    log4j-1.2.16.jar
+    httpclient-4.3-alpha1.jar
+    test/httpasyncclient-4.0-alpha2.jar
+    optional/activemq-all-5.3.0.jar
+    optional/commons-pool-1.6.jar
+    optional/json-path-0.9.1.jar
+    samples/commons-cli-1.2.jar
+    uconsole/WEB-INF/lib/wink-common-1.1.2-incubating
+    uconsole/WEB-INF/lib/wink-server-1.1.2-incubating
+    uconsole/WEB-INF/lib/shiro-core-1.1.0.jar
+    uconsole/WEB-INF/lib/shiro-web-1.1.0.jar
+    uconsole/WEB-INF/lib/commons-beanutils-1.8.3.jar
+    uconsole/WEB-INF/lib/commons-fileupload-1.2.1.jar
+    uconsole/WEB-INF/lib/commons-io-2.0.jar
+
+Copyright (c) 2004-2008 QOS.ch All rights reserved.
+    slf4j-log4j12-1.7.2.jar
+    slf4j-api-1.7.2.jar
+
+Copyright (c) 1999, 2006 Tanuki Software, Inc.
+Copyright (c) 2001 Silver Egg Technology
+    wrapper-3.2.3.jar
+
+Copyright (c) 2001-2004 Caucho Technology, Inc.  All rights reserved.
+    samples/hessian-3.1.5.jar
+
+Copyright (c) 2001-2009 James House
+    optional/quartz-1.7.2.jar
+
+Copyright (c) 2002,2003,2004,2005,2006,2007,2008 Atsuhiko Yamanaka, JCraft,Inc. All rights reserved.
+    optional/jsch-0.1.50.jar
+
+Copyright (c) 2007-2008, The JASYPT team (http://www.jasypt.org)
+Copyright (c) 1995-2006 International Business Machines Corporation and others
+    optional/jasypt-1.5.jar
+
+Copyright (c) 2000-2008 The Legion Of The Bouncy Castle (http://www.bouncycastle.org)
+    optional/bcprov-jdk16-1.45.jar
+    optional/bcmail-jdk16-1.45.jar
+
+Copyright (c) 2000-2006, www.hamcrest.org. All rights reserved.
+    test/junit-4.8.1.jar
+
+Copyright (C) 2001 Clarkware Consulting, Inc. All Rights Reserved.
+    test/junitperf-1.8.jar
+    
+Copyright 2003-2006 The Werken Company. All Rights Reserved.
+    test/jaxen-1.1.1.jar
+
+Copyright (c) 2000-2005 INRIA, France Telecom. All rights reserved.
+    test/asm-3.2.jar
+    test/asm-tree-3.2.jar
+
+Copyright (c) 2002 - 2007, Edwin Dankert, All rights reserved.
+Copyright 1999-2002 by Eric Albert (ejalbert@cs.stanford.edu)
+    samples/bounce-0.17.jar
+
+Originally based on software copyright (c) 2001, Institute for Data Communications Systems, <http://www.nue.et-inf.uni-siegen.de/>.
+The development of this software was partly funded by the European Commission in the <WebSig> project in the ISIS Programme.
+    optional/xmlsec-1.4.3.jar
+
+Copyright (C) 2001 University Health Network. All Rights Reserved.
+    optional/hapi-base-1.0-beta2.jar
+    optional/hapi-structures-v22-1.0-beta1.jar
+
+Copyright (c) 2005 Brian Goetz and Tim Peierls
+    test/jcip-annotations-1.0.jar
+
+Copyright (C) 2002  "Michael B. Allen" <jcifs at samba dot org> & "Eric Glass" <jcifs at samba dot org>
+    optional/jcifs-1.3.14-kohsuke-1.jar
+
+This product currently only contains code developed by authors of specific components, as identified by the source code files;
+if such notes are missing files have been created by Tatu Saloranta.
+    optional/jackson-core-asl-1.7.3.jar
+    optional/jackson-mapper-asl-1.7.3.jar
+    uconsole/WEB-INF/lib/jackson-jaxrs-1.7.3.jar
+
+This product maybe extended with The Saxon XSLT and XQuery Processor from Saxonica Limited (http://www.saxonica.com/)
+
+Copyright (C) 2008 Paul E. Jones <paulej@packetizer.com>
+    This product contains code based on the xml2json Perl code (http://services.packetizer.com/code/xml2json/xml2json)
+
+Copyright (c) 2003-2010, Bram Stein. All rights reserved.
+    conf/xml-to-json-xslt-2.xsl
+
+Copyright (c) 2006 Klaus Hartl (stilbuero.de)
+    uconsole/ext/cookie
+
+Copyright 2008-2011 Allan Jardine, all rights reserved.
+    uconsole/ext/datatables
+
+Copyright 2011, John Resig
+    uconsole/ext/jquery
+
+Copyright 2011, The Dojo Foundation
+    for Sizzle.js included in uconsole/ext/jquery
+
+Copyright 2011, AUTHORS.txt (http://jqueryui.com/about)
+    uconsole/ext/jqueryui
+
+Copyright (c) 2011 Duncan McIntyre http://duncanmcintyre.net
+    uconsole/ext/jscontext
+
+Copyright (c) 2007-2010 M. Alsup http://malsup.com/jquery/block/
+    uconsole/ext/blockui
+
+Copyright (c) 2011 Michael Cvilic - BeeBole.com
+    uconsole/ext/pure
+
+Copyright 2010 Tim Down
+    uconsole/ext/jshashtable
+
+Copyright 2008 Michael Abernethy (mike@abernethysoft.com)
+    uconsole/ext/numberformatter
+
+Copyright 2008 Christophe Dolivet
+    uconsole/ext/editarea
+
+Copyright 2008 Keith Wood
+    uconsole/ext/charts
+
+Copyright (C) 2007 Jean-François Hovinne - http://www.hovinne.com/
+    uconsole/ext/jfeed
+
+Copyright (c) 2011 Terence Parr, All rights reserved.
+    uconsole/WEB-INF/lib/stringtemplate-3.2.jar
+
+Copyright 2008 Google Inc.
+    optional/protobuf-java-2.4.1.jar
+
+(c) Copyright 2009-2010 by Volker Bergmann. All rights reserved.
+    test/contiperf-2.1.0.jar

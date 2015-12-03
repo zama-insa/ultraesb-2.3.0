@@ -1,0 +1,334 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!doctype html>
+<html>
+    <div id="container" title="Transport Listeners">
+        <header class="helpedHeading">
+            <h2>Transport Listeners</h2>
+            <div class="ultraHelp" title="Transport Listeners Help">
+            <div>
+            <p>Transport Listeners accept messages for processing through the UltraESB. The UltraESB ships support for
+            many transports such as HTTP/S, JMS, File, FTP/S, SFTP, Email, MLLP/S, TCP/S, Scheduler based services etc</p>
+            <p>To add or remove a transport, you must define it on the root configuration file, and start/restart the
+            UltraESB. You may do this from the Server Management page.
+            Refer to the reference documentation and the API documentation on the properties and parameters
+            applicable to different transports</p>
+            <p>This page shows the configured transport listeners, their state and the high level statistics for
+            messages sent and received. <i>Sent</i> implies responses back to clients making the requests categorized as
+            <i>received</i>. Use the control operations to start, stop, pause, resume or to put a
+            transport into maintenance or to reset its collected statistics. The pause operation puts a transport into
+            maintenance mode immediately, which causes messages already accepted to be processed, while those arriving
+            thereafter to be refused - so that a load balancer in front can direct the traffic to another node. The
+            maintenance shutdown option allows the user to specify a grace period to enter maintenance mode.</p>
+            </div>
+            To learn how to add a new transport to the UltraESB, please refer the source code of the existing transports
+            and/or request AdroitLogic for help through the free forums or email.
+            <br/><br/><b>Note that some transport listeners may not yet publish detailed statistics.</b>
+        </div>
+        </header>
+        <section>The transport listeners configured for receiving messages</section>
+
+        <div class="outer_wrapper">
+        <table class="display" id="transportlist">
+            <thead>
+                <tr>
+                    <th rowspan="2">ID</th>
+                    <th rowspan="2">State</th>
+                    <th colspan="3">Received</th>
+                    <th colspan="3">Sent</th>
+                    <th rowspan="2">Control</th>
+                </tr>
+                <tr>
+                    <th>Bytes</th>
+                    <th>Count</th>
+                    <th>Fail</th>
+                    <!--<th>T'Out</th>-->
+                    <th>Bytes</th>
+                    <th>Count</th>
+                    <th>Fail</th>
+                    <!--<th>T'Out</th>-->
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="id"><a href="index.html?pageName=node-mgt/transportList-details.html&id="></a></td>
+                    <td class="state "></td>
+                    <td class="bytesr"></td>
+                    <td class="messagesr"></td>
+                    <td class="faultsr"></td>
+                    <!--<td class="timeOutsr"></td>-->
+                    <td class="bytess"></td>
+                    <td class="messagess"></td>
+                    <td class="faultss"></td>
+                    <!--<td class="timeOutss"></td>-->
+                    <td class="control">
+                        <img class="start clickable" title="Start" src="icons/start.png"/>
+                        <img class="stop clickable" title="Stop" src="icons/stop.png"/>
+                        <img class="pause clickable" title="Pause" src="icons/pause.png"/>
+                        <img class="resume clickable" title="Resume" src="icons/resume.png"/>
+                        <img class="enDebug clickable" title="Enable Debug" src="icons/enable-debug.png"/>
+                        <img class="disDebug clickable" title="Disable Debug" src="icons/disable-debug.png"/>
+                        <img class="maintenance clickable" title="Maintenance shutdown" src="icons/maintenance.png"/>
+                        <img class="reset clickable" title="Reset statistics" src="icons/reset.png"/>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+
+        <div id="dialog-form" title="Maintenance Shutdown">
+            <p class="validateTips">Please specify delay in ms</p>
+            <form>
+                <fieldset>
+                    <label>Delay (ms)</label><input class="time numeric" type="text" name="name" id="delay" />
+                </fieldset>
+            </form>
+        </div>
+
+        <script type="text/javascript">
+            var vid;
+            function startTransport(id,state) {
+                if (state == 'Starting' || state=='Started') {
+                    showWarning('Cannot start Listener: ' + id + ', is either started or starting');
+                } else {
+                    $.ajax ({
+                        type :'POST',
+                        url : getCallURLBase() + 'transports/startListener/' + id,
+                        success :function(msg) {
+                            showInfo('Listener: ' + id + ' successfully started' , 'index.html?pageName=node-mgt/transportListener.html');
+                        }
+                    });
+                }
+            }
+
+            function stopTransport(id,state) {
+                if (state == 'Stopping' || state=='Stopped') {
+                    showWarning('Cannot stop Listener: ' + id + ', is either stopped or stopping.');
+                } else {
+                    showConfirmation('Do you want to stop the Transport Listener?' , function() {
+                        $.ajax({
+                            type :'POST',
+                            url : getCallURLBase() + 'transports/stopListener/' + id,
+                            success :function(msg) {
+                                showInfo('Listener: ' + id + ' successfully stopped' , 'index.html?pageName=node-mgt/transportListener.html');
+                            }
+                        });
+                    });
+                }
+            }
+
+            function pauseTransport(id,state) {
+                if (state == 'Stopping' || state == 'Stopped' || state == 'Paused') {
+                    showWarning('Cannot pause Listener ' + id + ', either stopped or paused');
+                } else {
+                    $.ajax ({
+                        type :'POST',
+                        url : getCallURLBase() + 'transports/pauseListener/' + id,
+                        success :function(msg) {
+                            showInfo('Listener: ' + id + ' paused ', 'index.html?pageName=node-mgt/transportListener.html');
+                        }
+                    });
+                }
+            }
+
+            function resumeTransport(id,state) {
+                if (state == 'Paused') {
+                    $.ajax ({
+                        type : 'POST',
+                        url : getCallURLBase() + 'transports/resumeListener/' + id,
+                        success : function(msg) {
+                            showInfo('Listener: ' + id + ' resumed ' , 'index.html?pageName=node-mgt/transportListener.html');
+                        }
+                    });
+                } else {
+                    showWarning('Listener: ' + id + ' is not paused ');
+                }
+            }
+
+            function checkRegexp(o, regexp, n) {
+                if (!(regexp.test(o))) {
+                    $(".validateTips").text(n);
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+
+            function maintenanceTransport(id) {
+                $( "#dialog-form" ).dialog( "open" );
+                vid=id;
+            }
+
+            $(function() {
+                $( "#dialog-form" ).dialog({
+                    autoOpen: false,
+                    height: 190,
+                    width: 300,
+                    modal: true,
+                    buttons: {
+                        Shutdown: function() {
+                            var delay = $("#delay").attr("value");
+                            if (checkRegexp( delay, /^[0-9]+$/, "Delay must be a number")) {
+                                $(this).dialog("close");
+                                $.ajax ({
+                                    type: 'POST',
+                                    url: getCallURLBase() + 'transports/maintenanceShutdownListener/' + vid +'?delay='+ delay,
+                                    success: function(msg) {
+                                        showInfo('Maintenance shutdown successful id:' + vid , 'index.html?pageName=node-mgt/transportListener.html');
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+            });
+
+            function resetTransport(id) {
+                $.ajax ({
+                    type : 'POST',
+                    url : getCallURLBase() + 'transports/resetListener/' + id,
+                    success : function(msg) {
+                        showInfo('Listener: ' + id + ' successfully reset', 'index.html?pageName=node-mgt/transportListener.html');
+                    }
+                });
+            }
+
+            function enableDebug(id,debug) {
+                if (!debug) {
+                    $.ajax({
+                        type: 'POST',
+                        url: getCallURLBase() + 'transports/setListenerDebugOn/' + id + '/true',
+                        success: function(msg) {
+                            showInfo('Debug enabled successfully for the Listener : ' + id + '.', 'index.html?pageName=node-mgt/transportListener.html');
+                        }
+                    });
+                } else {
+                    showWarning('Debug already enabled for Listener ' + id + '!');
+                }
+            }
+
+            function disableDebug(id,debug) {
+                if(debug) {
+                    $.ajax({
+                        type: 'POST',
+                        url: getCallURLBase() + 'transports/setListenerDebugOn/' + id + '/false',
+                        success: function(msg) {
+                            showInfo('Debug disabled successfully for the Listener : ' + id + '.', 'index.html?pageName=node-mgt/transportListener.html');
+                        }
+                    });
+                } else {
+                    showWarning('Debug already disabled for Listener ' + id + '!');
+                }
+            }
+
+            function displayDebugIcon(id, debug) {
+                if(debug) {
+                    $('img#' + id + '-enDebug').hide();
+                    $('img#' + id + '-disDebug').show();
+                } else {
+                    $('img#' + id + '-disDebug').hide();
+                    $('img#' + id + '-enDebug').show();
+                }
+            }
+
+            function displayIcon(id, state) {
+                if(state=='Started') {
+                    $('img#' + id + '-start').hide();
+                    $('img#' + id + '-resume').hide();
+                    $('img#' + id + '-stop').show();
+                    $('img#' + id + '-pause').show();
+                }
+                if(state == 'Stopped') {
+                    $('img#' + id + '-start').show();
+                    $('img#' + id + '-resume').hide();
+                    $('img#' + id + '-stop').hide();
+                    $('img#' + id + '-pause').hide();
+                    $('img#' + id + '-maintenance').hide();
+                }
+                if(state == 'Paused') {
+                    $('img#' + id + '-start').hide();
+                    $('img#' + id + '-resume').show();
+                    $('img#' + id + '-stop').show();
+                    $('img#' + id + '-pause').hide();
+                }
+            }
+
+            $(document).ready(function() {
+                var jqxhr = $.getJSON(getCallURLBase() + 'transports/getTransportListeners', function(dataset) {
+                    var data = {transports:dataset};
+                    var dataDirective = {
+                        'tbody tr':{
+                            'transport <-transports':{
+                                'td.id a'      :function(transport){if (null ==transport.item.id) {return "-";} else { return transport.item.id;}},
+                                'td.id a@title':'transport.id',
+                                'td.id a@href+':'transport.id',
+                                'td.state'     :'transport.state',
+                                'td.state @class+'     :'transport.state',
+                                'td.bytess'         :function (transport) { return formatNumber(transport.item.bytesSent);} ,
+                                'td.messagess'      :function (transport) { return formatNumber(transport.item.messagesSent);},
+                                'td.faultss'        :function (transport) { return formatNumber(transport.item.faultsSending);},
+//                                'td.timeOutss'      :function (transport) { return formatNumber(transport.item.timeoutsSending);},
+                                'td.bytesr'         :function (transport) { return formatNumber(transport.item.bytesReceived);} ,
+                                'td.messagesr'      :function (transport) { return formatNumber(transport.item.messagesReceived);},
+                                'td.faultsr'        :function (transport) { return formatNumber(transport.item.faultsReceiving);},
+//                                'td.timeOutsr'      :function (transport) { return formatNumber(transport.item.timeoutsReceiving);},
+                                'td.control img.start@onclick'      :'{startTransport("#{transport.id}","#{transport.state}");}',
+                                'td.control img.start@id'           : function (transport) { return transport.item.id + "-start"},
+                                'td.control img.stop@onclick'       :'{stopTransport("#{transport.id}" ,"#{transport.state}");}',
+                                'td.control img.stop@id'            :function (transport) { return transport.item.id + "-stop"},
+                                'td.control img.pause@onclick'      :'{pauseTransport("#{transport.id}" ,"#{transport.state}");}',
+                                'td.control img.pause@id'           :function (transport) { return transport.item.id + "-pause"},
+                                'td.control img.resume@onclick'     :'{resumeTransport("#{transport.id}" ,"#{transport.state}");}',
+                                'td.control img.resume@id'          :function (transport) { return transport.item.id + "-resume"},
+                                'td.control img.maintenance@onclick':'{maintenanceTransport("#{transport.id}");}',
+                                'td.control img.maintenance@id'     :function (transport) { return transport.item.id + "-maintenance"},
+                                'td.control img.reset@onclick'      :'{resetTransport("#{transport.id}");}',
+                                'td.control img.enDebug@onclick'    :'{enableDebug("#{transport.id}" , "#{transport.debugOn}");}',
+                                'td.control img.enDebug@id'         :function (transport) { return transport.item.id + "-enDebug"},
+                                'td.control img.disDebug@onclick'   :'{disableDebug("#{transport.id}" , "#{transport.debugOn}");}',
+                                'td.control img.disDebug@id'        :function (transport) { return transport.item.id + "-disDebug"},
+                                'td.control img.enDebug@onload'     :'{displayDebugIcon("#{transport.id}" ,"#{transport.debugOn}");}',
+                                'td.control img.start@onload'       :'{displayIcon("#{transport.id}" ,"#{transport.state}");}'
+                            }
+                        }
+                    };
+
+                    $('#transportlist').render(data, dataDirective);
+                    encodeURLs();
+                    $('#transportlist').dataTable({
+                        "bLengthChange": true,
+                        "bJQueryUI": true,
+                        "sPaginationType": "full_numbers",
+                        "aoColumns" : [null, null, null, null, {"sWidth": "170px"}, null, null, null, null]
+                    });
+                });
+            });
+        </script>
+    </div>
+</html>

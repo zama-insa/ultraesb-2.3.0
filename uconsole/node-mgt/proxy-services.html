@@ -1,0 +1,138 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+    <div id="container" title="Proxy Services">
+        <header class="helpedHeading">
+            <h2>Proxy Services</h2>
+            <div class="ultraHelp" title="Proxy Services Help">
+            <div>
+                <p>The Proxy Services tab lists the services executing on the instance along with the status, and
+                allows one to start, stop and to enable or disable debugging. Clicking on the proxy service ID link
+                will take you to the proxy details page, while clicking on any of the sequence ID links will take
+                you to the Sequence details page.</p>
+                <p>To search for a proxy service of interest, or to filter proxy services displayed type the ID or
+                any part of it, on the <b>Search</b> box on top of the table</p>
+            </div>
+        </div>
+        </header>
+        <section>Defined proxy services of the server</section>
+
+        <script type="text/javascript" src="js/proxy-support.js"></script>
+        <script type="text/javascript">
+
+            $(document).ready(function() {
+
+                var jqxhr = $.getJSON(getCallURLBase() + "proxyservices/getServices", function(dataset) {
+
+                    var data = {services:dataset};
+                    var dataDir = {
+                        'tbody tr':{
+                            'service<-services':{
+                                'td#id a'                            :function(service){if ( null == service.item.id) {return "-";} else { return service.item.id;}},
+                                'td#id a@href+'                      :'service.id',
+                                'td#inSeq @title'                         :function(service){if ( null == service.item.inSequence) {return "-";} else { return service.item.inSequence.id;}},
+//                                'td#inSeq a'                         :function(service){if ( null == service.item.inSequence) {return "-";} else { return service.item.inSequence.id;}},
+                                'td#inSeq a@style'                   :function(service){ return 'display: ' + (null == service.item.inSequence ? 'none' : 'inline') + ';'},
+                                'td#inSeq a@href+'                   :'service.inSequence.id',
+                                'td#inDest @title'                        :function(service){if ( null == service.item.inDestination) {return "-";} else { return service.item.inDestination.id;}},
+//                                'td#inDest a'                        :function(service){if ( null == service.item.inDestination) {return "-";} else { return service.item.inDestination.id;}},
+                                'td#inDest a@style'                        :function(service){ return 'display: ' + (null == service.item.inDestination ? 'none' : 'inline') + ';'},
+                                'td#inDest a@href+'                  :'service.inDestination.id',
+                                'td#outSeq @title'                        :function(service){if ( null == service.item.outSequence) {return "-";} else { return service.item.outSequence.id}},
+//                                'td#outSeq a'                        :function(service){if ( null == service.item.outSequence) {return "-";} else { return service.item.outSequence.id}},
+                                'td#outSeq a@style'                        :function(service){ return 'display: ' + (null == service.item.outSequence ? 'none' : 'inline') + ';'},
+                                'td#outSeq a@href+'                  :'service.outSequence.id',
+                                'td#outDest @title'                       :function(service){if ( null == service.item.outDestination) {return "-";} else { return service.item.outDestination.id;}},
+//                                'td#outDest a'                       :function(service){if ( null == service.item.outDestination) {return "-";} else { return service.item.outDestination.id;}},
+                                'td#outDest a@style'                       :function(service){ return 'display: ' + (null == service.item.outDestination ? 'none' : 'inline') + ';'},
+                                'td#outDest a@href+'                 :'service.outDestination.id',
+                                'td#state'                           :'service.state',
+                                'td#url'                           :function(service) {var svcURL = ''; if (service.item.state === 'Started') {$.each(service.item.accessURLs, function(key, val) {svcURL += '<img style="height: 18px;" src="icons/' + val.toLowerCase() + '.png"/> <a target="_blank" href="'+ key +'">' + key + '</a><br/>';});} return svcURL;},
+                                'td#state @class+'                   :'service.state',
+                                'td#control img.start@onclick'       :'{startProxyService("#{service.id}","#{service.state}");}',
+                                'td#control img.start@id'            : function (service) { return service.item.id + "-start"},
+                                'td#control img.stop@onclick'        :'{stopProxyService("#{service.id}","#{service.state}");}',
+                                'td#control img.stop@id'             : function (service) { return service.item.id + "-stop"},
+                                'td#control img.enableDebug@onclick' :'{enableDebugProxyService("#{service.id}","#{service.debugOn}");}',
+                                'td#control img.enableDebug@id'      : function (service) { return service.item.id + "-enDebug"},
+                                'td#control img.disableDebug@onclick':'{disableDebugProxyService("#{service.id}","#{service.debugOn}");}',
+                                'td#control img.disableDebug@id'     : function (service) { return service.item.id + "-disDebug"},
+                                'td#control img.enableDebug@onload'  :'{displayDebugIcon("#{service.id}" ,"#{service.debugOn}","#{service.state}");}',
+                                'td#control img.start@onload'        :'{displayIcon("#{service.id}" ,"#{service.state}");}'
+                            }
+                        }
+                    };
+                    $('#servicelist').render(data,dataDir);
+                    encodeURLs();
+                    $('#servicelist').dataTable({
+                        "bLengthChange": true,
+                        "bJQueryUI": true,
+                        "sPaginationType": "full_numbers"
+//                        "aoColumns" : [null, {"sWidth": "20px"}, {"sWidth": "20px"}, {"sWidth": "20px"}, {"sWidth": "20px"}, null, null, {"sWidth": "100px"}]
+                    });
+                });
+            });
+        </script>
+
+        <div class="outer_wrapper">
+        <table class="display" id="servicelist">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th colspan="2" style="width: 50px;">Sequences</th>
+                    <th colspan="2" style="width: 50px;">Destinations</th>
+                    <!--<th>Out Sequence</th>-->
+                    <!--<th>Out Destination</th>-->
+                    <th>State</th>
+                    <th>Access URL</th>
+                    <th>Control</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="id"> <a href="index.html?pageName=node-mgt/proxy-details.html&proxyId="></a> </td>
+                    <td id="inSeq"> <a href="index.html?pageName=node-mgt/sequence-details.html&id="><img style="height: 20px;" src="icons/right.png"/> in-flow </a> </td>
+                    <td id="outSeq"> <a href="index.html?pageName=node-mgt/sequence-details.html&id="><img style="height: 20px;" src="icons/left.png"/> out-flow </a> </td>
+                    <td id="inDest"> <a href="index.html?pageName=node-mgt/endpoint-details.html&mode=view&epId="><img style="height: 20px;" src="icons/right.png"/> in-dest </a> </td>
+                    <td id="outDest"> <a href="index.html?pageName=node-mgt/endpoint-details.html&mode=view&epId="><img style="height: 20px;" src="icons/left.png"/> out-dest </a> </td>
+                    <td id="state" class="state "></td>
+                    <td id="url"></td>
+                    <td id="control">
+                        <img class="start clickable" title="Start" src="icons/start.png"/>
+                        <img class="stop clickable"  title="Stop"  src="icons/stop.png"/>
+                        <img class="enableDebug clickable" title="Enable Debug" src="icons/enable-debug.png"/>
+                        <img class="disableDebug clickable" title="Disable Debug" src="icons/disable-debug.png"/>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</html>

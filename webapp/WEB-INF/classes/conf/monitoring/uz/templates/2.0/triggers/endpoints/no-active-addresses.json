@@ -1,0 +1,11 @@
+{
+    "uz_meta": {
+        "parent": "endpoint-triggers-parent",
+        "key": "no-active-addresses-available"
+    },
+    "params":{
+        "description": "Endpoint ${.*}$ has no ACTIVE addresses",
+        "expression": "{$host$:jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.activeAddressCount].last(0)}=0",
+        "priority": "4"
+    }
+}

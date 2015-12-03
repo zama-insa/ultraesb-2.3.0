@@ -1,0 +1,11 @@
+{
+    "uz_meta": {
+        "parent": "file-cache-triggers-parent",
+        "key": "file-cache-disk-overflow"
+    },
+    "params":{
+        "description": "Disk overflow detected of the file cache ${.*}$",
+        "expression": "{$host$:jmx[org.adroitlogic.ultraesb.detail:Type=FileCaches,Name=${.*}$][Details.overflowCount].last(0)}>0",
+        "priority": "4"
+    }
+}

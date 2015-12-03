@@ -1,0 +1,196 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+    <div id="container" title="File Cache Details">
+        <header class="helpedHeading">
+            <h2>File Cache Details</h2>
+            <div class="ultraHelp" title="File Cache Details Help">
+            <div>
+                <p>Lists the path where temporary files are created, and the maximum files defined, and the currently
+                available file count. The peak usage is also shown for the user to tune the size of the file cache
+                as necessary. It is suggested that the peak usage be tuned after a performance / load test on the
+                configuration.</p>
+                <p>File caches uses memory mapped files to increase performance, while still allowing arbitrarily
+                large messages to be processed through the UltraESB. The <b>Memory Mapping</b> section shows if this
+                feature is in use and the size of the memory mapped region of the files. Tune the memory mapped size
+                using the amount of physical memory available on the system, and by analyzing the average message
+                size passing through the UltraESB</p>
+                <p><b>Thresholds</b> section defines the limits effective on the File cache. When a file cache is created
+                it creates its initial number of files as the UltraESB initializes. During use, if the file cache is
+                exhausted, it will create new temporary files as needed. If the number of temporary files reaches the
+                limit shown as the <i>Warn Threshold</i> it will issue a warning on each new allocation. However, once
+                the created files reaches the <i>Stop Threshold</i> the file instance will stop creating further files.
+                Usually such as issue is only caused by an invalid configuration that leaks files without letting them
+                be reclaimed by the UltraESB automatically</p>
+            </div>
+        </div>
+        </header>
+        <section>Information about the file cache and its usage statistics</section>
+        <div id="tabs">
+            <ul>
+                <li><a href="#tabs-2">File Cache Statistics</a></li>
+                <li><a href="#tabs-1">File Cache Configuration</a></li>
+            </ul>
+
+            <div id=tabs-1>
+                <fieldset id="filecache-detail">
+                    <h3>File Cache Configuration</h3>
+                    <ul>
+                        <li>
+                            <label>ID</label>
+                            <input id="id" class="disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Status</label>
+                            <input id="status" class="disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Cached Path</label>
+                            <input id="cachedPath" class="disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Warn threshold</label>
+                            <input id="warnThresh" class="numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Stop threshold</label>
+                            <input id="stopThresh" class="numeric disabledText" readonly type="text"/>
+                        </li>
+                        <!--<li>-->
+                            <!--<label>Available files for use</label>-->
+                            <!--<input id="availableFilesCreate" class="numeric disabledText" readonly type="text"/>-->
+                        <!--</li>-->
+                    </ul>
+                </fieldset>
+            </div>
+
+            <div id="tabs-2">
+                <fieldset id="filecache-stats">
+                    <header><h3>File Cache Metrics Dashboard &ndash; <span id="fcId"></span><span><select id="fcClusterSelector" class="clusteraware hidden" style="margin-left: 20px; margin-bottom: 2px;" onchange="redrawGraphs('fcClusterSelector')">
+                        <option value="cluster">Cluster</option>
+                        <option value="node">Node</option>
+                    </select></span></h3></header>
+                    <div class="fileCacheUsage" style="float: left; margin-right: 20px;">
+                        <div class="stats">
+                            <p>
+                                <span style="font-weight: bold;">File Cache Usage</span>
+                                <span id="fcAvail" class="stat avg"></span><span class="right"> Available: </span>
+                                <span id="fcUsageMax" class="stat max"></span><span class="right"> Peak Usage: </span>
+                                <span id="overflow" class="stat _999"></span><span class="right"> Overflow: </span>
+                                <span id="fcCreateCount" class="stat min"></span><span class="right"> Total created: </span>
+                                <span id="fcUsageCount" class="stat _9999"></span><span class="right"> Total used: </span>
+                            </p>
+                        </div>
+                    </div>
+                    <!--<div class="fileCacheOverflow" style="float: left">-->
+                        <!--<p>-->
+                            <!--<span style="font-weight: bold">File Cache Overflow</span>-->
+                            <!--<span id="fcOverflowCount" class="stat avg"></span><span class="right"> Total overflow: </span>-->
+                        <!--</p>-->
+                    <!--</div>-->
+                    <div style="margin-bottom: 20px; clear: both;"></div>
+                </fieldset>
+            </div>
+        </div>
+        <script type="text/javascript" src="ext/charts/js/jquery.gchart.js"></script>
+        <script type="text/javascript" src="js/graph/line-graph.js"></script>
+        <script type="text/javascript">
+
+        $(document).ready(function() {
+            var fcId = getURLParameter('id');
+            $('#tabs').tabs();
+            var jqxhr = $.getJSON(getCallURLBase() + "filecaches/getFilecache/" + fcId, function(dataSet) {
+
+                $('input#id').val(dataSet.id);
+                $('#fcId').text(dataSet.id);
+                $('input#status').val(dataSet.state);
+                $('input#cachedPath').val(dataSet.cachedPath);
+                $('input#warnThresh').val(formatNumber(dataSet.warnThreshold));
+                $('input#stopThresh').val(formatNumber(dataSet.stopThreshold));
+
+                var graphs = {};
+
+                graphs[dataSet.metricsStreams.fileCacheUsageStream] = {
+                    "divClass": "fileCacheUsage", "type": "counter",
+                    "stream": dataSet.metricsStreams.fileCacheUsageStream,
+                    "w": 870, "h": 200, "yAxisName": "Usage", "defaultMax": 20,
+                    "yAxisData": function(d) {return d.count;},
+                    "stats": {
+                        "count": "fcUsageCount"
+                    },
+                    "drawCallback": function(dAll) {
+                        var jqxhr = $.getJSON(getCallURLBase() + "filecaches/getFilecache/" + fcId, function(dataSet) {
+                            $('span#fcCreateCount').html(formatNumber(dataSet.totalFilesCreated));
+                            $('span#fcUsageMax').html(formatNumber(dataSet.peakUsage));
+                            $('span#fcAvail').html(formatNumber(dataSet.availableForUse));
+                            $('span#overflow').html(formatNumber(dataSet.overflowCount));
+                        });
+                    }
+                };
+//                graphs[dataSet.metricsStreams.fileCacheOverflowStream] = {
+//                    "divClass": "fileCacheOverflow", "type": "counter",
+//                    "stream": dataSet.metricsStreams.fileCacheOverflowStream, "color": "orange",
+//                    "w": 400, "h": 150, "yAxisName": "Usage", "defaultMax": 20,
+//                    "yAxisData": function(d) {return d.count;},
+//                    "stats": {
+//                        "count": "fcOverflowCount"
+//                    }
+//                };
+
+                if ($.cookie("clustering") == "true") {
+                    $('.clusteraware').show();
+                    var fcClusterSelector = $.cookie('fcClusterSelector');
+                    if (fcClusterSelector == null) {
+                        dynamicClusterMultiGraph(graphs, 3000);
+                    } else {
+                        $('#fcClusterSelector').val(fcClusterSelector);
+                        if (fcClusterSelector == "cluster") {
+                            dynamicClusterMultiGraph(graphs, 3000);
+                        } else {
+                            dynamicMultiGraph(graphs, 3000);
+                        }
+                    }
+                } else {
+                    dynamicMultiGraph(graphs, 3000);
+                }
+            });
+        });
+
+        function redrawGraphs(selector) {
+            $.cookie(selector, $('#' + selector).val());
+            window.location.reload();
+        }
+        </script>
+    </div>
+</html>
+
+
+
+

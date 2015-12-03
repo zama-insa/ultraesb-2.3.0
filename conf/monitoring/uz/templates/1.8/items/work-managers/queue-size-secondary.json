@@ -1,0 +1,10 @@
+{
+    "uz_meta": {
+        "parent": "work-manager-item-parent"
+    },
+    "params":{
+        "description": "Queue sizes of the work manager ${.*}$ (secondary)",
+        "value_type": 0,
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=WorkManagers,Name=${.*}$][Details.secondaryQueueSize]"
+    }
+}

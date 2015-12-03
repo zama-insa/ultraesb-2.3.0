@@ -1,0 +1,83 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="container" title="Diagnostics">
+    <header class="helpedHeading">
+        <h2>Diagnostics</h2>
+        <div class="ultraHelp" title="Diagnostics Help">
+        <div>
+        <p>The UltraESB allows one to diagnostic each ESB node in multiple ways:</p>
+            <ul>
+                <li>Log Viewer - View the tail end of the log file through the UConsole</li>
+                <li>Loggers - Manage the available loggers and change the log levels and additivity</li>
+                <li>Appenders - Manage available appenders and change the log pattern or threshold</li>
+            </ul>
+        <p></p>
+        </div>
+    </div>
+    </header>
+    <section>Diagnostics for UltraESB nodes and the artifacts of those nodes
+
+        <div class="mgt-panel">
+            <div class="panel-header fg-toolbar ui-toolbar ui-widget-header ui-corner-tl ui-corner-tr ui-helper-clearfix"><span>Diagnostics</span></div>
+            <div class="panel-content">
+
+                <div class="odd">
+                    <section class="left-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=diagnostics/log-viewer.html&bc=clear')" title="Log Viewer">
+                        <div><div class="panel-image"><img src="icons/log-viwer48x48.png"/></div>
+                        <div class="panel-text"><h4>Log Viewer</h4>
+                        Shows the tail end of log messages<br/>
+                        By default this feature is disabled..</div></div>
+                    </section>
+
+                    <section class="right-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=diagnostics/loggers.html&bc=clear')" title="Loggers">
+                        <div><div class="panel-image"><img src="icons/loggers48x48.png"/></div>
+                        <div class="panel-text"><h4>Loggers</h4>
+                        Shows currently defined loggers<br/>
+                        The log level and the additivity can be changed here</div></div>
+                    </section>
+                </div>
+
+                <div class="even">
+                    <section class="left-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=diagnostics/appender-viewer.html&bc=clear')" title="Appenders">
+                        <div><div class="panel-image"><img src="icons/file-cache-48x48.png"/></div>
+                        <div class="panel-text"><h4>Appenders</h4>
+                        Shows currently defined appender<br/>with the ability to edit the appender configurations<br/>
+                        </div></div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+</html>

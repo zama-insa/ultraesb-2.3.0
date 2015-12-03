@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "jvm-threading-item-parent"
+    },
+    "params":{
+        "name": "Thread count (daemon)",
+        "key_": "jmx[java.lang:type=Threading][DaemonThreadCount]"
+    }
+}

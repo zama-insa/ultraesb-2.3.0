@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+        <property name="secureProcessingEnabled" value="false"/>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Demonstrates a XSLT transformation that is passed parameters. See the XSLT transformation file
+    samples/resources/transform_fwd_param.xslt for details on how parameters are passed and used-->
+    <u:proxy id="xslt-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="java.util.*;"><![CDATA[
+                    Map<String, String> map = new HashMap<String, String>();
+                    map.put("name", "asankha");
+                    map.put("company", "adroitlogic");
+                    Map<String, Object> params = new HashMap<String, Object>();
+                    params.put("map", map);
+                    mediation.getXMLSupport().transform(msg, "samples/resources/transform_fwd_param.xslt",
+                            "//m0:CheckPriceRequest", true, params, new String[] {"m0", "http://soap.services.samples/"});
+                    mediation.sendResponse(msg, 200);
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

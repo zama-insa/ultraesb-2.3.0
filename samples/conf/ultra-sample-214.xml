@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="20"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <!--Demonstrates the implementation of a JSON data service as a raw proxy service using the Springframework-->
+    <u:proxy id="employees">
+        <u:transport id="http-8280">
+            <u:property name="ultra.transport.url" value="/employees*"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.core.helper.*;"><![CDATA[
+                    String id = msg.getDestinationURL().substring("/employees".length());
+                    if (id.startsWith("/")) {
+                        id = id.substring(1);
+                    }
+                    if (id.length() > 0) {
+                        JSONUtils.getRowsAsJson(
+                            "select * from EMPLOYEE where employeeId = ?", mediation.getDataSource("dataSource"), null,
+                            new Object[] {Integer.parseInt(id)}, msg);
+                    } else {
+                        JSONUtils.getRowsAsJson(
+                            "select * from EMPLOYEE", mediation.getDataSource("dataSource"), null, null, msg);
+                    }
+                    mediation.sendResponse(msg, 200);
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--Demonstrates the processing of a JSON request as an untyped Map using the Jackson parser-->
+    <u:proxy id="addEmployeeUntyped">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="java.util.*; java.sql.*; org.springframework.jdbc.core.PreparedStatementSetter; org.springframework.jdbc.core.*;"><![CDATA[
+
+                    final Map<String, Object> jm = mediation.getJSONSupport().convertToUntypedJSON(msg);
+
+                    JdbcTemplate t = new JdbcTemplate(mediation.getDataSource("dataSource"));
+                    t.update("INSERT INTO EMPLOYEE(employeeName, dateOfBirth, salary, address, permanent) VALUES (?,?,?,?,?)",
+                        new PreparedStatementSetter() {
+                            public void setValues(PreparedStatement ps) throws SQLException {
+                                ps.setString(1, (String) jm.get("employeeName"));
+                                try {
+                                    ps.setDate(2, mediation.getDateSupport().getSQLDateFromISO8601String((String) jm.get("dateOfBirth")));
+                                } catch (java.text.ParseException ignore) {}
+                                ps.setDouble(3, (Double) jm.get("salary"));
+                                ps.setString(4, (String) jm.get("address"));
+                                ps.setBoolean(5, (Boolean) jm.get("permanent"));
+                            }
+                        });
+                    msg.setCurrentPayload(null);
+                    mediation.sendResponse(msg, 201);
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--Demonstrates the processing of a JSON request by parsing into a Java object 'Employee' using the Jackson parser-->
+    <u:proxy id="addEmployeeTyped">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="java.util.*; java.sql.*; org.adroitlogic.ultraesb.json.Employee; org.springframework.jdbc.core.PreparedStatementSetter; org.springframework.jdbc.core.*;"><![CDATA[
+
+                    final Employee emp = mediation.getJSONSupport().convertToTypedJSON(msg, Employee.class);
+
+                    JdbcTemplate t = new JdbcTemplate(mediation.getDataSource("dataSource"));
+                    t.update("INSERT INTO EMPLOYEE(employeeName, dateOfBirth, salary, address, permanent) VALUES (?,?,?,?,?)",
+                        new PreparedStatementSetter() {
+                            public void setValues(PreparedStatement ps) throws SQLException {
+                                ps.setString(1, emp.getEmployeeName());
+                                ps.setDate(2, new java.sql.Date(emp.getDateOfBirth().getTime()));
+                                ps.setDouble(3, emp.getSalary());
+                                ps.setString(4, emp.getAddress());
+                                ps.setBoolean(5, emp.isPermanent());
+                            }
+                        });
+                    msg.setCurrentPayload(null);
+                    mediation.sendResponse(msg, 201);
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+    
+    <!--Standard Spring transactional DataSource definition-->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="org.apache.derby.jdbc.ClientDriver"/>
+        <property name="url" value="jdbc:derby://localhost:1529/../modules/sample/target/unittestdb;user=admin;password=admin"/>
+    </bean>
+
+</beans>

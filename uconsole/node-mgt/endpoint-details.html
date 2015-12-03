@@ -1,0 +1,855 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!DOCTYPE html>
+<html>
+    <div id="container" title="Endpoint Details">
+    <header class="helpedHeading">
+        <h2>Endpoint Details</h2>
+        <div class="ultraHelp" title="Endpoint Details Help">
+        <div>
+            <p>
+                This tab displays detailed information about the selected endpoint, and allows the endpoint to be
+                updated and or managed, and displays endpoint statistics.
+            </p>
+            <p>The Endpoint Details page has two possible modes - View and Edit. One or more addesses maybe configured
+            for an endpoint depending on its type. Please see the <a href="http://adroitlogic.org/samples-articles-and-tutorials/15/23">
+            Endpoints and Destinations Getting Started Guide</a> for more details</p>
+            <ol>
+                <li><b>Endpoint Configuration</b></li> allows an endpoint to be updated or viewed
+                <li><b>Endpoint Statistics</b></li> shows endpoint statistics
+            </ol>
+            <p>Use the <b>Control Panel</b> to start, stop and enable or disable debug or to reset statistics of the endpoint</p>
+        </div>
+        Future versions of the UConsole will have enhanced functionality exposed through this page
+    </div>
+    </header>
+    <section>Detailed configuration and statistics of the endpoint</section>
+    <div id="ep-details">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tabs-2">Endpoint Statistics</a></li>
+                <li><a href="#tabs-1">Endpoint Configuration</a></li>
+            </ul>
+
+            <div id="tabs-1">
+                <div id="ep-controls" class="top-right-controls">
+            <div class="controls">
+            <ul>
+			<li title="Start endpoint " class="start clickable left-span"><img src="icons/mga-start.png"/><br/> Start</li>
+			<li title="Stop endpoint " class="stop clickable"><img src="icons/mga-stop.png"/><br/> Stop</li>
+			<li title="Enable debug for endpoint " class="enableDebug clickable left-span"><img src="icons/mga-enable-debug.png"/> <br/>Debug On</li>
+			<li title="Disable debug for endpoint " class="disableDebug clickable"><img src="icons/mga-disable-debug.png"/> <br/>Debug Off</li>
+			<li title="Edit endpoint " class="edit clickable left-span"><img src="icons/mga-edit.png"/><br/> Edit</li>
+			<li title="Reset statistics for endpoint " class="resetStat clickable"><img src="icons/mga-reset.png"/> <br/>Reset Stat</li>
+			</ul>
+            </div>
+        </div>
+                <div id="epDetails">
+                    <fieldset id="endpntDtls">
+                        <h3>Endpoint Configuration</h3>
+                        <ul>
+                            <li>
+                                <label> Endpoint Name </label>
+                                <input id="endpntName" class="disabledText" type="text" readonly />
+                            </li>
+
+                            <li>
+                                <label>Type</label>
+                                <select id="epType">
+                                    <option value="single">Single Address</option>
+                                    <option value="round-robin">Round Robin</option>
+                                    <option value="round-robin-with-fail-over">Round Robin with Fail Over</option>
+                                    <option value="fail-over">Fail Over</option>
+                                    <option value="weighted">Weighted</option>
+                                    <option value="weighted-with-fail-over">Weighted with Fail Over</option>
+                                    <option value="random">Random</option>
+                                    <option value="random-with-fail-over">Random with Fail Over</option>
+                                </select>
+                            </li>
+
+                            <li>
+                                <label> Number of addresses </label>
+                                <input id="numOfAddrss" class="numeric disabledText" type="text" readonly/>
+                            </li>
+
+                            <li>
+                                <label> Keepalive time (ms) </label>
+                                <input id="keepalive" class="numeric editableText" type="text"/>
+                            </li>
+
+                            <li>
+                                <label> Sending timeout (ms) </label>
+                                <input id="sndTimeout" class="numeric editableText" type="text"/>
+                            </li>
+
+                            <li>
+                                <label> Safe to retry error codes </label>
+                                <input id="safe2RetryErrCds" class="numeric editableText" type="text"/>
+                            </li>
+
+                            <br/>
+
+                            <h3>Temporary Failures</h3>
+                            <li>
+                                <label>Grace period (ms) </label>
+                                <input id="gracePeriod" class="numeric editableText" type="text"/>
+                            </li>
+
+                            <li>
+                                <label>Error codes for temporary failure</label>
+                                <input id="tempErrorCodes" class="numeric editableText" type="text"/>
+                            </li>
+
+                            <br/>
+
+                            <h3>Suspend Failures</h3>
+                            <li>
+                                <label>Initial suspended duration (ms) </label>
+                                <input id="intSuspDur" class="numeric editableText" type="text"/>
+                            </li>
+
+                            <li>
+                                <label>Progression factor </label>
+                                <input id="progrFac" class="numeric editableText"  type="text"/>
+                            </li>
+
+                            <li>
+                                <label>Maximum suspended duration (ms) </label>
+                                <input id="maxSuspDur" class="numeric editableText" type="text"/>
+                            </li>
+
+                            <li>
+                                <label>Error codes for direct suspension </label>
+                                <input id="errCd" class="numeric editableText" type="text"/>
+                            </li>
+                            <br/>
+                            <label id="resetStatOnSaveLabel"><input id="resetStatOnSave" type="checkbox" checked/> Reset statistics on save</label><input type="hidden"/><br/>
+                            <button type="button" class="button clickable" title="Save" id="editEndpoint" onclick="updateEndpoint();">Save</button>
+
+                            <br/>
+                        </ul>
+                    </fieldset>
+                </div>
+
+                <div id="endpntAddrss">
+                    <fieldset>
+                    <header><h3>Endpoint Addresses</h3></header>
+                    <section>Address details of the endpoint</section>
+                    <table class="display" id="addrsslist">
+                        <thead>
+                            <tr>
+                                <th>Address ID</th>
+                                <th>Type</th>
+                                <th>Value</th>
+                                <th>Weight</th>
+                                <th>State</th>
+                                <th>Control</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td id="addID"><a></a></td>
+                                <td id="type"></td>
+                                <td id="value"></td>
+                                <td id="weight" class="numeric"></td>
+                                <td id="state"></td>
+                                <td id="control">
+                                    <img class="on clickable"     title="On"     src="icons/start.png"/>
+                                    <img class="off clickable"    title="Off"    src="icons/stop.png"/>
+                                    <img class="reset clickable"  title="Reset"  src="icons/reset.png"/>
+                                    <img class="editAddr clickable"   title="Edit"   src="icons/edit.png"/>
+                                    <img class="remove clickable" title="Remove" src="icons/remove.png"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <ul>
+                        <!--<fieldset>-->
+                            <button type="button" id="addAddress"  class="button clickable" onclick="addAddress(epId);">Add Address</button>
+                        <!--</fieldset>-->
+                    </ul>
+                    </fieldset>
+                </div>
+            </div>
+
+            <div id="tabs-2">
+                <div id="epStat-controls" class="top-right-controls">
+            <div class="controls">
+            <ul>
+			<li title="Start endpoint " class="start clickable left-span"><img src="icons/mga-start.png"/> <br/>Start</li>
+			<li title="Stop endpoint " class="stop clickable"><img src="icons/mga-stop.png"/> <br/>Stop</li>
+			<li title="Enable debug for endpoint " class="enableDebug clickable left-span"><img src="icons/mga-enable-debug.png"/> <br/> Debug On</li>
+			<li title="Disable debug for endpoint " class="disableDebug clickable"><img src="icons/mga-disable-debug.png"/>  <br/>Debug Off</li>
+			<li title="Edit endpoint " class="edit clickable left-span"><img src="icons/mga-edit.png"/> <br/> Edit</li>
+			<li title="Reset statistics for endpoint " class="resetStat clickable"><img src="icons/mga-reset.png"/>  <br/>Reset Stat</li>
+			</ul>
+            </div>
+        </div>
+                <div><fieldset id="ep-detail">
+
+
+                    <header><h3>Endpoint Metrics Dashboard &ndash; <span id="epId"></span><span><select id="epClusterSelector" class="clusteraware hidden" style="margin-left: 20px; margin-bottom: 2px;" onchange="redrawGraphs('epClusterSelector')">
+                        <option value="cluster">Cluster</option>
+                        <option value="node">Node</option>
+                    </select></span></h3></h3></header>
+                    <div class="responseTime" style="float: left; width: 965px;">
+                        <div class="stats">
+                            <p>
+                                <span style="font-weight: bold">Response Time <select id="respTimeSelector" style="height: 24px;" onchange="redrawGraphs('respTimeSelector')">
+                                    <option value="mean">AVG</option>
+                                    <option value="max">MAX</option>
+                                    <option value="min">MIN</option>
+                                </select> (ms)</span>
+                                <span id="meanResp" class="stat avg"></span><span class="right"> Avg: </span>
+                                <span id="maxResp" class="stat max"></span><span class="right"> Max: </span>
+                                <span id="minResp" class="stat min"></span><span class="right"> Min: </span>
+                            </p>
+                            <div id="execHist" class="hidden" style="width: 870px; padding: 10px 0;">
+                                <div class="percent"><span class="text">75<sup>th</sup> percentile: </span><span id="_75Per" class="stat _75"></span></div>
+                                <div class="percent"><span class="text">95<sup>th</sup> percentile: </span><span id="_95Per" class="stat _95"></span></div>
+                                <div class="percent"><span class="text">98<sup>th</sup> percentile: </span><span id="_98Per" class="stat _98"></span></div>
+
+                                <div class="percent"><span class="text">99<sup>th</sup> percentile:</span><span id="_99Per" class="stat _99"></span></div>
+                                <div class="percent"><span class="text">99.9<sup>th</sup> percentile:</span><span id="_999Per" class="stat _999"></span></div>
+                                <div class="percent"><span class="text">99.99<sup>th</sup> percentile:</span><span id="_9999Per" class="stat _9999"></span></div>
+
+                                <div class="percent"><span class="text">Median: </span><span id="medianResp" class="stat avg"></span></div>
+                            </div>
+                            <div id="showhist"><span class="right link" onclick="$('#showhist').hide();$('#hidehist').show();$('#execHist').slideDown()">Show Histogram <span class="caret down"></span></span></div>
+                            <div id="hidehist" class="hidden"><span class="right link" onclick="$('#hidehist').hide();$('#showhist').show();$('#execHist').slideUp()">Hide Histogram <span class="caret up"></span></span></div>
+                            <div style="padding-top: 10px;"></div>
+                        </div>
+                    </div>
+
+                    <div class="processedMessageCount" style="float: left">
+                        <div class="stats">
+                            <p>
+                                <span style="font-weight: bold">Processed Messages</span>
+                                <span id="processedMessageRate" class="stat rate"></span><span class="right">Rate: </span>
+                                <span id="processedMessageCount" class="stat count"></span><span class="right">Count: </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="uniqueMessageCount" style="float: left; margin-right: 20px;">
+                        <div class="stats">
+                            <p>
+                                <span style="font-weight: bold">Unique Messages</span>
+                                <span id="uniqueMessageRate" class="stat rate"></span><span class="right">Rate: </span>
+                                <span id="uniqueMessageCount" class="stat count"></span><span class="right">Count: </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="successfulMessageCount" style="float: left">
+                        <div class="stats">
+                            <p>
+                                <span style="font-weight: bold">Successful Messages</span>
+                                <span id="successfulMessageRate" class="stat rate"></span><span class="right">Rate: </span>
+                                <span id="successfulMessageCount" class="stat count"></span><span class="right">Count: </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="failOverMessageCount" style="float: left; margin-right: 20px;">
+                        <div class="stats">
+                            <p>
+                                <span style="font-weight: bold">Fail-Over Messages</span>
+                                <span id="failOverMessageRate" class="stat rate"></span><span class="right">Rate: </span>
+                                <span id="failOverMessageCount" class="stat count"></span><span class="right">Count: </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="otherErrorsCount" style="float: left">
+                        <div class="stats">
+                            <p>
+                                <span style="font-weight: bold">Other Errors</span>
+                                <span id="otherErrorsRate" class="stat rate"></span><span class="right">Rate: </span>
+                                <span id="otherErrorsCount" class="stat count"></span><span class="right">Count: </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="error_stats">
+                        <div class="suspendErrorSendingMessageCount" style="float: left; margin-right: 20px;">
+                            <div class="stats">
+                                <p>
+                                    <span style="font-weight: bold">Suspend Errors Sending</span>
+                                    <span id="suspendErrorSendingMessageRate" class="stat rate"></span><span class="right">Rate: </span>
+                                    <span id="suspendErrorSendingMessageCount" class="stat count"></span><span class="right">Count: </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="suspendErrorReceivingMessageCount" style="float: left">
+                            <div class="stats">
+                                <p>
+                                    <span style="font-weight: bold">Suspend Errors Receiving</span>
+                                    <span id="suspendErrorReceivingMessageRate" class="stat rate"></span><span class="right">Rate: </span>
+                                    <span id="suspendErrorReceivingMessageCount" class="stat count"></span><span class="right">Count: </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="temporaryErrorSendingMessageCount" style="float: left; margin-right: 20px;">
+                            <div class="stats">
+                                <p>
+                                    <span style="font-weight: bold">Temporary Errors Sending</span>
+                                    <span id="temporaryErrorSendingMessageRate" class="stat rate"></span><span class="right">Rate: </span>
+                                    <span id="temporaryErrorSendingMessageCount" class="stat count"></span><span class="right">Count: </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="temporaryErrorReceivingMessageCount" style="float: left">
+                            <div class="stats">
+                                <p>
+                                    <span style="font-weight: bold">Temporary Errors Receiving</span>
+                                    <span id="temporaryErrorReceivingMessageRate" class="stat rate"></span><span class="right">Rate: </span>
+                                    <span id="temporaryErrorReceivingMessageCount" class="stat count"></span><span class="right">Count: </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <br/>
+                    <br/>
+
+                    <div class="tabular_view" style="float: left">
+                        <ul>
+                            <li>
+                                <label>Statistics last reset at</label>
+                                <input class="statsLastRes disabledText" readonly type="text"/> <button type="button" id="reset" class="reset button clickable" onclick="resetValues()">Reset Now</button>
+                            </li>
+                        </ul>
+                    </div>
+
+
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+
+
+                    <h3>Address Counts</h3>
+                    <ul>
+                        <li>
+                            <label>Total addresses </label>
+                            <input class="addNo numeric disabledText" readonly type="text">
+                        </li>
+                        <li>
+                            <label>Active addresses </label>
+                            <input class="actAdd numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Ready addresses </label>
+                            <input class="readyAdd numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Warn addresses </label>
+                            <input class="warnAdd numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Suspended addresses </label>
+                            <input class="suspAdd numeric disabledText" readonly type="text"/>
+                        </li>
+
+                    </ul>
+                    <br>
+                    <br/>
+                    <h3>Cumulative Address Statistics</h3>
+                    <ul>
+                        <li>
+                            <label>Total message count </label>
+                            <input class="totMCont numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Successful messages count </label>
+                            <input class="sucMCont numeric disabledText" readonly type="text"/>&nbsp<input class="sucMContP numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Failed message count </label>
+                            <input class="failMCont numeric disabledText" readonly type="text"/>&nbsp<input class="failMContP numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Timed out message count </label>
+                            <input class="tOutMCont numeric disabledText" readonly type="text"/>&nbsp<input class="tOutMContP numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Minimum response time (ms) </label>
+                            <input class="minResT numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Maximum response time (ms)</label>
+                            <input class="maxResT numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Average response time for successful messages (ms) </label>
+                            <input class="avgResT numeric disabledText" readonly type="text"/>
+                        </li>
+                    </ul>
+                    <br/>
+                    <h3>All Addresses State Changes</h3>
+                    <ul>
+                        <li>
+                            <label>Times addresses were marked as active </label>
+                            <input class="tAct numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Times addresses were marked as timeout</label>
+                            <input class="tOut numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Times addresses were marked as suspended </label>
+                            <input class="tSusp numeric disabledText" readonly type="text"/>
+                        </li>
+                        <li>
+                            <label>Times addresses were marked as maintenance shutdown </label>
+                            <input class="tDown numeric disabledText" readonly type="text"/>
+                        </li>
+                    </ul>
+                </fieldset></div>
+            </div>
+        </div>
+        </div>
+
+    <script type="text/javascript" src="js/endpoint-support.js"></script>
+    <script type="text/javascript" src="js/graph/line-graph.js"></script>
+    <script type="text/javascript" src="js/graph/stacked-horizontal-bar.js"></script>
+    <script type="text/javascript">
+
+    var mode = getURLParameter("mode");
+    var epId = getURLParameter("epId");
+    var type;
+
+    /*
+    Functions for Endpoint Details
+    */
+
+    function displayIcon(id, state) {
+        if(state=='active') {
+            $('img#' + id + '-start').hide();
+            $('img#' + id + '-stop').show();
+        }
+        if(state == 'off') {
+            $('img#' + id + '-start').show();
+            $('img#' + id + '-stop').hide();
+        }
+    }
+
+    function updateEndpoint() {
+
+        var endpointDetails = '{';
+        endpointDetails += ('"id":"'                + epId + '",');
+        endpointDetails += ('"typeAsString":"'      + $('#epType').attr('value') + '",');
+        endpointDetails += ('"timeout":'            + ($('#sndTimeout').attr('value')).replace(/,/g, "") + ',');
+        endpointDetails += ('"keepalive":'          + ($('#keepalive').attr('value')).replace(/,/g, "") + ',');
+        endpointDetails += ('"safeToRetryErrorCodes":"' + $('#safe2RetryErrCds').attr('value') + '",');
+        endpointDetails += ('"gracePeriod":'        + ($('#gracePeriod').attr('value')).replace(/,/g, "") + ',');
+        endpointDetails += ('"temporaryFailureErrorCodesString":"' + $('#tempErrorCodes').attr('value') + '",');
+        endpointDetails += ('"initialDuration":'    + ($('#intSuspDur').attr('value')).replace(/,/g,"")  + ',');
+        endpointDetails += ('"progressionFactor":'  + ($('#progrFac').attr('value')).replace(/,/g, "")   + ',');
+        endpointDetails += ('"maximumDuration":'    + ($('#maxSuspDur').attr('value')).replace(/,/g, "") + ',');
+        endpointDetails += ('"suspendErrorCodesString":"' + $('#errCd').attr('value')+ '"}');
+
+        var resetStat = $('#resetStatOnSave').is(':checked');
+
+        $.ajax({
+            type: 'PUT',
+            url: getCallURLBase() + 'endpoints/updateEndpoint/',
+            data: endpointDetails,
+            dataType: 'text',
+            contentType: 'application/json',
+            success: function(msg) {
+                if (resetStat) {
+                    $.ajax({
+                        type    : 'POST',
+                        url     : getCallURLBase() + 'endpoints/resetEndpoint/' + epId
+                    });
+                }
+                showConfirmationWithCancelCallback('Successfully updated the endpoint : ' + epId + (resetStat ? ' and reset statistics' : '') + '. Do you want to start this endpoint?',
+                    function () {
+                        $.ajax({
+                            type: 'POST',
+                            url: getCallURLBase() + 'endpoints/startEndpoint/' + epId ,
+                            success: function(msg) {
+                                showInfo('Successfully started the endpoint : ' + epId + '.', 'index.html?pageName=node-mgt/endpoint-details.html&mode=view&epId=' + epId);
+                            }
+                        });
+                    },
+                    function() {
+                        loadPage('index.html?pageName=node-mgt/endpoint-details.html&mode=view&epId=' + epId);
+                    });
+            }
+        });
+    }
+
+    function resetValues() {
+        var epId = getURLParameter("epId");
+        $.ajax({
+            type    : 'POST',
+            url     : getCallURLBase() + 'endpoints/resetEndpoint/' + epId,
+            success : function(msg) {
+                showInfo('Reset ' + epId, 'index.html?pageName=node-mgt/endpoint-details.html&mode=' + mode + '&epId=' + epId);
+            }
+        });
+    }
+
+    function getDetails(id) {
+
+        if (mode=="edit") {
+            $('.edit').attr("style", "display:none");
+            $('#editEndpoint').addClass('withCheckbox');
+        }
+
+        if (mode=="view") {
+            $('#resetStatOnSaveLabel').addClass("hidden");
+            $('#editEndpoint').attr('disabled','true');
+            $('#addAddress').attr('disabled','true');
+            //$('#reset').attr('disabled','true');
+
+            $('#epType').attr('readonly','true');
+            $('#epType').attr('disabled','true');
+            $('#endpntName').attr('readonly','true');
+            $('#keepalive').attr('readonly','true');
+            $('#sndTimeout').attr('readonly','true');
+            $('#safe2RetryErrCds').attr('readonly','true');
+            $('#gracePeriod').attr('readonly','true');
+            $('#tempErrorCodes').attr('readonly','true');
+            $('#intSuspDur').attr('readonly','true');
+            $('#progrFac').attr('readonly','true');
+            $('#maxSuspDur').attr('readonly','true');
+            $('#errCd').attr('readonly','true');
+
+            $('#keepalive').attr('class','numeric disabledText');
+            $('#sndTimeout').attr('class','numeric disabledText');
+            $('#safe2RetryErrCds').attr('class','numeric disabledText');
+            $('#gracePeriod').attr('class','numeric disabledText');
+            $('#tempErrorCodes').attr('class','numeric disabledText');
+            $('#intSuspDur').attr('class','numeric disabledText');
+            $('#progrFac').attr('class','numeric disabledText');
+            $('#maxSuspDur').attr('class','numeric disabledText');
+            $('#errCd').attr('class','numeric disabledText');
+            $('select#epType').addClass('disabledText');
+        }
+
+        var jqxhr = $.getJSON(getCallURLBase() + 'endpoints/getEndpoint/' + id, function(dataset) {
+            if (mode=="edit" && dataset.state!="Stopped") {
+                showConfirmationWithCancelCallback("Endpoint " + id + " is in " + dataset.state + " state. It needs to be stopped in-order to edit. Do you want to Stop the endpoint?",
+                        function() {
+                            $.ajax({
+                                type: 'POST',
+                                url: getCallURLBase() + 'endpoints/stopEndpoint/' +id ,
+                                success: function(msg) {
+                                    window.location.reload(true);
+                                }
+                            });
+                        },
+                        function () {
+                            loadPage('index.html?pageName=node-mgt/endpoint-details.html&mode=view&epId=' + id);
+                        });
+                return;
+            }
+
+            $('td#addID a').attr('href','index.html?pageName=node-mgt/address.html&mode=view&epId=' + epId + '&type=' + dataset.typeAsString + '&addrCount=' + dataset.addressCount + '&addrId=');
+            var data = {endpoint:dataset};
+
+            var formDirective = {
+                'input#endpntName@value'        :'endpoint.id',
+                'input#keepalive@value'         :function(ep){ return formatNumber(ep.context.endpoint.keepalive);},
+                'input#sndTimeout@value'        :function(ep){ return formatNumber(ep.context.endpoint.timeout);},
+                'input#safe2RetryErrCds@value'  :'endpoint.safeToRetryErrorCodes',
+                'select#epType@title'           :'endpoint.typeAsString',
+                'input#numOfAddrss@value'       :function(ep){ return formatNumber(ep.context.endpoint.addressCount);},
+                'input#intSuspDur@value'        :function(ep){ return formatNumber(ep.context.endpoint.initialDuration);},
+                'input#gracePeriod@value'       :function(ep){ return formatNumber(ep.context.endpoint.gracePeriod);},
+                'input#tempErrorCodes@value'    :function(ep){ var retString = "";var i = 0;for (var code in ep.context.endpoint.temporaryFailureErrorCodes) {if (i++ != 0) {retString += ", ";}retString += code;}return retString;},
+                'input#progrFac@value'          :function(ep){ return formatNumber(ep.context.endpoint.progressionFactor);},
+                'input#maxSuspDur@value'        :function(ep){ return formatNumber(ep.context.endpoint.maximumDuration);},
+                'input#errCd@value'             :function(ep){ var retString = "";var i = 0;for (var code in ep.context.endpoint.suspendErrorCodes) {if (i++ != 0) {retString += ", ";}retString += code;}return retString;}
+            };
+            $('#endpntDtls').render(data,formDirective);
+            type = dataset.typeAsString;
+
+            $('#epType').val(type);
+
+            if (($('#epType').attr('title'))=='single') {
+                $('#numOfAddrss').attr('readonly','true');
+            }
+
+            var tblDirective = {
+                'tbody tr' :{
+                    'address <-endpoint.addresses':{
+                        'td#addID a' :function(address){if (null == address.item.id) {return "-";} else { return address.item.id;}},
+                        'td#addID@title' :'address.id',
+                        'td#addID a@href+' : 'address.id',
+                        'td#type'  :function(address){if (null == address.item.typeAsString) {return "-";} else { return address.item.typeAsString;}},
+                        'td#value' :'address.addressValue',
+                        'td#weight':'address.weight',
+                        'td#state' :'address.state',
+                        'td#control img.on@onclick'    :'{startAddress("#{endpoint.id}","#{address.id}","#{address.state}");}',
+                        'td#control img.on@id'         : function (address) { return address.item.id + "-start"} ,
+                        'td#control img.off@onclick'   :'{stopAddress("#{endpoint.id}","#{address.id}","#{address.state}");}',
+                        'td#control img.off@id'        :function (address) { return address.item.id + "-stop"},
+                        'td#control img.reset@onclick' :'{resetAddressStats("#{endpoint.id}","#{address.id}");}',
+                        'td#control img.editAddr@onclick'  :'{editAddress("#{endpoint.id}","#{address.id}");}',
+                        'td#control img.remove@onclick':'{deleteAddress("#{endpoint.id}","#{address.id}", "#{endpoint.typeAsString}", "#{endpoint.addressCount}");}',
+                        'td#control img.on@onload'     :'{displayIcon("#{address.id}" ,"#{address.state}");}'
+                    }
+                }
+            };
+            $('#addrsslist').render(data,tblDirective);
+            encodeURLs();
+            $('#addrsslist').dataTable({
+                "bLengthChange": true,
+                "bJQueryUI": true,
+                "sPaginationType": "full_numbers",
+                "aoColumns" : [null, null, null, null, null, {"sWidth": "120px"}]
+            });
+
+            $('#tabs').tabs();
+
+            var addDirective = {
+                '@onclick' : '{addAddress("#{endpoint.id}")}'
+            };
+            $('#addAddress').render(data,addDirective);
+
+            // populate endpoint stats
+            var dataDir = {
+//                'input.endpoint@value'                  :'endpoint.id',
+//                'select#ep-type@title'                  :'endpoint.typeAsString',
+//                'input.statsCollWin@value'              :'endpoint.metricsWindow',
+                'input.statsLastRes@value'              :'endpoint.lastStatisticsResetTime',
+                'input.addNo@value'                     :function(ep){ return formatNumber(ep.context.endpoint.addressCount);},
+                'input.actAdd@value'                    :function(ep){ return formatNumber(ep.context.endpoint.activeAddressCount);},
+                'input.readyAdd@value'                  :function(ep){ return formatNumber(ep.context.endpoint.readyAddressCount);},
+                'input.warnAdd@value'                   :function(ep){ return formatNumber(ep.context.endpoint.warnAddressCount);},
+                'input.suspAdd@value'                   :function(ep){ return formatNumber(ep.context.endpoint.suspendedAddressCount);},
+
+                'input.totMCont@value'                  :function(ep){ return formatNumber(ep.context.endpoint.addressTotals.totalCount);},
+                'input.sucMCont@value'                  :function(ep){ return formatNumber(ep.context.endpoint.addressTotals.successCount);},
+                'input.failMCont@value'                 :function(ep){ return formatNumber(ep.context.endpoint.addressTotals.faultCount);},
+                'input.tOutMCont@value'                 :function(ep){ return formatNumber(ep.context.endpoint.addressTotals.timeoutCount);},
+                'input.minResT@value'                   :function(ep){ return formatNumber(ep.context.endpoint.addressTotals.minimumTime);},
+                'input.maxResT@value'                   :function(ep){ return formatNumber(ep.context.endpoint.addressTotals.maximumTime);},
+                'input.avgResT@value'                   :function(ep){ return formatDecimalNumber(ep.context.endpoint.addressTotals.averageTime);},
+                'input.tAct@value'                      :function(ep){ return formatNumber(ep.context.endpoint.addressTotals.activeStateCount);},
+                'input.tOut@value'                      :function(ep){ return formatNumber(ep.context.endpoint.addressTotals.timeoutStateCount);},
+                'input.tSusp@value'                     :function(ep){ return formatNumber(ep.context.endpoint.addressTotals.suspendStateCount);},
+                'input.tDown@value'                     :function(ep){ return formatNumber(ep.context.endpoint.addressTotals.maintenanceStateCount);}
+            };
+            $('#ep-detail').render(data, dataDir);
+
+            var select = $('#ep-type').attr('title');
+            $('#ep-type').val(select);
+
+            if (parseInt(dataset.addressTotals.totalCount)!=0) {
+                $('input.sucMContP') .val(formatDecimalNumber(dataset.addressTotals.successCount/dataset.addressTotals.totalCount*100) + " %");
+                $('input.failMContP').val(formatDecimalNumber(dataset.addressTotals.faultCount/dataset.addressTotals.totalCount*100)   + " %");
+                $('input.tOutMContP').val(formatDecimalNumber(dataset.addressTotals.timeoutCount/dataset.addressTotals.totalCount*100) + " %");
+            } else {
+                $('input.sucMContP') .val("0 %");
+                $('input.failMContP').val("0 %");
+                $('input.tOutMContP').val("0 %");
+            }
+
+            $('#epId').text(id);
+
+            $('.start').bind("click", new Function("startEndpoint('" + dataset.state + "','" + id + "')"));
+            $('.start').attr("title", $('.start').attr("title") + id);
+            $('.stop').bind("click", new Function("stopEndpoint('" + dataset.state + "','" + id + "')"));
+            $('.stop').attr("title", $('.stop').attr("title") + id);
+            $('.enableDebug').bind("click", new Function("enableDebug('" + id + "'," + dataset.debugOn + ")"));
+            $('.enableDebug').attr("title", $('.enableDebug').attr("title") + id);
+            $('.disableDebug').bind("click", new Function("disableDebug('" + id + "'," + dataset.debugOn + ")"));
+            $('.disableDebug').attr("title", $('.disableDebug').attr("title") + id);
+            $('.edit').bind("click", new Function("editEndpoint('" + id + "')"));
+            $('.edit').attr("title", $('.edit').attr("title") + id);
+            $('.resetStat').bind("click", new Function("resetValues()"));
+            $('.resetStat').attr("title", $('.resetStat').attr("title") + id);
+
+
+            var graphs = {};
+            var respTimeSelector = $.cookie('respTimeSelector');
+            if (respTimeSelector == null) {
+                respTimeSelector = 'mean';
+            } else {
+                $('#respTimeSelector').val(respTimeSelector);
+            }
+            graphs[dataset.metricsStreams.responseTimeStream] = {
+                "divClass": "responseTime", "type": "timer",
+                "stream": dataset.metricsStreams.responseTimeStream,
+                "w": 890, "h": 150, "yAxisName": "Response Time (ms)", "defaultMax": 0.1,
+                "dataTransform": function(d) { d.mean = d[respTimeSelector]/1000000; },
+                "allDataTransform": function(d) {
+                    d.mean = d.mean/1000000;
+                    d.min = d.min/1000000;
+                    d.max = d.max/1000000;
+                    d.median = d.median/1000000;
+                    d._75Percentile = d._75Percentile/1000000;
+                    d._95Percentile = d._95Percentile/1000000;
+                    d._98Percentile = d._98Percentile/1000000;
+                    d._99Percentile = d._99Percentile/1000000;
+                    d._999Percentile = d._999Percentile/1000000;
+                    d._9999Percentile = d._9999Percentile/1000000;
+                },
+                "stats": {
+                    "average": "meanResp",
+                    "min": "minResp",
+                    "max": "maxResp",
+                    "median": "medianResp",
+                    "_75Percentile": "_75Per",
+                    "_95Percentile": "_95Per",
+                    "_98Percentile": "_98Per",
+                    "_99Percentile": "_99Per",
+                    "_999Percentile": "_999Per",
+                    "_9999Percentile": "_9999Per"
+                }
+            };
+            graphs[dataset.metricsStreams.processedMessageStream] = {
+                "divClass": "processedMessageCount", "type": "counter",
+                "stream": dataset.metricsStreams.processedMessageStream,
+                "w": 890, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                "yAxisData": function(d) { return d.count; },
+                "stats": {
+                    "count": "processedMessageCount",
+                    "rate": "processedMessageRate"
+                }
+            };
+            graphs[dataset.metricsStreams.uniqueMessageStream] = {
+                "divClass": "uniqueMessageCount", "type": "counter",
+                "stream": dataset.metricsStreams.uniqueMessageStream,
+                "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                "yAxisData": function(d) { return d.count; },
+                "stats": {
+                    "count": "uniqueMessageCount",
+                    "rate": "uniqueMessageRate"
+                }
+            };
+            graphs[dataset.metricsStreams.failOverMessageStream] = {
+                "divClass": "failOverMessageCount", "type": "counter",
+                "stream": dataset.metricsStreams.failOverMessageStream,
+                "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                "yAxisData": function(d) { return d.count; },
+                "stats": {
+                    "count": "failOverMessageCount",
+                    "rate": "failOverMessageRate"
+                }
+            };
+            graphs[dataset.metricsStreams.successfulMessageStream] = {
+                "divClass": "successfulMessageCount", "type": "counter",
+                "stream": dataset.metricsStreams.successfulMessageStream,
+                "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                "yAxisData": function(d) { return d.count; },
+                "stats": {
+                    "count": "successfulMessageCount",
+                    "rate": "successfulMessageRate"
+                }
+            };
+            graphs[dataset.metricsStreams.otherErrorsStream] = {
+                "divClass": "otherErrorsCount", "type": "counter",
+                "stream": dataset.metricsStreams.otherErrorsStream,
+                "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                "yAxisData": function(d) { return d.count; },
+                "stats": {
+                    "count": "otherErrorsCount",
+                    "rate": "otherErrorsRate"
+                }
+            };
+
+            graphs[dataset.metricsStreams.suspendErrorSendingMessageStream] = {
+                "divClass": "suspendErrorSendingMessageCount", "type": "counter",
+                "stream": dataset.metricsStreams.suspendErrorSendingMessageStream, "color": "red",
+                "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                "yAxisData": function(d) { return d.count; },
+                "stats": {
+                    "count": "suspendErrorSendingMessageCount",
+                    "rate": "suspendErrorSendingMessageRate"
+                }
+            };
+            graphs[dataset.metricsStreams.suspendErrorReceivingMessageStream] = {
+                "divClass": "suspendErrorReceivingMessageCount", "type": "counter",
+                "stream": dataset.metricsStreams.suspendErrorReceivingMessageStream, "color": "red",
+                "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                "yAxisData": function(d) { return d.count; },
+                "stats": {
+                    "count": "suspendErrorReceivingMessageCount",
+                    "rate": "suspendErrorReceivingMessageRate"
+                }
+            };
+            graphs[dataset.metricsStreams.temporaryErrorSendingMessageStream] = {
+                "divClass": "temporaryErrorSendingMessageCount", "type": "counter",
+                "stream": dataset.metricsStreams.temporaryErrorSendingMessageStream, "color": "orange",
+                "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                "yAxisData": function(d) { return d.count; },
+                "stats": {
+                    "count": "temporaryErrorSendingMessageCount",
+                    "rate": "temporaryErrorSendingMessageRate"
+                }
+            };
+            graphs[dataset.metricsStreams.temporaryErrorReceivingMessageStream] = {
+                "divClass": "temporaryErrorReceivingMessageCount", "type": "counter",
+                "stream": dataset.metricsStreams.temporaryErrorReceivingMessageStream, "color": "orange",
+                "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                "yAxisData": function(d) { return d.count; },
+                "stats": {
+                    "count": "temporaryErrorReceivingMessageCount",
+                    "rate": "temporaryErrorReceivingMessageRate"
+                }
+            };
+            if ($.cookie("clustering") == "true") {
+                $('.clusteraware').show();
+                var epClusterSelector = $.cookie('epClusterSelector');
+                if (epClusterSelector == null) {
+                    dynamicClusterMultiGraph(graphs, 3000);
+                } else {
+                    $('#epClusterSelector').val(epClusterSelector);
+                    if (epClusterSelector == "cluster") {
+                        dynamicClusterMultiGraph(graphs, 3000);
+                    } else {
+                        dynamicMultiGraph(graphs, 3000);
+                    }
+                }
+            } else {
+                dynamicMultiGraph(graphs, 3000)
+            }
+//            stackedHorizontalBar("endpointTimes", dataset.metricsStreams.messageTimeEventStream, [], 890, 50, "Event Times (ms)");
+        });
+    }
+
+    function redrawGraphs(selector) {
+        $.cookie(selector, $('#' + selector).val());
+        window.location.reload();
+    }
+
+    $(document).ready(function() {
+        getDetails(epId,mode);
+    });
+    </script>
+
+    </div>
+</html>

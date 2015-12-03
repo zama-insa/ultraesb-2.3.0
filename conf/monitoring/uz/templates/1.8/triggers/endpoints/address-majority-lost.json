@@ -1,0 +1,11 @@
+{
+    "uz_meta": {
+        "parent": "endpoint-triggers-parent",
+        "dependsOn": "no-active-addresses-available"
+    },
+    "params":{
+        "description": "Address availability drops less than 50% of all configured addresses for endpoint ${.*}$",
+        "expression": "{$host$:jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.activeAddressCount].last(0)}/{$host$:jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*LIVE.*}$][Details.addressCount].last(0)}<0.5",
+        "priority": "2"
+    }
+}

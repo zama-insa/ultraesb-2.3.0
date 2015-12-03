@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg value="10" type="int"/>
+    </bean>
+
+    <!--Refer to the unit test TxnWithJMSTest for more details about this sample and a unit test for it-->
+    
+    <bean id="queueConnectionFactory" class="org.springframework.jndi.JndiObjectFactoryBean">
+        <property name="jndiTemplate">
+            <bean id="jndiTemplate" class="org.springframework.jndi.JndiTemplate">
+                <property name="environment">
+                    <props>
+                        <prop key="java.naming.factory.initial">org.apache.activemq.jndi.ActiveMQInitialContextFactory</prop>
+                        <prop key="java.naming.provider.url">tcp://localhost:61616</prop>
+                    </props>
+                </property>
+            </bean>
+        </property>
+        <property name="jndiName" value="QueueConnectionFactory">
+        </property>
+    </bean>
+
+    <bean id="jms-lsnr" class="org.adroitlogic.ultraesb.transport.jms.JMSTransportListener">
+        <property name="connectionFactory" ref="queueConnectionFactory"/>
+        <property name="transactionManager" ref="txManager"/>
+    </bean>
+
+    <bean id="jms-sender" class="org.adroitlogic.ultraesb.transport.jms.JMSTransportSender">
+        <property name="template">
+            <bean id="jmsProducerTemplate" class="org.springframework.jms.core.JmsTemplate">
+                <property name="connectionFactory" ref="queueConnectionFactory"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="stxManager" class="org.springframework.jms.connection.JmsTransactionManager">
+        <property name="connectionFactory" ref="queueConnectionFactory"/>
+    </bean>
+
+    <bean id="txManager" class="org.adroitlogic.ultraesb.core.spring.SpringPlatformTransactionManager">
+        <property name="txnManager" ref="stxManager"/>
+    </bean>
+
+    <!-- Defines a proxy service that listens for request JMS messages over a Destination 'jmsProxyIN' and
+    response JMS messages over the destination 'EchoOUT'
+
+    Thus a message written to the Queue jmsProxyIN is read by the proxy, and printed to the console, and sent to
+    the Queue 'EchoIN'. The JMS Echo service defined below, listens for these messages, and writes a response to
+    the Queue 'EchoOUT' - which is read again by this proxy as a response message, and thus given to the outSequence
+    The outSequence prints the message to the console and writes to the JMS queue 'jmsProxyOUT'-->
+    <u:proxy id="jmsProxyIN">
+        <u:transport id="jms-lsnr">
+            <u:property name="ultra.jms.reply_destination" value="EchoOUT"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    System.out.println("Proxy read request message from Queue : jmsProxy");
+                    System.out.println("Message : " + msg.getCurrentPayload());
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>jms:/EchoIN</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    System.out.println("Proxy read response message from Queue : EchoOUT");
+                    System.out.println("Message : " + msg.getCurrentPayload());
+                ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address>jms:/jmsProxyOUT</u:address>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--Defines a JMS echo service, that listens for messages over destination 'EchoIn' and writes the response
+    to destination 'EchoOUT'. The response message is composed as "** ECHO ** " + request payload and correlated
+    as a standard JMS response with a JMSConstants.CORRELATION_ID-->
+    <u:proxy id="jmsEcho">
+        <u:transport id="jms-lsnr">
+            <u:property name="ultra.jms.destination" value="EchoIN"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.jms.JMSConstants;"><![CDATA[
+                        System.out.println("Echo message read from EchoIN -> to -> EchoOUT");
+                        mediation.setPayloadFromString(msg, "** ECHO ** " + mediation.readPayloadAsString(msg));
+                        msg.addTransportHeader(JMSConstants.CORRELATION_ID, msg.getFirstTransportHeader(JMSConstants.MESSAGE_ID));
+                    ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>jms:/EchoOUT</u:address>
+            </u:inDestination>
+        </u:target>
+    </u:proxy>
+
+</beans>

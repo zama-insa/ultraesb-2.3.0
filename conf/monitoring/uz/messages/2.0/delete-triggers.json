@@ -1,0 +1,7 @@
+{
+    "jsonrpc":"2.0",
+    "method":"trigger.delete",
+    "params":["$[triggerid]$"],
+    "auth":"$auth$",
+    "id":2
+}

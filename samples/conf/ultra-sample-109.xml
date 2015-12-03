@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Refer to the unit tests SOAPToRESTTest for more details about this sample and a unit test for it-->
+    
+    <!--Exposes a proxy service over HTTP that extracts request query parameters from a GET request, and uses the
+    'symbol' parameter by passing it into an XQuery script 'samples/resources/sample5.xq' to generate a new message
+    payload. This new payload is then sent to the http://localhost:9000/service/SimpleStockQuoteService as a POST
+    request, to which a SOAP response is returned. The SOAP headers and body elements etc are then dropped by
+    retaining only the result of the XPath expression '//s:getQuoteResponse'. This is returned back to the client
+    as a response of content type 'application/xml'
+
+    Note: The optional XQuery support requires the Saxon XQuery library to be placed into the lib/optional directory.
+
+    The XQuery support is then tapped by defining the XQuerySupportImpl bean, and fetching a reference during mediation
+    from the given bean ID. Refer to the API documentation for more details on complete XQuery support options-->
+    <u:proxy id="rest-stockquote">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="java.util.*; org.adroitlogic.ultraesb.api.transport.http.HttpConstants;"><![CDATA[
+                        String symbol = mediation.getHTTPSupport().getFirstRequestParameter(msg, "symbol");
+                        Map<String, Object> vars = new HashMap<String, Object>();
+                        vars.put("symbol", symbol);
+                        XQuerySupport xq = mediation.getSpringBean("xq", XQuerySupport.class);
+                        xq.transformMessage(msg, "samples/resources/sample5.xq", vars);
+                        mediation.getHTTPSupport().setMethod(msg, HttpConstants.Method.POST);
+                    ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.BaseConstants;"><![CDATA[
+                        mediation.getXMLSupport().retainElementAsPayload(msg, "//s:getQuoteResponse", new String[] {"s", "http://soap.services.samples/"});
+                        msg.setContentType(BaseConstants.ContentType.APPLICATION_XML);
+                    ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <bean id="xq" class="org.adroitlogic.ultraesb.core.helper.XQuerySupportImpl">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+</beans>

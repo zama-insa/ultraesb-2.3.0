@@ -1,0 +1,10 @@
+{
+    "uz_meta": {
+        "parent": "transport-sender-item-parent"
+    },
+    "params":{
+        "description": "State of the transport sender ${.*}$",
+        "value_type": 1,
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=TransportSenders,Name=${.*}$][Details.state]"
+    }
+}

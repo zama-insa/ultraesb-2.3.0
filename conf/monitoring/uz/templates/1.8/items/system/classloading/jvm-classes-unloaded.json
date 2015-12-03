@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "jvm-classloading-item-parent"
+    },
+    "params":{
+        "description": "Classes unloaded",
+        "key_": "jmx[java.lang:type=ClassLoading][UnloadedClassCount]"
+    }
+}

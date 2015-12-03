@@ -1,0 +1,11 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "parent": "items-parent",
+        "key": "sequence-item-parent",
+        "type": "sequence"
+    },
+    "params": {
+        "applications": ["Sequences"]
+    }
+}

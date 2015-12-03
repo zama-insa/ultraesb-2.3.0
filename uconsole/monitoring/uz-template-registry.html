@@ -1,0 +1,190 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!doctype html>
+<html>
+<div id="container" title="Zabbix Templates">
+    <header class="helpedHeading">
+        <h2>Zabbix Template Registry</h2>
+        <div class="ultraHelp" title="Zabbix Template Registry Help">
+            <div>
+                <p>Manages the defined templates to register Items, Trigger and Graphs against a
+                <a href="http://www.zabbix.com">Zabbix</a> server for monitoring Endpoints, Sequences, Proxy
+                Services, Work Managers, File Caches and Transports and any custom applications. You may edit or remove
+                    existing templates or add new templates for registration using this section.</p>
+            </div>
+        </div>
+    </header>
+    <section>Defined templates in the UltraESB for Zabbix registration</section>
+    <div>
+        Zabbix Version
+        <select id="version" onchange="displayTemplates('changed')">2.0</option>
+            <option value="2.0">2.X</option>
+            <option value="1.8">1.8</option>
+        </select>
+    </div>
+
+    <script type="text/javascript" src="js/zabbix-monitoring-support.js"/>
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+            setVersion();
+            $.getJSON(getCallURLBase() + "uz/registration/stat", function(dataset) {
+                if (dataset.serverURL == null) {
+                    $('#view-log').addClass("hidden");
+                }
+            });
+
+            displayTemplates('default');
+        });
+
+        function setVersion() {
+            $.ajax({
+                type: 'PUT',
+                url: getCallURLBase() + 'uz/templates/setVersion/' + $("#version").val(),
+                success: function(msg) {}
+            });
+        }
+
+        function displayTemplates(changed) {
+
+            if('changed' == changed) {
+                setVersion();
+
+                var oTable = $('#templatelist').dataTable();
+                oTable.fnClearTable();
+                oTable.fnDestroy();
+
+                $('#templatelist tbody').append('<tr></tr>');
+                $('#templatelist tbody tr').append('<td id="key"><a href="index.html?pageName=monitoring/template-details.html&templateKey="></a></td>');
+                $('#templatelist tbody tr').append('<td id="group"></td>');
+                $('#templatelist tbody tr').append('<td id="applications"></td>');
+                $('#templatelist tbody tr').append('<td id="artifactType"></td>');
+                $('#templatelist tbody tr').append('<td id="templateType"></td>');
+                $('#templatelist tbody tr').append('<td id="abstract"></td>');
+                $('#templatelist tbody tr').append('<td id="parent"> <a href="index.html?pageName=monitoring/template-details.html&templateKey="></a> </td>');
+                $('#templatelist tbody tr').append('<td id="control"></td>');
+
+                $('td#control').append('<img class="edit clickable"  title="Edit "  src="icons/edit.png"/>');
+                $('td#control').append('<img class="remove clickable" title="Remove " src="icons/remove.png"/>');
+                $('td#control').append('<img class="clickable enable" src="icons/"/>');
+            }
+
+            var jqxhr = $.getJSON(getCallURLBase() + "uz/templates/all", function(dataset) {
+
+                var data = {templates:dataset};
+                var dataDir = {
+                    'tbody tr':{
+                    'template<-templates':{
+                    'td#key a'                            :'template.key',
+                    'td#key a@href+'                      :'template.key',
+                    'td#group'                            :'template.group',
+                    'td#applications'                     :function(template){if ( null == template.item.applications) {return "-";} else { return template.item.applications;}},
+                    'td#artifactType'                     :'template.artifactType',
+                    'td#templateType'                     :'template.templateType',
+                    'td#abstract'                         :function(template){return template.item.concrete ? "Yes" : "No";},
+                    'td#parent a'                         :'template.parent',
+                    'td#parent a@href+'                   :'template.parent',
+                    'td#control img.edit@onclick'         :'{editTemplate("#{template.key}");}',
+                    'td#control img.edit@title+'          :'template.key',
+                    'td#control img.edit@id'              : function (template) { return template.item.key + "-edit"},
+                    'td#control img.remove@onclick'       :'{removeTemplate("#{template.key}");}',
+                    'td#control img.remove@title+'        :'template.key',
+                    'td#control img.remove@id'            : function (template) { return template.item.key + "-remove"},
+                    'td#control img.enable@onclick'       : function (template) { return (template.item.disable ? '{enableTemplate("' : '{disableTemplate("') + template.item.key + '");}'},
+                    'td#control img.enable@title'         : function (template) { return (template.item.disable ? 'Enable ' : 'Disable ') + template.item.key; },
+                    'td#control img.enable@src+'          : function (template) { return template.item.disable ? 'resume.png' : 'pause.png'; },
+                    'td#control img.enable@id'            : function (template) { return template.item.key + "-enable"}
+                    }
+                    }
+                };
+                $('#templatelist').render(data,dataDir);
+                encodeURLs();
+                $('#templatelist').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers",
+                    "aoColumns" : [null, null, null, null, null, {"sWidth": "50px"}, {"sWidth": "150px"}, {"sWidth": "50px"}]
+                });
+            });
+        }
+
+        function synchronize() {
+            var page = window.location.href;
+            $.ajax({
+                type: 'POST',
+                url:getCallURLBase() + "uz/templates/synchronize",
+                success:function (msg) {
+                    showInfo("Successfully synchronized the template registry.", page);
+                }
+            });
+        }
+
+        function register() {
+            window.location.href='index.html?pageName=monitoring/zabbix-registrar.html&bc=3&version=' + $('#version').val();
+            encodeURLs();
+        }
+    </script>
+
+    <div class="outer_wrapper">
+        <button class="clickable button" onclick="synchronize()" style="float: right; margin-bottom:5px; margin-top:-5px; margin-left:5px;">Synchronize</button>&nbsp;&nbsp;
+        <button class="clickable button" onclick="register()" style="float: right; margin-bottom:5px; margin-top:-5px; margin-left:5px;">Register</button>&nbsp;&nbsp;
+        <button id="view-log" class="clickable button" onclick="window.location.href='index.html?pageName=monitoring/zabbix-registration-log.html'" style="float: right; margin-bottom:5px; margin-top:-5px; margin-left:5px;">View Log</button>&nbsp;&nbsp;
+        <table class="display" id="templatelist">
+            <thead>
+            <tr>
+                <th>Key</th>
+                <th>Group</th>
+                <th>Applications</th>
+                <th>Artifact Type</th>
+                <th>Template Type</th>
+                <th>Abstract</th>
+                <th>Parent</th>
+                <th>Control</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td id="key"> <a href="index.html?pageName=monitoring/template-details.html&templateKey="></a> </td>
+                <td id="group"></td>
+                <td id="applications"></td>
+                <td id="artifactType"></td>
+                <td id="templateType"></td>
+                <td id="abstract"></td>
+                <td id="parent"> <a href="index.html?pageName=monitoring/template-details.html&templateKey="></a> </td>
+                <td id="control">
+                    <img class="edit clickable"  title="Edit "  src="icons/edit.png"/>
+                    <img class="remove clickable" title="Remove " src="icons/remove.png"/>
+                    <img class="clickable enable" src="icons/"/>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</html>

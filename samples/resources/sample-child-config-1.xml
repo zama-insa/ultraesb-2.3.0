@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <u:proxy id="echo-proxy-1">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/EchoService</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    System.out.println("Reply payload : " + mediation.readPayloadAsString(msg));
+                ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="echo-back-1">
+        <u:transport id="http-8280"/>
+        <u:transport id="https-8443"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.http.HttpConstants;"><![CDATA[
+                    mediation.setPayloadFromString(msg,
+                        "<response>" +
+                        "<method>" + msg.getMessageProperty(HttpConstants.METHOD) + "</method>" +
+                        "<uri>" + msg.getDestinationURL() + "</uri>" +
+                        "<query>" + msg.getMessageProperty(HttpConstants.QUERY_STRING) + "</query>" +
+                        "<request>" + mediation.readPayloadAsString(msg) + "</request>" +
+                        "</response>");
+                    mediation.sendResponse(msg, 200);
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

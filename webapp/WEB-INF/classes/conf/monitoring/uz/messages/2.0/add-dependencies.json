@@ -1,0 +1,12 @@
+{
+    "jsonrpc":"2.0",
+    "method":"trigger.addDependencies",
+    "params":[
+        {
+            "triggerid": "$triggerid$",
+            "dependsOnTriggerid": "$[dependsOnTriggerids]$"
+        }
+    ],
+    "auth":"$auth$",
+    "id":2
+}

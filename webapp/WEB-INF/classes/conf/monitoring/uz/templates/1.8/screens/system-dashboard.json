@@ -1,0 +1,69 @@
+{
+    "uz_meta": {
+        "parent": "screens-parent"
+    },
+    "params": {
+        "name":"System dashboard of the instance $node$",
+        "screenitems":[{
+            "resourcetype":"1",
+            "resourceid":"$hostid$:jmx[java.lang:type=Memory][HeapMemoryUsage.used]",
+            "width":"500",
+            "height":"100",
+            "x":"0",
+            "y":"0",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }, {
+            "resourcetype":"1",
+            "resourceid":"$hostid$:jmx[java.lang:type=OperatingSystem][ProcessCpuTime]",
+            "width":"500",
+            "height":"100",
+            "x":"1",
+            "y":"0",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }, {
+            "resourcetype":"1",
+            "resourceid":"$hostid$:jmx[java.lang:type=Threading][ThreadCount]",
+            "width":"500",
+            "height":"100",
+            "x":"0",
+            "y":"1",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }, {
+            "resourcetype":"1",
+            "resourceid":"$hostid$:jmx[java.lang:type=OperatingSystem][OpenFileDescriptorCount]",
+            "width":"500",
+            "height":"100",
+            "x":"1",
+            "y":"1",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }]
+    }
+}

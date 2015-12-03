@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg value="10" type="int"/>
+    </bean>
+
+    <bean id="timer" class="org.adroitlogic.ultraesb.transport.timer.TimerTaskListener"/>
+
+    <bean id="file" class="org.adroitlogic.ultraesb.transport.file.FileTransportSender"/>
+
+    <bean id="mllp-2200" class="org.adroitlogic.ultraesb.transport.mllp.MLLPNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="2200"/>
+    </bean>
+    <bean id="mllps-2300" class="org.adroitlogic.ultraesb.transport.mllp.MLLPSNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="2300"/>
+    </bean>
+
+    <bean id="mllp-sender" class="org.adroitlogic.ultraesb.transport.mllp.MLLPNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+    <bean id="mllps-sender" class="org.adroitlogic.ultraesb.transport.mllp.MLLPSNIOSender">
+        <constructor-arg ref="fileCache"/>
+        <property name="nonProductionNoRemoteCertValidation" value="true"/>
+    </bean>
+
+    <u:proxy id="timer-proxy">
+        <u:transport id="timer">
+            <u:property name="ultra.polling.start_delay" value="1000"/>
+            <u:property name="ultra.polling.repeat_interval" value="20000"/>
+            <!--u:property name="ultra.polling.cron_expression" value="0/20/40 * * ? * MON-FRI"/-->
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    System.out.println("Hello World at : " + new java.util.Date());
+                    mediation.setPayloadFromString(msg, "MSH|^~\\&|MYSENDER|MYRECEIVER|MYAPPLICATION||200612211200||QRY^A19|1234|P|2.4|\r" +
+            "QRD|200612211200|R|I|GetPatient|||1^RD|0101701234|DEM||");
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>mllps://localhost:2100</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    System.out.println(mediation.readPayloadAsString(msg));
+                ]]></u:java>
+            </u:outSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--<u:proxy id="mllp-ack">
+        <u:transport id="mllp-2100"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    System.out.println("Came to the ACK proxy...");
+                    Message res = msg.createDefaultResponseMessage();
+                    mediation.sendResponse(res, 0);
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="mllp-nack">
+        <u:transport id="mllp-2100"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.transport.mllpp.*;"><![CDATA[
+                    System.out.println("Came to the NACK proxy...");
+                    Message res = HAPIMessage.createErrorResponse(msg, "Error");
+                    mediation.sendResponse(res, 0);
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>-->
+
+    <!-- Code mapping service using map.groovy as mapping table -->
+    <bean id="mappingService" class="org.openehealth.ipf.modules.hl7.mappings.BidiMappingService">
+        <property name="mappingScript" value="file:map.groovy"/>
+    </bean>
+
+    <!-- HAPI extensions provided by modules-mllp -->
+    <bean id="hapiModelExtension" class="org.openehealth.ipf.modules.hl7.extend.HapiModelExtension">
+        <property name="mappingService" ref="mappingService" />
+    </bean>
+    
+    <u:proxy id="mllp-query">
+        <u:transport id="mllps-2300"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.transport.mllpp.*; ca.uhn.hl7v2.model.*; ca.uhn.hl7v2.model.v24.segment.*;"><![CDATA[
+                    String type = msg.getTransportHeader(HL7Constants.HL7_MESSAGE_TYPE);
+
+                    ca.uhn.hl7v2.model.Message hapi = ((HAPIMessage) msg.getCurrentPayload()).getHapiMessage();
+                    if ("QRD".equals(type)) {
+                        QRD qrd = (QRD) hapi.get("QRD");
+                        String patientId = qrd.getWhoSubjectFilter(0).getIDNumber().getValue();
+
+                        ca.uhn.hl7v2.model.v25.group.ADR_A19_QUERY_RESPONSE qr = new ADR_A19_QUERY_RESPONSE();
+
+                        System.out.println("QRY : " + patientId);
+                    } else {
+                        System.out.println("Type : " + type);
+                    }
+    
+                    org.adroitlogic.ultraesb.api.Message res = msg.createDefaultResponseMessage();
+                    mediation.sendResponse(res, 0);
+                    ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>file:///tmp</u:address>
+                <u:property name="ultra.file.name" value="received.hl7"/>
+                <u:property name="ultra.file.timestamp_format" value="yyyy_MM_dd_'T'HH_mm_ss.SSSSZ"/>
+            </u:inDestination>
+        </u:target>
+    </u:proxy>
+
+</beans>

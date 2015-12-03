@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Refer to the unit test EndpointsTest for more details about this sample and a unit test for it-->
+
+    <!--Defines a proxy service that uses a round-robin endpoint with 5 addresses. A failure of an endpoint
+    will trigger a fault back to the client, as the type selected does not specify failover-->
+    <u:proxy id="rr-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inDestination type="round-robin">
+                <u:address>http://localhost:9000/service/EchoService</u:address>
+                <u:address>http://localhost:9001/service/EchoService</u:address>
+                <u:address>http://localhost:9002/service/EchoService</u:address>
+                <u:address>http://localhost:9003/service/EchoService</u:address>
+                <u:address>http://localhost:9004/service/EchoService</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--Defines a proxy service that uses a weighted endpoint with 5 addresses. A failure of an endpoint
+    will trigger a fault back to the client, as the type selected does not specify failover
+    1/12 of messages is expected at address over ports 9000 and 9001 while 1/6 is expected over port 9002 and 1/3
+    over ports 9003 and 9004 each-->
+    <u:proxy id="weighted-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inDestination type="weighted">
+                <u:address weight="1">http://localhost:9000/service/EchoService</u:address>
+                <u:address weight="1">http://localhost:9001/service/EchoService</u:address>
+                <u:address weight="2">http://localhost:9002/service/EchoService</u:address>
+                <u:address weight="4">http://localhost:9003/service/EchoService</u:address>
+                <u:address weight="4">http://localhost:9004/service/EchoService</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--Defines a proxy service that uses a fail-over endpoint with 5 addresses. The first endpoint is always
+    used, and the next endpoint tried only on the failure of the previous. This allows for Active-Passive
+    load balancing-->
+    <u:proxy id="fo-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inDestination type="fail-over">
+                <u:address>http://localhost:9000/service/EchoService</u:address>
+                <u:address>http://localhost:9001/service/EchoService</u:address>
+                <u:address>http://localhost:9002/service/EchoService</u:address>
+                <u:address>http://localhost:9003/service/EchoService</u:address>
+                <u:address>http://localhost:9004/service/EchoService</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--Defines a proxy service that uses a custom response validator before the response is accepted as a valid
+    response from the endpoint. Thus the http://localhost:9000/service/ErrorStockQuoteService is selected and its
+    response is validated with the 'soapValidator' bean definition using class SOAPResponseValidator
+
+    The SOAPResponseValidator supports marking the endpoint for retry or suspension on a validation failure.
+    The validator supports checking the HTTP response code, and the response body for the existence of a String
+    fragment to decide if the response is a failure. In this example the occurrence of the String 'Service not available'
+    triggers a failure, that also marks the endpoint with a temporary failure
+
+    An endpoint is marked suspended after the gracePeriod for temporary errors is passed
+    fails. On suspension, the time suspended is determined by a geometric series starting with the initialDuration
+    and multiplying it by the progressionFactor on each subsequent suspension with a ceiling set with maximumDuration-->
+    <u:proxy id="validate-response-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inDestination type="fail-over">
+                <u:address>http://localhost:9000/service/ErrorStockQuoteService</u:address>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+                <u:property name="ultra.endpoint.response_validator_bean" value="soapValidator"/>
+                <u:temporaryFailures>
+                    <u:gracePeriod>1000</u:gracePeriod>
+                </u:temporaryFailures>
+                <u:suspendOnFailure>
+                    <u:initialDuration>1000</u:initialDuration>
+                    <u:progressionFactor>2.0</u:progressionFactor>
+                    <u:maximumDuration>8000</u:maximumDuration>
+                </u:suspendOnFailure>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    System.out.println("Executing Error Handler - response validation failed with SUSPEND");
+                    mediation.setPayloadFromString(msg, "failed");
+                    mediation.sendResponse(msg, 500);
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="validate-response-proxy-ignore">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inDestination type="fail-over">
+                <u:address>http://localhost:9000/service/ErrorStockQuoteService</u:address>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+                <u:property name="ultra.endpoint.response_validator_bean" value="soapValidator"/>
+                <!--Ignore response validation fail with SUSPEND as a safe to retry-->
+                <u:safeToRetryErrorCodes>101511</u:safeToRetryErrorCodes>
+                <u:temporaryFailures>
+                    <u:gracePeriod>1000</u:gracePeriod>
+                </u:temporaryFailures>
+                <u:suspendOnFailure>
+                    <u:initialDuration>1000</u:initialDuration>
+                    <u:progressionFactor>2.0</u:progressionFactor>
+                    <u:maximumDuration>8000</u:maximumDuration>
+                </u:suspendOnFailure>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    System.out.println("Executing Error Handler");
+                    mediation.setPayloadFromString(msg, "failed");
+                    mediation.sendResponse(msg, 500);
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <bean id="soapValidator" class="org.adroitlogic.ultraesb.core.endpoint.SOAPResponseValidator">
+        <!--<property name="retryOnHttpResponseStatus" value="500"/>-->
+        <property name="failOnFaultText" value="Service not available"/>
+    </bean>
+</beans>

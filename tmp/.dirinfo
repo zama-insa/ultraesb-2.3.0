@@ -1,0 +1,3 @@
+The UltraESB temp directory which is being used to store temporary files by the components of the ESB.
+
+WARNING - Files on this directory are not guaranteed to be persisted within JVM sessions

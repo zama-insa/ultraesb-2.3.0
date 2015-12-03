@@ -1,0 +1,84 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="container" title="Monitoring">
+    <header class="helpedHeading">
+        <h2>Monitoring</h2>
+        <div class="ultraHelp" title="Monitoring Help">
+        <div>
+        <p>The UltraESB allows one to monitor each ESB node in multiple ways as follows:</p>
+            <ul>
+                <li>Metrics Dashboard - View a set of different style graphs to monitor artifacts and the node</li>
+                <li>Alerts Dashboard - View the system generated alerts and configure what triggers an alert and its behavior</li>
+                <li>Zabbix Registration - Register monitorable elements of this instance against a Zabbix server</li>
+                <li>Zabbix Template Manager - Manage templates used to register monitorable elements on Zabbix</li>
+            </ul>
+        <p></p>
+        </div>
+    </div>
+    </header>
+    <section>Monitors nodes and the artifacts of those nodes
+
+        <div class="mgt-panel">
+            <div class="panel-header fg-toolbar ui-toolbar ui-widget-header ui-corner-tl ui-corner-tr ui-helper-clearfix"><span>Monitoring</span></div>
+            <div class="panel-content">
+
+                <div class="odd">
+                    <section class="left-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=monitoring/metrics-dashboard.html&bc=clear')" title="Metrics Dashboard">
+                        <div><div class="panel-image"><img src="icons/metrics-48x48.png"/></div>
+                        <div class="panel-text"><h4>Metrics Dashboard</h4>
+                        View graphs representing statistics<br/>
+                        Analyze the node/artifact health..</div></div>
+                    </section>
+
+                    <section class="right-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=monitoring/alerts-dashboard.html&bc=clear')" title="Alerts Dashboard">
+                        <div><div class="panel-image"><img src="icons/alert-48x48.png"/></div>
+                        <div class="panel-text"><h4>Alerts Dashboard</h4>
+                        View system generated alerts<br/>
+                        Configure what causes an alert and its behavior</div></div>
+                    </section>
+                </div>
+
+                <div class="even">
+                    <section class="left-control clickable ui-corner-tr ui-corner-tl ui-corner-bl ui-corner-br"
+                             onclick="navigate('index.html?pageName=node-monitoring/uz-template-registry.html&bc=clear')" title="Zabbix Monitoring">
+                        <div><div class="panel-image"><img src="icons/zabbix48x48.png"/></div>
+                        <div class="panel-text"><h4>Zabbix Monitoring</h4>
+                        Manage templates to be registered, and the registration of those <br/>over ESB artifacts onto the Zabbix Server<br/>
+                        </div></div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+</html>

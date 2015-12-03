@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This example shows an HTTP (sync) to JMS (async) bridging using a synchronous JMS receipt -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xmlns:amq="http://activemq.apache.org/schema/core"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd
+http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!-- Create an embedded ActiveMQ Broker for a quick demonstration - NOT recommended for production use -->
+    <amq:broker useJmx="false" persistent="false">
+        <amq:transportConnectors>
+            <amq:transportConnector uri="tcp://localhost:61616"/>
+        </amq:transportConnectors>
+    </amq:broker>
+
+    <!-- JMS ConnectionFactory to use, configuring the embedded broker using XML -->
+    <amq:connectionFactory id="queueConnectionFactory" brokerURL="vm://localhost"/>
+
+    <!--Define JMS transport listener-->
+    <bean id="jms-lsnr" class="org.adroitlogic.ultraesb.transport.jms.JMSTransportListener">
+        <property name="connectionFactory" ref="queueConnectionFactory"/>
+    </bean>
+
+    <!--Define JMS transport sender-->
+    <bean id="jms-sender" class="org.adroitlogic.ultraesb.transport.jms.JMSTransportSender">
+        <property name="template">
+            <bean id="jmsProducerTemplate" class="org.springframework.jms.core.JmsTemplate">
+                <property name="connectionFactory" ref="queueConnectionFactory"/>
+            </bean>
+        </property>
+    </bean>
+
+    <!--A simple Spring JmsTemplate to read the synchronous responses via JMS-->
+    <bean id="recvTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="queueConnectionFactory"/>
+        <property name="defaultDestination">
+            <bean class="org.apache.activemq.command.ActiveMQQueue">
+                <constructor-arg value="Q.jmsResponse"/>
+            </bean>
+        </property>
+        <property name="receiveTimeout" value="5000"/>
+    </bean>
+
+    <u:proxy id="rest-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.jms.*; org.springframework.jms.core.*; javax.jms.*;"><![CDATA[
+
+                    mediation.sendToEndpoint(msg, "jmsRequestEndpoint");
+                    // the actual message id assigned to the JMS message is required to correlate the response
+                    final String jmsMessageId = msg.getFirstTransportHeader(JMSConstants.MESSAGE_ID);
+
+                    JmsTemplate recvTemplate = mediation.getSpringBean("recvTemplate", JmsTemplate.class);
+                    TextMessage tm = (TextMessage) recvTemplate.receiveSelected("JMSCorrelationID='" + jmsMessageId + "'");
+
+                    msg = msg.createDefaultResponseMessage();
+                    if (tm != null) {
+                        mediation.setPayloadFromString(msg, tm.getText());
+                        mediation.sendResponse(msg, 200);
+                    } else {
+                        mediation.setPayloadFromString(msg, "Failed to process your request within the requested time");
+                        mediation.sendResponse(msg, 500);
+                    }
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="jmsRequestEndpoint">
+        <u:address>jms:/Q.jmsRequest</u:address>
+    </u:endpoint>
+
+    <!--A mock JMS service that accepts the request on the Queue "Q.jmsRequest" and writes its "correlated"
+    response to a Queue "Q.jmsResponse"
+    The cacheLevelName attribute (Spring framework attribute) specified as a property to let the embedded
+    ActiveMQ broker distinguish the mock service and rest-proxy as different connections without anything
+    shared between-->
+    <u:proxy id="jms-echo">
+        <u:transport id="jms-lsnr">
+            <u:property name="ultra.jms.destination" value="Q.jmsRequest"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.jms.*;"><![CDATA[
+                    String msgid = msg.getFirstTransportHeader(JMSConstants.MESSAGE_ID);
+                    mediation.setPayloadFromString(msg, "We have processed your REST request and here is the response");
+                    msg.addTransportHeader(JMSConstants.CORRELATION_ID, msgid);
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>jms:/Q.jmsResponse</u:address>
+            </u:inDestination>
+        </u:target>
+    </u:proxy>
+
+</beans>

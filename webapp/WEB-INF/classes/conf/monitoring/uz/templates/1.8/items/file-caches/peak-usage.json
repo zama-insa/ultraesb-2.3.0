@@ -1,0 +1,10 @@
+{
+    "uz_meta": {
+        "parent": "file-cache-item-parent"
+    },
+    "params":{
+        "description": "File Usage of the file cache ${.*}$ (peak-usage)",
+        "value_type": 0,
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=FileCaches,Name=${.*}$][Details.peakUsage]"
+    }
+}

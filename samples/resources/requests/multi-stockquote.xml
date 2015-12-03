@@ -1,0 +1,13 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://soap.services.samples/">
+    <soapenv:Body>
+        <soap:getQuote>
+            <request><symbol>ADRT</symbol></request>
+            <request><symbol>IBM</symbol></request>
+            <request><symbol>SUN</symbol></request>
+            <request><symbol>MSFT</symbol></request>
+            <request><symbol>WMT</symbol></request>
+            <request><symbol>SGX</symbol></request>
+            <request><symbol>XRX</symbol></request>
+        </soap:getQuote>
+    </soapenv:Body>
+</soapenv:Envelope>

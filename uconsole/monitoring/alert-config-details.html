@@ -1,0 +1,371 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!doctype html>
+<html>
+<div id="container" title="Alert Configuration Details">
+    <header class="helpedHeading">
+        <h2>Alert Configuration Details</h2>
+        <div class="ultraHelp" title="Alert Configuration Details Help">
+            <div>
+                <p>Details of the alert configurations which will register a criteria based on which alerts are
+                    raised in the system.</p>
+            </div>
+        </div>
+    </header>
+    <section>Alert configuration and criteria details</section>
+
+    <script type="text/javascript">
+
+        notifications = [];
+
+        $(document).ready(function() {
+
+            var stream = getURLParameter("stream");
+            var id = getURLParameter("id");
+
+            if (stream !== null && id !== null) {
+
+                var jqxhr = $.getJSON(getCallURLBase() + "alerts/config/" + stream + "/" + id, function(dataset) {
+                    $('#id').val(dataset.id);
+                    $('#stream').val(dataset.stream);
+                    $('#description').val(dataset.description);
+                    $('#severity').val(dataset.severity);
+                    $('#function').val(dataset.function);
+                    $('#event').val(dataset.event);
+                    if (dataset.function === 'DIFF') {
+                        $('#diff_event').attr("style", "display: inline");
+                        $('#secondEvent').val(dataset.secondEvent);
+                    }
+                    $('#minThreshold').val(dataset.criteria.minThreshold);
+                    $('#maxThreshold').val(dataset.criteria.maxThreshold);
+                    $('#withinPeriod').val(dataset.criteria.withinPeriod);
+                    $('#hitCount').val(dataset.criteria.hitCount);
+
+                    for (var i in dataset.actions) {
+                        if (dataset.actions[i]["@class"] === ".NotificationAction") {
+                            appendNotification(dataset.actions[i].protocol, dataset.actions[i].address);
+                        }
+                    }
+
+                    $('#alertnotifications').dataTable({
+                        "bLengthChange": true,
+                        "bJQueryUI": true,
+                        "sPaginationType": "full_numbers"
+                    });
+                });
+            } else {
+                $('#trpLst-controls').attr('style', 'display: none');
+                $('#identifier').attr('style', 'display: none');
+                $('#templateDtls').attr('style', 'padding-top:0px;');
+                $('#final_action').text("Add Config");
+
+                $('#alertnotifications').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers"
+                });
+            }
+        });
+
+        function funcChange() {
+            if ($('#function').val() === 'DIFF') {
+                $('#diff_event').attr("style", "display: inline;");
+            } else {
+                $('#diff_event').attr("style", "display: none;");
+            }
+        }
+
+        function appendNotification(protocol, address) {
+            var count = 0;
+            var trs = $("#alertnotifications tbody tr");
+            $.each(trs, function(i, v) {
+                var rawId = parseInt($(v).attr('id'), 10);
+                if (rawId >= count) {
+                    count = ++rawId;
+                }
+            });
+            $("#alertnotifications tbody").append('<tr id="' + count + '"><td class="protocol">' + protocol + '</td><td class="address">'
+                    + address + '</td><td class="control"> <img id="' + count + '-remove" class="remove clickable" title="Remove" src="icons/remove.png" onclick="{removeNotification(\'' + count + '\');}"/> <img id="' + count + '-edit" class="edit clickable"  title="Edit"  src="icons/edit.png" onclick="{editNotification(\''
+                    + count + '\');}"/></td></tr>');
+        }
+
+        function enableAlertConfig(stream, id) {
+            alert("enable alert config stream : " + stream + " id : " + id);
+        }
+
+        function disableAlertConfig(stream, id) {
+            alert("disable alert config stream : " + stream + " id : " + id);
+        }
+
+        function removeAlertConfig(stream, id) {
+            showConfirmation('Do you want to remove the alert ' + id + ' of stream ' + stream + '?' , function() {
+                $.ajax({
+                    type: 'DELETE',
+                    url: getCallURLBase() + 'alerts/config/remove/' + stream + '/' + id,
+                    success: function(msg) {
+                        showInfo('Successfully removed the alert ' + id + ' of stream ' + stream + '.', 'index.html?pageName=monitoring/alert-configurations.html');
+                    }
+                });
+            });
+        }
+
+        function showAddNotification() {
+            $('#add_action').attr("style", "margin-left:25px;");
+            $('#update_action').attr("style", "margin-left:25px; display: none;");
+            $('#notifyEdit').attr('style', 'display:inline');
+        }
+
+        function editNotification(id) {
+            $('div#notifyEdit div input#address').val($("#alertnotifications tbody tr[id=" + id + "] td.address").text());
+            $('div#notifyEdit div select#protocol').val($("#alertnotifications tbody tr[id=" + id + "] td.protocol").text());
+            $('#add_action').attr("style", "margin-left:25px; display: none;");
+            $('#update_action').attr("style", "margin-left:25px;");
+            $('#hidden_id').val(id);
+            $('#notifyEdit').attr('style', 'display:inline');
+        }
+
+        function updateNotification() {
+            removeNotification($('#hidden_id').val());
+            addNotification();
+        }
+
+        function removeNotification(id) {
+            $("#alertnotifications").dataTable().fnDestroy();
+            $("#alertnotifications tbody tr[id=" + id + "]").remove();
+            $('#alertnotifications').dataTable({
+                "bLengthChange": true,
+                "bJQueryUI": true,
+                "sPaginationType": "full_numbers"
+            });
+        }
+
+        function updateAlertConfig() {
+            if ($('#severity').val() === 'NONE') {
+                showError("Please specify the Severity for the alert configuration");
+            } else if ($('#function').val() === 'NONE') {
+                showError("Please specify the Function for the alert configuration");
+            } else {
+
+                var stream = getURLParameter("stream");
+                var id = getURLParameter("id");
+                var newStream = $('#stream').val();
+                var action = 'update';
+                var method = 'POST';
+                if (stream !== newStream) {
+                    action = 'add';
+                    method = 'PUT';
+                }
+                var content = {};
+                if (id !== undefined && id !== null && id !== "") {
+                    content.id = id;
+                }
+                content.stream = newStream;
+                content.description = $('#description').val();
+                content.severity = $('#severity').val();
+                content.function = $('#function').val();
+                if ($('#event').val() !== '') {
+                    content.event = $('#event').val();
+                }
+                if (content.function === 'DIFF') {
+                    content.secondEvent = $('#secondEvent').val();
+                }
+                content.criteria = {};
+                content.criteria.minThreshold = $('#minThreshold').val();
+                content.criteria.maxThreshold = $('#maxThreshold').val();
+                content.criteria.withinPeriod = $('#withinPeriod').val();
+                content.criteria.hitCount = $('#hitCount').val();
+                content.actions = [];
+
+                var index = 0;
+                $.each($('#alertnotifications tbody tr[id]'), function(i, v) {
+                    content.actions[index] = {};
+                    content.actions[index]["@class"] = ".NotificationAction";
+                    var rowId = $(v).attr("id");
+                    content.actions[index].protocol = $('#alertnotifications tbody tr[id=' + rowId + '] td.protocol').text();
+                    content.actions[index].address = $('#alertnotifications tbody tr[id=' + rowId + '] td.address').text();
+                    index++;
+                });
+
+                $.ajax({
+                    type: method,
+                    url: getCallURLBase() + 'alerts/config/' + action,
+                    data:  JSON.stringify(content),
+                    dataType: 'text',
+                    contentType: 'application/json',
+                    success: function(msg) {
+                        showInfo("Successfully " + (action === "add" ? "added" : "updated") + " the alert configuration for stream " + msg, 'index.html?pageName=monitoring/alert-configurations.html&bc=3');
+                    }
+                });
+            }
+        }
+
+        function addNotification() {
+            var protocol = $("#protocol").val();
+            var address = $("#address").val();
+
+            if (protocol === 'NONE') {
+                showError("Please select the Protocol for the notification action");
+            } else if (protocol === 'EMAIL' && address.indexOf('@') == -1) {
+                showError("Please specify a valid email address");
+            } else {
+                $("#alertnotifications").dataTable().fnDestroy();
+                appendNotification(protocol, address);
+                $('#alertnotifications').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers"
+                });
+                resetEditNotify();
+            }
+        }
+
+        function resetEditNotify() {
+            $("#protocol").val("");
+            $("#address").val("");
+            $('#notifyEdit').attr('style', 'display:none');
+        }
+    </script>
+
+    <div id="details" class="outer_wrapper">
+        <div id="trpLst-controls" class="top-right-controls">
+            <div class="controls">
+                <ul>
+                    <li onclick="enableAlertConfig(getURLParameter('stream'), getURLParameter('id'));" title="Enable alert config " class="enable clickable left-span"><img src="icons/mga-resume.png"/><br/> Enable</li>
+                    <li onclick="disableAlertConfig(getURLParameter('stream'), getURLParameter('id'));" title="Disable alert config " class="disable clickable"><img src="icons/mga-pause.png"/> <br/>Disable</li>
+                    <li onclick="removeAlertConfig(getURLParameter('stream'), getURLParameter('id'));" title="Remove alert config " class="remove clickable"><img src="icons/mga-remove.png"/> <br/>Remove</li>
+                </ul>
+            </div>
+        </div>
+        <form id="templateDtls" class="tab_less_pane">
+            <fieldset>
+                <h3>Alert Configuration</h3>
+                <ul class="attributes" id="alertConfigDetails">
+                    <li id="identifier">
+                        <label for="id"> Id </label>
+                        <input id="id" class="disabledText" readonly type="text"/>
+                    </li>
+                    <li>
+                        <label for="stream"> Stream </label>
+                        <input id="stream" type="text"/>
+                    </li>
+                    <li>
+                        <label for="description"> Description </label>
+                        <input id="description" type="text"/>
+                    </li>
+                    <li>
+                        <label for="severity"> Severity </label>
+                        <select id="severity" style="width: 140px;">
+                            <option value="NONE">- Select -</option>
+                            <option value="INFORMATION">INFORMATION</option>
+                            <option value="WARNING">WARNING</option>
+                            <option value="ERROR">ERROR</option>
+                            <option value="CRITICAL">CRITICAL</option>
+                            <option value="FATAL">FATAL</option>
+                        </select>
+                    </li>
+                    <li>
+                        <label for="function"> Function </label>
+                        <select id="function" style="width: 140px;" onchange="funcChange()">
+                            <option value="NONE">- Select -</option>
+                            <option value="SUM">SUM</option>
+                            <option value="AVERAGE">AVERAGE</option>
+                            <option value="RATE">RATE</option>
+                            <option value="COUNT">COUNT</option>
+                            <option value="MIN">MIN</option>
+                            <option value="MAX">MAX</option>
+                            <option value="DIFF">DIFF</option>
+                        </select>
+                    </li>
+                    <li>
+                        <label for="event"> Event </label>
+                        <input id="event" type="text"/>
+                    </li>
+                    <li id="diff_event" style="display: none;">
+                        <label for="secondEvent"> Second Event </label>
+                        <input id="secondEvent" type="text"/>
+                    </li>
+                </ul>
+                <h3>Alert Criteria</h3>
+                <ul class="attributes" id="alertConfigCriteria">
+                    <li>
+                        <label for="minThreshold"> Min Threshold </label>
+                        <input id="minThreshold" type="text" style="min-width: 100px; width: 100px;"/>
+                    </li>
+                    <li>
+                        <label for="maxThreshold"> Max Threshold </label>
+                        <input id="maxThreshold" type="text" style="min-width: 100px; width: 100px;"/>
+                    </li>
+                    <li>
+                        <label for="withinPeriod"> Within Period </label>
+                        <input id="withinPeriod" type="text" style="min-width: 100px; width: 100px;"/>
+                    </li>
+                    <li>
+                        <label for="hitCount"> Hit Count </label>
+                        <input id="hitCount" type="text" style="min-width: 100px; width: 100px;"/>
+                    </li>
+                </ul>
+                <h3>Alert Notifications</h3>
+                <div id="notifyEdit" style="display: none;">
+                <div style="border-radius: 3px; border: thin solid #DDDDDD; padding: 10px; width: 770px;">
+                    <label style="width: 70px; margin-left: 20px; padding-top: 7px;" for="protocol">Protocol</label>
+                    <select id="protocol">
+                        <option id="none" value="NONE">- SELECT -</option>
+                        <option id="email" value="EMAIL">EMAIL</option>
+                        <option id="sms" value="SMS" disabled="disabled">SMS</option>
+                        <option id="chat" value="CHAT" disabled="disabled">CHAT</option>
+                    </select>
+                </div>
+                <div style="margin-left: 250px; margin-top: -35px; margin-bottom: 20px;">
+                    <label style="width: 70px; padding-top: 7px;" for="address">Address</label>
+                    <input id="address" type="text"/>
+                    <button id="add_action" style="margin-left:25px; display: none;" onclick="addNotification()" class="clickable button" type="button">Add</button>
+                    <button id="update_action" style="margin-left:25px; display: none;" onclick="updateNotification()" class="clickable button" type="button">Update</button>
+                    <button style="margin-left:5px;" onclick="resetEditNotify()" class="clickable button" type="button">Cancel</button>
+                    <input type="hidden" id="hidden_id" value=""/>
+                </div>
+                </div>
+                <button style="float: right; margin-bottom:5px; margin-top:-5px; margin-left:5px;" onclick="showAddNotification()" class="clickable button" type="button">Add Notification</button>
+                <table class="display" id="alertnotifications">
+                    <thead>
+                    <tr>
+                        <th>Protocol</th>
+                        <th>Address</th>
+                        <th>Controls</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </fieldset>
+            <button id="final_action" type="button" class="clickable button" onclick="updateAlertConfig()" style="margin-left: 20px; margin-top: 20px;">Update Config</button>
+            <button type="button" class="clickable button" style="margin-top: 20px;" onclick="window.location.href = 'index.html?pageName=monitoring/alert-configurations.html&bc=3'">Cancel</button>
+        </form>
+    </div>
+</div>
+</html>

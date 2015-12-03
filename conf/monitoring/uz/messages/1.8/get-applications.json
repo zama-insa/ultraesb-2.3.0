@@ -1,0 +1,11 @@
+{
+    "jsonrpc":"2.0",
+    "method":"application.get",
+    "params":{
+        "hostids": ["$hostid$"],
+        "output": "extend",
+        "expandData": 1
+    },
+    "auth":"$auth$",
+    "id":2
+}

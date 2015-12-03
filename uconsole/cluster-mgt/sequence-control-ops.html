@@ -1,0 +1,100 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="tabs-3">
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var jqxhr = $.getJSON(getCallURLBase() + "sequences/getSequences", function(dataset) {
+                var blankSeqArray = [{id:""}];
+                var newDataSet = blankSeqArray.concat(dataset);
+                var data = {sequences:newDataSet};
+                var dir = {
+                    'option':{
+                        "sequence <- sequences":{
+                            ".":"#{sequence.id}",
+                            "@value":"sequence.id"
+                        },
+                        sort: function(a, b) {
+                            return a.id > b.id ? 1 : -1;
+                        }
+                    }
+                };
+
+                $('#sequenceId-start').render(data, dir);
+                $('#sequenceId-start').combobox();
+                $('#sequenceId-stop').render(data, dir);
+                $('#sequenceId-stop').combobox();
+                $('#sequenceId-enbDbg').render(data, dir);
+                $('#sequenceId-enbDbg').combobox();
+                $('#sequenceId-disDbg').render(data, dir);
+                $('#sequenceId-disDbg').combobox();
+            });
+        });
+    </script>
+
+    <fieldset id="sequence-control-ops">
+        <ul>
+            <li class="control-panel-li"><div class="start-sequence">
+                <label>Start sequence with id</label>
+                <select id="sequenceId-start" title="Sequence id to be started">
+                    <option value="">Select one...</option>
+                </select>
+                <input type="button" class="button clickable" value="Start Sequence" title="Start sequence"
+                       onclick="invokeOperation('sequence', 'sequence', 'start', 'start', $('div.start-sequence input.ui-widget').val())"/>
+            </div></li>
+            <li class="control-panel-li"><div class="stop-sequence">
+                <label>Stop sequence with id</label>
+                <select id="sequenceId-stop" title="Sequence id to be stopped">
+                    <option value="">Select one...</option>
+                </select>
+                <input type="button" class="button clickable" value="Stop Sequence" title="Stop sequence"
+                       onclick="invokeOperation('sequence', 'sequence', 'stop', 'stop', $('div.stop-sequence input.ui-widget').val())"/>
+            </div></li>
+            <br/>
+            <li class="control-panel-li"><div class="enbDbg-sequence">
+                <label>Enable debug of sequence with id</label>
+                <select id="sequenceId-enbDbg" title="Sequence id of which debug will be enabled">
+                    <option value="">Select one...</option>
+                </select>
+                <input type="button" class="button clickable" value="Enable Debug" title="Enable debug of sequence"
+                       onclick="invokeOperation('sequence', 'sequence', 'enableDebug', 'enable debug for', $('div.enbDbg-sequence input.ui-widget').val())"/>
+            </div></li>
+            <li class="control-panel-li"><div class="disDbg-sequence">
+                <label>Disable debug of sequence with id</label>
+                <select id="sequenceId-disDbg" title="Sequence id of which debug will be disabled">
+                    <option value="">Select one...</option>
+                </select>
+                <input type="button" class="button clickable" value="Disable Debug" title="Disable debug of sequence"
+                       onclick="invokeOperation('sequence', 'sequence', 'disableDebug', 'disable debug for', $('div.disDbg-sequence input.ui-widget').val())"/>
+            </div></li>
+        </ul>
+    </fieldset>
+</div>
+</html>

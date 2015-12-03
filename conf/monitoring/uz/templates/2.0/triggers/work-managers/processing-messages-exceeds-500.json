@@ -1,0 +1,11 @@
+{
+    "uz_meta": {
+        "parent": "work-manager-triggers-parent",
+        "key": "processing-messages-exceeds-500"
+    },
+    "params":{
+        "description": "Messages in processing of the work manager ${.*}$ exceeds 500",
+        "expression": "{$host$:jmx[org.adroitlogic.ultraesb.detail:Type=WorkManagers,Name=${.*}$][Details.wipMapSize].last(0)}>500",
+        "priority": "4"
+    }
+}

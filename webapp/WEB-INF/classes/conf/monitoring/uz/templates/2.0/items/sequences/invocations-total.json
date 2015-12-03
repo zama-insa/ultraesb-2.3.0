@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "sequence-item-parent"
+    },
+    "params":{
+        "name": "Invocations of the sequence ${.*}$ (total)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=Sequences,Name=${.*}$][Details.totalCount]"
+    }
+}

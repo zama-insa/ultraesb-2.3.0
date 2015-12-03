@@ -1,0 +1,215 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+<!doctype html>
+<html>
+<div id="tabs-1">
+    <div id="serverInfo" class="hidden">
+        <h3>Server Information</h3>
+        <fieldset id="serverInfoForm">
+            <ul>
+                <li>
+                    <label>Server ID</label>
+                    <input type="text" id="serverId" class="editableText">
+                </li>
+                <li>
+                    <label>JMX URL</label>
+                    <input type="text" id="jmxURL" class="editableText">
+                </li>
+                <li>
+                    <label>JMX username</label>
+                    <input type="text" id="jmxUsername" class="editableText">
+                </li>
+                <li>
+                    <label>JMX password</label>
+                    <input type="password" id="jmxPassword" class="editableText">
+                </li>
+                <br/>
+                <button type="button" class="button clickable hidden" title="Add" id="serverInfoAdd" onclick="addServer();">Add</button>
+                <button type="button" class="button clickable hidden" title="Update" id="serverInfoUpdate" onclick="updateServer();">Update</button>
+                <button type="button" class="button clickable" title="Cancel" id="serverInfoCancel" onclick="displayServers();">Cancel</button>
+            </ul>
+        </fieldset>
+    </div>
+    <div id="servers" class="shown" style="width:100%">
+        <h3>Defined Servers</h3>
+        Server URLs defined in the uconsole
+        <input type="button" class="button clickable" style="float: right; margin-bottom: 5px;" value="Add Server" onclick="displayAddServer()">
+        <div id="serversTable"></div>
+    </div>
+    <script type="text/javascript">
+
+        function editServer(serverId) {
+            var jqxhr = $.getJSON(getCallURLBase() + "instances/" + serverId, function(dataset) {
+
+                $('#serverId').attr('readonly', 'readonly');
+                $('#serverId').removeClass('editableText');
+                $('#serverId').addClass('disabledText');
+                var data = {instance:dataset};
+                var formDirective = {
+                    'input#serverId@value'          :'instance.id',
+                    'input#jmxURL@value'            :'instance.jmxURL',
+                    'input#jmxUsername@value'       :'instance.jmxUsername',
+                    'input#jmxPassword@value'       :function(ins) {return ins.context.instance.jmxUsername == null ? '' : '******';}
+                };
+                $('#serverInfoForm').render(data, formDirective);
+                $('#serverInfoUpdate').removeClass('hidden');
+                $('#serverInfoUpdate').addClass('shown');
+                $('#servers').slideUp('fast');
+                $('#serverInfo').slideDown('slow');
+            });
+        }
+
+        function displayAddServer() {
+            $('#serverId').removeAttr('readonly');
+            $('#serverId').removeClass('disabledText');
+            $('#serverId').addClass('editableText');
+            $('#serverId').attr('value', '');
+            $('#jmxURL').attr('value', '');
+            $('#jmxUsername').attr('value', '');
+            $('#jmxPassword').attr('value', '');
+            $('#serverInfoAdd').removeClass('hidden');
+            $('#serverInfoAdd').addClass('shown');
+            $('#servers').slideUp('fast');
+            $('#serverInfo').slideDown('slow');
+        }
+
+        function displayServers() {
+            $('#serverInfoAdd').removeClass('shown');
+            $('#serverInfoUpdate').removeClass('shown');
+            $('#serverInfoAdd').addClass('hidden');
+            $('#serverInfoUpdate').addClass('hidden');
+            $('#serverInfo').slideUp('fast');
+            $('#servers').slideDown('slow');
+        }
+
+        function removeServer(serverId) {
+            showConfirmation("Do you want to remove the server with id " + serverId, function() {
+                $.ajax({
+                    type: 'DELETE',
+                    url: getCallURLBase() + 'instances/' + serverId,
+                    success: function(msg) {
+                        showInfoWithCallback("Successfully removed the server with id " + serverId, function() {
+                            loadServerData();
+                            displayServers();
+                        });
+                    }
+                }).error(function () {
+                    showError("Error in removing the server information of the instance " + serverId, null);
+                });
+            });
+        }
+
+        function addServer() {
+            var serverId = $('#serverId').attr('value');
+            var params = '{';
+            params += '"id": "' + serverId + '",';
+            params += '"jmxURL": "' + $('#jmxURL').attr('value') + '",';
+            params += '"jmxUsername": "' + $('#jmxUsername').attr('value') + '",';
+            params += '"jmxPassword": "' + $('#jmxPassword').attr('value') + '"}';
+
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'instances/' + serverId,
+                data: params,
+                contentType: 'application/json',
+                success: function(msg) {
+                    showInfoWithCallback("Successfully added the server with id " + serverId, function() {
+                        loadServerData();
+                        displayServers();
+                    });
+                }
+            }).error(function () {
+                showError("Error in adding the server information", null);
+            });
+        }
+
+        function updateServer() {
+            var params = '{';
+            var serverId = $('#serverId').attr('value');
+            params += '"id": "' + serverId + '",';
+            params += '"jmxURL": "' + $('#jmxURL').attr('value') + '",';
+            params += '"jmxUsername": "' + $('#jmxUsername').attr('value') + '"';
+            params += $('#jmxPassword').attr('value') !== "******" ? ',"jmxPassword": "' + $('#jmxPassword').attr('value') + '"': '';
+            params += '}';
+
+            $.ajax({
+                type: 'PUT',
+                url: getCallURLBase() + 'instances/' + serverId,
+                data: params,
+                contentType: 'application/json',
+                success: function(msg) {
+                    showInfoWithCallback("Successfully updated the server with id " + serverId, function() {
+                        loadServerData();
+                        displayServers();
+                    });
+                }
+            }).error(function () {
+                showError("Error in updating the server information", null);
+            });
+        }
+
+        function loadServerData() {
+
+            $('#serversTable').html('<table class="display" id="serverList">'
+                    + '<thead><tr><th>ID</th><th>JMX URL</th><th>Secured</th><th>Controls</th></tr></thead>'
+                    + '<tbody><tr><td class="id"></td><td class="jmxURL"></td><td class="secured"></td>'
+                    + '<td class="controls"><img class="edit clickable" title="Edit" src="icons/edit.png"/>'
+                    + '<img class="remove clickable" title="Remove" src="icons/remove.png"/></td></tr></tbody></table>');
+
+            var jqxhr = $.getJSON(getCallURLBase() + "instances/allDefined", function(dataset) {
+
+                var data = {servers:dataset};
+                var dataDir = {
+                    'tbody tr':{
+                        'server<-servers':{
+                            'td.id'     :'server.id',
+                            'td.jmxURL' :'server.jmxURL',
+                            'td.secured':function (server) {return server.item.jmxUsername != null ? "Yes" : "No"},
+                            'td.controls img.edit@onclick' :'{editServer("#{server.id}");}',
+                            'td.controls img.remove@onclick' :'{removeServer("#{server.id}");}'
+                        }
+                    }
+                };
+                $('#serverList').render(data,dataDir);
+                encodeURLs();
+                $('#serverList').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers"
+                });
+            });
+        }
+
+        $(document).ready(function() {
+            $('#tabs').tabs();
+            loadServerData();
+        });
+    </script>
+</div>
+</html>
+

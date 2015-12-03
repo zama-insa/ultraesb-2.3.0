@@ -1,0 +1,2 @@
+The UltraESB data directory used to store persisted content within JVM sessions. A subdirectory named "zookeeper" will
+be used by default to store the ZooKeeper data nodes if you are running the ZooKeeper shipped with the UltraESB

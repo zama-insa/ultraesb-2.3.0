@@ -1,0 +1,559 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!doctype html>
+<html>
+    <div id="container" title="Sequence Details">
+    <header class="helpedHeading">
+        <h2>Sequence Details</h2>
+        <div class="ultraHelp" title="Sequence Details Help">
+        <div>
+            <p>The Sequence Details tab lists information about the selected sequence, its type, state and execution type.
+            For Java or JSR 223 fragment sequences, the fragment is shown.</p>
+            <p>To update a sequence, be sure to first <b>stop</b> the sequence. To learn more about sequences and mediation
+            refer the <a href="http://adroitlogic.org/samples-articles-and-tutorials/15/22">Sequences and Mediations Getting
+            Started Guide</a>, and the <a href="http://adroitlogic.org/samples-articles-and-tutorials/16/51">
+            Mediation and Configuration Getting Started Guide</a></p>
+            <ol>
+                <li><b>Sequence Configuration</b></li> allows a sequence to be updated or viewed
+                <li><b>Sequence Statistics</b></li> shows sequence statistics
+            </ol>
+            <p>Use the <b>Control Panel</b> to start, stop and enable or disable debug or to reset statistics of a sequence</p>
+        </div>
+        Future versions of the UConsole will have enhanced functionality exposed through this page
+    </div>
+    </header>
+    <section>Detailed configuration and statistics of the sequence</section>
+    <div id="seqDetails">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tabs-2">Sequence Statistics</a></li>
+                <li><a href="#tabs-1">Sequence Configuration</a></li>
+            </ul>
+            <div id="tabs-1">
+                <div id="seq-controls" class="top-right-controls">
+            <div class="controls">
+            <ul>
+			<li title="Start sequence " class="start clickable left-span"><img src="icons/mga-start.png"/> <br/>Start</li>
+			<li title="Stop sequence " class="stop clickable"><img src="icons/mga-stop.png"/> <br/>Stop</li>
+			<li title="Enable debug for sequence " class="enableDebug clickable left-span"><img src="icons/mga-enable-debug.png"/> <br/>Debug On</li>
+			<li title="Disable debug for sequence " class="disableDebug clickable"><img src="icons/mga-disable-debug.png"/> <br/>Debug Off</li>
+			<li title="Edit sequenceCode " class="edit clickable left-span"><img src="icons/mga-edit.png"/> <br/>Edit</li>
+			<li title="Reset statistics for sequence " class="resetStat clickable"><img src="icons/mga-reset.png"/> <br/>Reset Stat</li>
+			</ul>
+            </div>
+        </div>
+                <form>
+                    <fieldset id="seq-details">
+                        <header><h3>Sequence Configuration</h3></header>
+                        <ul id="attributes">
+                            <li>
+                                <label>Sequence ID </label>
+                                <input id="sequenceId" class="disabledText" readonly type="text"/>
+                            </li>
+                            <li>
+                                <label>Sequence Details</label>
+                                <input id="sequenceInfo" class="disabledText" readonly type="text"/>
+                            </li>
+                            <li>
+                                <label>State</label>
+                                <input id="sequenceState" class="disabledText" readonly type="text"/>
+                            </li>
+                            <li>
+                                <label>Error Sequence</label>
+                                <input id="errorSequence" class="disabledText" readonly type="text">
+                            </li>
+                        </ul>
+                    </fieldset>
+                </form>
+            </div>
+            <div id="tabs-2">
+                <div id="seqStat-controls" class="top-right-controls">
+            <div class="controls">
+            <ul>
+			<li title="Start sequence " class="start clickable left-span"><img src="icons/mga-start.png"/> <br/>Start</li>
+			<li title="Stop sequence " class="stop clickable"><img src="icons/mga-stop.png"/> <br/>Stop</li>
+			<li title="Enable debug for sequence " class="enableDebug clickable left-span"><img src="icons/mga-enable-debug.png"/> <br/>Debug On</li>
+			<li title="Disable debug for sequence " class="disableDebug clickable"><img src="icons/mga-disable-debug.png"/> <br/>Debug Off</li>
+            <li title="Edit sequenceCode " class="edit clickable left-span"><img src="icons/mga-edit.png"/> <br/>Edit</li>
+            <li title="Reset statistics for sequence " class="resetStat clickable left-span"><img src="icons/mga-reset.png"/> <br/>Reset Stat</li>
+			</ul>
+            </div>
+        </div>
+                <form>
+                    <fieldset id="seq-stat">
+                        <header><h3>Sequence Metrics Dashboard &ndash; <span id="seqId"></span><span><select id="seqClusterSelector" class="clusteraware hidden" style="margin-left: 20px; margin-bottom: 2px;" onchange="redrawGraphs('seqClusterSelector')">
+                            <option value="cluster">Cluster</option>
+                            <option value="node">Node</option>
+                        </select></span></h3></h3></header>
+                        <div class="executionTime" style="float: left; width: 965px;">
+                            <div class="stats">
+                                <p>
+                                    <span style="font-weight: bold">Execution Time <select id="execTimeSelector" style="height: 24px;" onchange="redrawGraphs('execTimeSelector')">
+                                        <option value="mean">AVG</option>
+                                        <option value="max">MAX</option>
+                                        <option value="min">MIN</option>
+                                    </select> (ms)</span>
+                                    <span id="meanExec" class="stat avg"></span><span class="right"> Avg: </span>
+                                    <span id="maxExec" class="stat max"></span><span class="right"> Max: </span>
+                                    <span id="minExec" class="stat min"></span><span class="right"> Min: </span>
+                                </p>
+
+                                <div id="execHist" class="hidden" style="width: 870px; padding: 10px 0;">
+                                    <div class="percent"><span class="text">75<sup>th</sup> percentile: </span><span id="_75Per" class="stat _75"></span></div>
+                                    <div class="percent"><span class="text">95<sup>th</sup> percentile: </span><span id="_95Per" class="stat _95"></span></div>
+                                    <div class="percent"><span class="text">98<sup>th</sup> percentile: </span><span id="_98Per" class="stat _98"></span></div>
+
+                                    <div class="percent"><span class="text">99<sup>th</sup> percentile:</span><span id="_99Per" class="stat _99"></span></div>
+                                    <div class="percent"><span class="text">99.9<sup>th</sup> percentile:</span><span id="_999Per" class="stat _999"></span></div>
+                                    <div class="percent"><span class="text">99.99<sup>th</sup> percentile:</span><span id="_9999Per" class="stat _9999"></span></div>
+
+                                    <div class="percent"><span class="text">Median: </span><span id="medianExec" class="stat avg"></span></div>
+                                </div>
+                                <div id="showhist"><span class="right link" onclick="$('#showhist').hide();$('#hidehist').show();$('#execHist').slideDown()">Show Histogram <span class="caret down"></span></span></div>
+                                <div id="hidehist" class="hidden"><span class="right link" onclick="$('#hidehist').hide();$('#showhist').show();$('#execHist').slideUp()">Hide Histogram <span class="caret up"></span></span></div>
+                                <div style="padding-top: 10px;"></div>
+                            </div>
+                        </div>
+                        <div class="totalProcessedCount" style="float: left; margin-right: 20px;">
+                            <div class="stats">
+                                <p>
+                                    <span style="font-weight: bold">Processed Messages</span>
+                                    <span id="totalProcessedRate" class="stat rate"></span><span class="right">Rate: </span>
+                                    <span id="totalProcessedCount" class="stat count"></span><span class="right">Count: </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="successfulExecutionCount" style="float: left">
+                            <div class="stats">
+                                <p>
+                                    <span style="font-weight: bold">Successful Executions</span>
+                                    <span id="successfulExecutionRate" class="stat rate"></span><span class="right">Rate: </span>
+                                    <span id="successfulExecutionCount" class="stat count"></span><span class="right">Count: </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="error_stats">
+                            <div class="handledErrorCount" style="float: left; margin-right: 20px;">
+                                <div class="stats">
+                                    <p>
+                                        <span style="font-weight: bold">Handled Errors</span>
+                                        <span id="handledErrorRate" class="stat rate"></span><span class="right">Rate: </span>
+                                        <span id="handledErrorCount" class="stat count"></span><span class="right">Count: </span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="unhandledErrorCount" style="float: left">
+                                <div class="stats">
+                                    <p>
+                                        <span style="font-weight: bold">Failed Messages</span>
+                                        <span id="unhandledErrorRate" class="stat rate"></span><span class="right">Rate: </span>
+                                        <span id="unhandledErrorCount" class="stat count"></span><span class="right">Count: </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <br/>
+                        <br/>
+
+                        <div class="tabular_view" style="float: left">
+                            <ul>
+                                <li>
+                                    <label>Last statistics reset time</label>
+                                    <input class="disabledText" id="lastStatisticsResetTime" readonly="readonly" type="text"/>
+                                </li>
+                                <li>
+                                    <label>Statistics collected window</label>
+                                    <input class="disabledText" id="metricsWindow" readonly="readonly" type="text"/>
+                                </li>
+                            </ul>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="js/graph/line-graph.js"></script>
+    <script type="text/javascript" src="js/graph/stacked-horizontal-bar.js"></script>
+    <script type="text/javascript">
+        var id;
+        var state;
+        var debug;
+
+        function getDetails () {
+            id= getURLParameter('id');
+
+            var jq = $.getJSON(getCallURLBase() + "sequences/getSequence/" + id, function(seq) {
+                $('#sequenceId').val(seq.id);
+                $('#seqId').text(seq.id);
+                $('#sequenceInfo').val(seq.info);
+                $('#sequenceState').val(seq.state);
+                if (seq.onErrorInvoke != null) {
+                    $('#errorSequence').val(seq.onErrorInvoke);
+                } else {
+                    $('#errorSequence').val('-');
+                }
+
+                $('#lastStatisticsResetTime').val(seq.lastStatisticsResetTime);
+                $('#metricsWindow').val(seq.metricsWindow);
+                debug=seq.debugOn;
+
+                if (seq.type) {
+                    $('#attributes').append('<li><label>Execution type</label><input id="sequenceType" class="disabledText" readonly type="text"/></li>');
+                    $('#sequenceType').val(seq.type);
+                }
+                if (seq.language) {
+                    $('#attributes').append('<li><label>Scripting language</label><input id="sequenceLang" class="numeric editableText" type="text"/></li>');
+                    $('#sequenceLang').val(seq.language);
+                    if (seq.state != 'Stopped' && seq.state != 'Failed') {
+                        $('#sequenceLang').addClass('disabledText');
+                    }
+                }
+
+                if (seq.className) {
+                    $('#attributes').append('<li><label>Class name</label><input id="sequenceClass" class="numeric editableText" type="text"/></li>');
+                    $('#sequenceClass').val(seq.className);
+                    if (seq.state != 'Stopped' && seq.state != 'Failed') {
+                        $('#sequenceClass').addClass('disabledText');
+                    }
+                }
+                if (seq.fileName) {
+                    $('#attributes').append('<li><label>Definition File Name</label><input id="sequenceFile" class="numeric editableText" type="text"/></li>');
+                    $('#sequenceFile').val(seq.fileName);
+                    if (seq.state != 'Stopped' && seq.state != 'Failed') {
+                        $('#sequenceFile').addClass('disabledText');
+                    }
+                }
+                if (seq.springBeanName) {
+                    $('#attributes').append('<li><label>Spring Bean ID</label><input id="sequenceBean" class="numeric editableText" type="text"/></li>');
+                    $('#sequenceBean').val(seq.springBeanName);
+                    if (seq.state != 'Stopped' && seq.state != 'Failed') {
+                        $('#sequenceBean').addClass('disabledText');
+                    }
+                }
+                if (seq.code) {
+                    var lines = seq.code.split('\n');
+                    var count = 0;
+                    $.each(lines, function(){
+                      count += 1 + Math.floor( this.length / 110 ); // take into account long lines
+                    });
+                    if (count < 20) {
+                        count = 20;
+                    }
+                    $('#attributes').append('<li><label><br>Inline Code</label><textarea id="sequenceCode" cols="110" rows="' + count + '"></textarea></li>');
+                    $('#sequenceCode').text(seq.code);
+
+                    editAreaLoader.init({
+                        id : "sequenceCode",
+                        language: "en",
+                        syntax: "Java",
+                        start_highlight: true,
+                        allow_toggle: false,
+                        is_editable: seq.state == 'Stopped' || seq.state == 'Failed'
+                    });
+                }
+
+                $('#attributes').append('<li><br/><label id="resetStatOnSaveLabel"><input id="resetStatOnSave" type="checkbox" checked > Reset statistics on save</label><input type="hidden"/><br/>&nbsp;&nbsp;</li>');
+                $('#attributes').append('<button type="button" value="get value" class="button clickable" id="editSequences" title="Save" onclick="generateJson();" >Save</button >');
+                $('.start').attr("title", $('.start').attr("title") + seq.id);
+                $('.start').bind("click", new Function("startSequence()"));
+                $('.stop').attr("title", $('.stop').attr("title") + seq.id);
+                $('.stop').bind("click", new Function("endSequence()"));
+                $('.enableDebug').attr("title", $('.enableDebug').attr("title") + seq.id);
+                $('.enableDebug').bind("click", new Function("enableDebugSequence()"));
+                $('.disableDebug').attr("title", $('.disableDebug').attr("title") + seq.id);
+                $('.disableDebug').bind("click", new Function("disableDebugSequence()"));
+                $('.resetStat').attr("title", $('.resetStat').attr("title") + seq.id);
+                $('.resetStat').bind("click", new Function("resetStatisticsSequence()"));
+                $('.edit').bind("click", new Function("editSequence('" + seq.state + "','"+ seq.id +"')"));
+
+                if (seq.state == "Stoped") {
+                    $('.stop').attr("style", "display:none");
+                    $('#editSequences').addClass('withCheckbox');
+                }
+                if (seq.state == "Started") {
+                    $('#resetStatOnSaveLabel').addClass("hidden");
+                    $('#editSequences').addClass("hidden");
+                }
+
+                var graphs = {};
+
+                var execTimeSelector = $.cookie('execTimeSelector');
+                if (execTimeSelector == null) {
+                    execTimeSelector = 'mean';
+                } else {
+                    $('#execTimeSelector').val(execTimeSelector);
+                }
+                graphs[seq.metricsStreams.executionTimeStream] = {
+                    "divClass": "executionTime", "type": "timer",
+                    "stream": seq.metricsStreams.executionTimeStream,
+                    "w": 886, "h": 150, "yAxisName": "Exec Time (ms)", "defaultMax": 0.1, "xTicks": 10,
+                    "dataTransform": function(d) { d.mean = d[execTimeSelector]/1000000; },
+                    "allDataTransform": function(d) {
+                        d.mean = d.mean/1000000;
+                        d.min = d.min/1000000;
+                        d.max = d.max/1000000;
+                        d.median = d.median/1000000;
+                        d._75Percentile = d._75Percentile/1000000;
+                        d._95Percentile = d._95Percentile/1000000;
+                        d._98Percentile = d._98Percentile/1000000;
+                        d._99Percentile = d._99Percentile/1000000;
+                        d._999Percentile = d._999Percentile/1000000;
+                        d._9999Percentile = d._9999Percentile/1000000;
+                    },
+                    "stats": {
+                        "average": "meanExec",
+                        "min": "minExec",
+                        "max": "maxExec",
+                        "median": "medianExec",
+                        "_75Percentile": "_75Per",
+                        "_95Percentile": "_95Per",
+                        "_98Percentile": "_98Per",
+                        "_99Percentile": "_99Per",
+                        "_999Percentile": "_999Per",
+                        "_9999Percentile": "_9999Per"
+                    }
+                };
+                graphs[seq.metricsStreams.totalProcessedStream] = {
+                    "divClass": "totalProcessedCount", "type": "counter",
+                    "stream": seq.metricsStreams.totalProcessedStream,
+                    "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                    "yAxisData": function(d) { return d.count;},
+                    "stats": {
+                        "count": "totalProcessedCount",
+                        "rate": "totalProcessedRate"
+                    }
+                };
+                graphs[seq.metricsStreams.successfulExecutionStream] = {
+                    "divClass": "successfulExecutionCount", "type": "counter",
+                    "stream": seq.metricsStreams.successfulExecutionStream,
+                    "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+                    "yAxisData": function(d) { return d.count; },
+                    "stats": {
+                        "count": "successfulExecutionCount",
+                        "rate": "successfulExecutionRate"
+                    }
+                };
+                graphs[seq.metricsStreams.handledErrorStream] = {
+                    "divClass": "handledErrorCount", "type": "counter",
+                    "stream": seq.metricsStreams.handledErrorStream, "color": "orange",
+                    "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 5,
+                    "yAxisData": function(d) { return d.count; },
+                    "stats": {
+                        "count": "handledErrorCount",
+                        "rate": "handledErrorRate"
+                    }
+                };
+                graphs[seq.metricsStreams.unhandledErrorStream] = {
+                    "divClass": "unhandledErrorCount", "type": "counter",
+                    "stream": seq.metricsStreams.unhandledErrorStream, "color": "red",
+                    "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 5,
+                    "yAxisData": function(d) { return d.count; },
+                    "stats": {
+                        "count": "unhandledErrorCount",
+                        "rate": "unhandledErrorRate"
+                    }
+                };
+                if ($.cookie("clustering") == "true") {
+                    $('.clusteraware').show();
+                    var seqClusterSelector = $.cookie('seqClusterSelector');
+                    if (seqClusterSelector == null) {
+                        dynamicClusterMultiGraph(graphs, 3000);
+                    } else {
+                        $('#seqClusterSelector').val(seqClusterSelector);
+                        if (seqClusterSelector == "cluster") {
+                            dynamicClusterMultiGraph(graphs, 3000);
+                        } else {
+                            dynamicMultiGraph(graphs, 3000);
+                        }
+                    }
+                } else {
+                    dynamicMultiGraph(graphs, 3000)
+                }
+                setTimeout(function() { $('#tabs').tabs();}, 200)
+//                stackedHorizontalBar("sequenceTimes", seq.metricsStreams.messageTimeEventStream, [], 890, 50, "Event Times (ms)");
+            });
+        }
+
+        $(document).ready(function() {
+            getDetails();
+        });
+
+        function redrawGraphs(selector) {
+            $.cookie(selector, $('#' + selector).val());
+            window.location.reload();
+        }
+
+        function editSequence(state, id) {
+            if (state!="Stopped") {
+                showConfirmationWithCancelCallback("Sequence " + id + " is in " + state + " state. It needs to be stopped in-order to edit. Do you want to Stop the endpoint?",
+                        function() {
+                            $.ajax({
+                                type: 'POST',
+                                url: getCallURLBase() + 'sequences/stopSequence/' +id ,
+                                success: function(msg) {
+                                    window.location.reload(true);
+                                }
+                            });
+                        },
+                        function () {
+                            loadPage('index.html?pageName=node-mgt/sequence-details.html&id='+ id);
+                        });
+                return;
+            } else {
+                showWarning('Sequence: ' + id + ', is already stopped. So you can edit sequence');
+            }
+        }
+
+        function generateJson() {
+
+            var sequenceDetails = '{"id":"' + $('#sequenceId').attr("value") + '",';
+            if ($('#sequenceLang').attr("value")) {
+                sequenceDetails += ('"language":"' + $('#sequenceLang').attr("value") + '",');
+            }
+            if ($('#sequenceClass').attr("value")) {
+                sequenceDetails += ('"className":"' + $('#sequenceClass').attr("value") + '"}');
+            }
+            if ($('#sequenceFile').attr("value")) {
+                sequenceDetails += ('"fileName":"' + $('#sequenceFile').attr("value") + '"}');
+            }
+            if ($('#sequenceBean').attr("value")) {
+                sequenceDetails += ('"springBeanName":"' + $('#sequenceBean').attr("value")  + '"}');
+            }
+            if (editAreaLoader.getValue('sequenceCode')) {
+                sequenceDetails += ('"code":"' + escapeSpecialChars(editAreaLoader.getValue('sequenceCode'))  + '"}');
+            }
+            if ($('#sequenceBean').attr("value")) {
+                sequenceDetails += ('"springBeanName":"' + $('#sequenceBean').attr("value") + '"}');
+            }
+
+            var id= $('#sequenceId').attr("value");
+            var resetStat = $('#resetStatOnSave').is(':checked');
+            $.ajax({
+                type: 'PUT',
+                url: getCallURLBase() + 'sequences/updateSequence',
+                data: sequenceDetails,
+                dataType: 'text',
+                contentType: 'application/json',
+                success: function(msg) {
+                    if (resetStat) {
+                        $.ajax({
+                            type    : 'POST',
+                            url     : getCallURLBase() + 'sequences/resetStatisticsSequence/' + id
+                        });
+                    }
+                showConfirmationWithCancelCallback('Successfully updated the sequence : ' + id + (resetStat ? ' and reset statistics' : '') + '. Do you want to start this sequence?',
+                    function () {
+                        $.ajax({
+                            type: 'POST',
+                            url: getCallURLBase() + 'sequences/startSequence/' + id ,
+                            success: function(msg) {
+                                showInfo('Successfully started the sequence : ' + id + '.', 'index.html?pageName=node-mgt/sequence-details.html&id=' + id);
+                            }
+                        });
+                    },
+                    function() {
+                        loadPage('index.html?pageName=node-mgt/sequence-details.html&id=' + id);
+                    });
+                }
+            });
+        }
+
+        function startSequence() {
+            if (state == 'Starting' || state=='Started') {
+                showWarning('Cannot start the Sequence: ' + id + ', is either started or starting.');
+            } else {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'sequences/startSequence/' + id ,
+                    success: function(msg) {
+                        showInfo('Successfully started the Sequence: ' + id + '.' , 'index.html?pageName=node-mgt/sequence-details.html&id='+ id );
+                    }
+                });
+            }
+        }
+
+        function endSequence() {
+            if (state == 'Stopped' || state=='Stopping') {
+                showWarning('Cannot stop the Sequence: ' + id + ', is either stopped or stopping.');
+            } else {
+                showConfirmation('Do you want to stop the Sequence: ' + id + '?' , function() {
+                    $.ajax({
+                        type: 'POST',
+                        url: getCallURLBase() + 'sequences/stopSequence/' + id ,
+                        success: function(msg) {
+                            showInfo('Successfully stopped the Sequence: ' + id + '.', 'index.html?pageName=node-mgt/sequence-details.html&id='+ id );
+                        }
+                    });
+                });
+            }
+        }
+
+        function enableDebugSequence() {
+            if (!debug) {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'sequences/enableDebugSequence/' + id ,
+                    success: function(msg) {
+                        showInfo('Debugging enabled for Sequence: ' + id + '.', 'index.html?pageName=node-mgt/sequence-details.html&id='+ id);
+                    }
+                });
+            } else {
+                showWarning('Debugging is already enabled for Sequence: ' + id);
+            }
+        }
+
+        function disableDebugSequence() {
+            if (debug) {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'sequences/disableDebugSequence/' + id ,
+                    success: function(msg) {
+                        showInfo('Debugging disabled for Sequence: ' + id + '.', 'index.html?pageName=node-mgt/sequence-details.html&id='+ id);
+                    }
+                });
+            } else {
+                showWarning('Debugging is already disabled for Sequence: ' + id);
+            }
+        }
+
+        function resetStatisticsSequence() {
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'sequences/resetStatisticsSequence/' + id ,
+                success: function(msg) {
+                    showInfo('Statistics of Sequence: ' + id + ' reset.', 'index.html?pageName=node-mgt/sequence-details.html&id='+ id);
+                }
+            });
+        }
+
+    </script>
+  </div>
+</html>

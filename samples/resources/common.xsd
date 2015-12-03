@@ -1,0 +1,129 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://soap.services.samples/"
+           targetNamespace="http://soap.services.samples/" version="1.0">
+
+    <xs:complexType name="getQuote">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="request" type="tns:gq"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="gq">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="symbol" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="getQuoteResponse">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="return" type="tns:gqResponse"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="gqResponse">
+        <xs:sequence>
+            <xs:element name="change" type="xs:double"/>
+            <xs:element name="earnings" type="xs:double"/>
+            <xs:element name="high" type="xs:double"/>
+            <xs:element name="last" type="xs:double"/>
+            <xs:element minOccurs="0" name="lastTradeTimestamp" type="xs:string"/>
+            <xs:element name="low" type="xs:double"/>
+            <xs:element name="marketCap" type="xs:double"/>
+            <xs:element minOccurs="0" name="name" type="xs:string"/>
+            <xs:element name="open" type="xs:double"/>
+
+            <xs:element name="peRatio" type="xs:double"/>
+            <xs:element name="percentageChange" type="xs:double"/>
+            <xs:element name="prevClose" type="xs:double"/>
+            <xs:element minOccurs="0" name="symbol" type="xs:string"/>
+            <xs:element name="volume" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="placeOrder">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="request" type="tns:po"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="po">
+        <xs:sequence>
+            <xs:element name="price" type="xs:double"/>
+
+            <xs:element name="quantity" type="xs:int"/>
+            <xs:element minOccurs="0" name="symbol" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="placeOrderResponse">
+        <xs:sequence/>
+    </xs:complexType>
+
+    <xs:complexType name="getSimpleQuote">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="request" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="getSimpleQuoteResponse">
+        <xs:sequence>
+
+            <xs:element minOccurs="0" name="return" type="tns:gqResponse"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="getMarketActivity">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="request" type="tns:gma"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="gma">
+        <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="symbols" nillable="true" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="getMarketActivityResponse">
+
+        <xs:sequence>
+            <xs:element minOccurs="0" name="return" type="tns:gmaResponse"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="gmaResponse">
+        <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="quotes" nillable="true" type="tns:gqResponse"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="getFullQuote">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="request" type="tns:gfq"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="gfq">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="symbol" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="getFullQuoteResponse">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="return" type="tns:gfqResponse"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="gfqResponse">
+        <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="tradeHistory" nillable="true" type="tns:tradingDay"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="tradingDay">
+        <xs:sequence>
+            <xs:element name="day" type="xs:int"/>
+            <xs:element minOccurs="0" name="quote" type="tns:gqResponse"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

@@ -1,0 +1,220 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="container" title="Alerts Dashboard">
+    <header class="helpedHeading">
+        <h2>Alerts Dashboard</h2>
+        <div class="ultraHelp" title="Alerts Dashboard Help">
+            <div>
+                <p>This is the alerts dashboard which shows all the triggered alerts and related metrics streams which
+                    is causing the alert. You will be able to clear the alerts once the alert is being taken care of.</p>
+                <p>Apart from that you could define more alert configurations or edit the existing alert configurations
+                under the alert configurations section, which will let you define alert actions including notification
+                over EMAIL, XMPP, or SMS</p>
+            </div>
+        </div>
+    </header>
+    <section>Raised system Alerts</section>
+
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+
+            var jqxhr = $.getJSON(getCallURLBase() + "alerts/config/isEnabled", function(dataset) {
+                if (dataset) {
+                    $('#disAlert').removeClass("hidden");
+                } else {
+                    $('#enAlert').removeClass("hidden");
+                }
+            });
+
+            var jqxhr = $.getJSON(getCallURLBase() + "alerts/retrieve/all", function(dataset) {
+
+                var newdataset = []
+                for (var i in dataset) {
+                    for (var k in dataset[i]) {
+                        newdataset.push(dataset[i][k]);
+                    }
+                }
+                var data = {alerts: newdataset};
+                var dataDir = {
+                    'tbody tr':{
+                        'alert<-alerts': {
+                            'td.time'                           :function(alert){return formattedLocaleDateTime(alert.item.timestamp)},
+                            'td.timesort'                           :'alert.timestamp',
+                            'td.description'                    :'alert.description',
+                            'td.stream a'                         :'alert.alertConfig.stream',
+                            'td.stream a@href+'                 :'alert.alertConfig.stream',
+                            'td.severity'                           :'alert.alertConfig.severity',
+                            'td.severity@class+'                           :'alert.alertConfig.severity',
+                            'td.criteria'                       :function(alert) {
+                                var stringView = alert.item.alertConfig.function;
+                                var criteria = alert.item.alertConfig.criteria;
+                                if (criteria.minThreshold != null) {
+                                    stringView += " &lt; " + formatDecimalNumber(criteria.minThreshold) + ", ";
+                                }
+                                if (criteria.maxThreshold != null) {
+                                    stringView += " > " + formatDecimalNumber(criteria.maxThreshold) + ", ";
+                                }
+                                if (criteria.hitCount > 0 && criteria.withinPeriod > 0) {
+                                    stringView += "within" + getFormattedMilli(criteria.withinPeriod) + ", for " + criteria.hitCount + " times";
+                                } else {
+                                    stringView += "within" + getFormattedMilli(Number($.cookie("metricsStepTime")))
+                                }
+                                return stringView;
+                            },
+                            'td.values'                          :function(alert) {
+                                var result = "";
+                                for (var value in alert.item.values) {
+                                    if (value > 0) {
+                                        result += ", "
+                                    }
+                                    result += formatDecimalNumber(alert.item.values[value]);
+                                }
+                                return result;
+                            },
+                            'td.control img.reset@onclick'      :'{resetAlert("#{alert.alertConfig.stream}", "#{alert.id}");}',
+                            'td.control img.reset@id'           : function (alert) { return alert.item.id + "-reset"},
+                            'td.control img.graph@onclick'      :'{showGraph("#{alert.alertConfig.stream}");}',
+                            'td.control img.graph@id'           : function (alert) { return alert.item.alertConfig.stream + "-graph"}
+                        }
+                    }
+                };
+                $('#alertslist').render(data,dataDir);
+                encodeURLs();
+                $('#alertslist').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers",
+                    "aaSorting": [[ 0, "desc" ]],
+                    "aoColumns": [
+                        {"bSortable": true, "sWidth": "160px", "iDataSort": 1},
+                        {"bVisible": false},
+                        {"bSortable": true},
+                        {"bSortable": true},
+                        {"bSortable": true},
+                        {"bSortable": true},
+                        {"bSortable": true},
+                        {"bSortable": false, "sWidth": "40px"}
+                    ]
+                });
+            });
+        });
+
+        function resetAlert(stream, alertId) {
+            showConfirmation('Do you want to clear the alert ' + alertId + ' of stream ' + stream + '?' , function() {
+                $.ajax({
+                    type: 'DELETE',
+                    url: getCallURLBase() + 'alerts/clear/' + stream + '/' + alertId,
+                    success: function(msg) {
+                        showInfo('Successfully cleared the alert ' + alertId + ' of stream ' + stream + '.', 'index.html?pageName=monitoring/alerts-dashboard.html');
+                    }
+                });
+            });
+        }
+
+        function clearAll() {
+            showConfirmation('Do you want to clear all the alerts?' , function() {
+                $.ajax({
+                    type: 'DELETE',
+                    url: getCallURLBase() + 'alerts/clear/all',
+                    success: function(msg) {
+                        showInfo('Successfully cleared all the alerts.', 'index.html?pageName=monitoring/alerts-dashboard.html');
+                    }
+                });
+            });
+        }
+
+        function disableAll() {
+            showConfirmation('Do you want to disable all the alert generations?' , function() {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'alerts/config/disable',
+                    success: function(msg) {
+                        $('#enAlert').removeClass("hidden");
+                        $('#disAlert').addClass("hidden");
+                        showInfo('Successfully disabled all alert generations.', 'index.html?pageName=monitoring/alerts-dashboard.html');
+                    }
+                });
+            });
+        }
+
+        function enableAll() {
+            showConfirmation('Do you want to enable all the alert generations?' , function() {
+                $.ajax({
+                    type: 'POST',
+                    url: getCallURLBase() + 'alerts/config/enable',
+                    success: function(msg) {
+                        $('#disAlert').removeClass("hidden");
+                        $('#enAlert').addClass("hidden");
+                        showInfo('Successfully enabled all alert generations.', 'index.html?pageName=monitoring/alerts-dashboard.html');
+                    }
+                });
+            });
+        }
+    </script>
+
+    <div class="outer_wrapper">
+        <button style="float: right; margin-bottom:5px; margin-top:-5px; margin-left:5px;" onclick="clearAll()" class="clickable button">Clear All</button>
+        <button style="float: right; margin-bottom:5px; margin-top:-5px; margin-left:5px;" onclick="disableAll()" class="clickable button hidden" id="disAlert">Disable Alerts</button>
+        <button style="float: right; margin-bottom:5px; margin-top:-5px; margin-left:5px;" onclick="enableAll()" class="clickable button hidden" id="enAlert">Enable Alerts</button>
+        <button style="float: right; margin-bottom:5px; margin-top:-5px; margin-left:5px;" onclick="window.location.href = 'index.html?pageName=monitoring/alert-configurations.html'" class="clickable button">Configure Alerts</button>
+        <table class="display" id="alertslist">
+            <thead>
+            <tr>
+                <th>Triggered At</th>
+                <th>Triggered At Sort</th>
+                <th>Description</th>
+                <th>Metrics Stream</th>
+                <th>Severity</th>
+                <th>Criteria</th>
+                <th>Values</th>
+                <th>Control</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="time"></td>
+                <td class="timesort"></td>
+                <td class="description"></td>
+                <td class="stream"><a href="index.html?pageName=monitoring/metrics-details.html&stream="></a></td>
+                <td class="severity metrics_alert "></td>
+                <td class="criteria"></td>
+                <td class="values"></td>
+                <td class="control">
+                    <img class="reset clickable" title="Clear" src="icons/remove.png"/>
+                    <img class="graph clickable"  title="Show Graph"  src="icons/chart.png"/>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</html>

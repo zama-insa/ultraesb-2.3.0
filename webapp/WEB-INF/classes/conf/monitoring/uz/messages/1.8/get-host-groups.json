@@ -1,0 +1,12 @@
+{
+    "jsonrpc":"2.0",
+    "method":"hostgroup.get",
+    "params":{
+        "output": "extend",
+        "filter":{
+            "name":["$[hostgroup]$"]
+        }
+    },
+    "auth":"$auth$",
+    "id":2
+}

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <!--Refer to the unit tests MockRestServiceTest for more details about this sample and a unit test for it-->
+    
+    <!--Configures the HTTP transport with a Basic or Digest authentication filter. Authentication of credentials is
+    performed against the authentication-provider configuration which is a standard Spring security configuration-->
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+        <property name="requestFilters">
+            <list>
+                <!--<bean class="org.adroitlogic.ultraesb.transport.http.auth.BasicAuthenticationFilter">
+                    <property name="realmName" value="adroitlogic"/>
+                </bean>-->
+                <bean class="org.adroitlogic.ultraesb.transport.http.auth.DigestProcessingFilter">
+                    <property name="realmName" value="adroitlogic"/>
+                    <property name="userDetailsService" ref="plain-user-service"/>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <!-- Usernames/Password used is asankha/adroitlogic. The authentication provider maybe configured to authenticate
+    against any Spring security supported providers. Refer to the Spring documentation-->
+    <s:authentication-manager alias="authenticationManager">
+    <s:authentication-provider>
+        <!--<s:password-encoder hash="md5"/>
+        <s:user-service>
+            <s:user name="asankha" password="abac6d7582d9ab52c629f7490fd3eb2f" authorities="ROLE_ADMIN, ROLE_USER"/>
+	    </s:user-service>-->
+        <s:user-service id="plain-user-service">
+            <s:user name="asankha" password="adroitlogic" authorities="ROLE_USER, ROLE_MANAGER"/>
+        </s:user-service>
+    </s:authentication-provider>
+    </s:authentication-manager>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--The mock service is exposed over Basic or Digest authentication secured HTTP. The mock service echoes the
+    authenticated username and role for accepted messages-->
+    <u:proxy id="rest-mock">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                        System.out.println("User is : " + mediation.getHTTPSupport().getAuthenticatedUsername(msg));
+                        System.out.println("Roles are : " + mediation.getHTTPSupport().getAuthenticatedRolesString(msg));
+                        Message res = msg.createDefaultResponseMessage();
+                        mediation.setPayloadFromString(res,
+                                "<response>" +
+                                        "<user>" + mediation.getHTTPSupport().getAuthenticatedUsername(msg) + "</user>" +
+                                        "<roles>" + mediation.getHTTPSupport().getAuthenticatedRolesString(msg) + "</roles>" +
+                                        "<method>" + mediation.getHTTPSupport().getMethod(msg) + "</method>" +
+                                        "<uri>" + msg.getDestinationURL() + "</uri>" +
+                                        "<query>" + mediation.getHTTPSupport().getRequestParameterMap(msg) + "</query>" +
+                                        "</response>");
+                        mediation.sendResponse(res, 200);
+                    ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

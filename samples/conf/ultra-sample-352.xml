@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <bean id="file-rcv" class="org.adroitlogic.ultraesb.transport.file.FileTransportListener"/>
+
+    <!--Defines the AS2Manager instance, that configures the AS2 protocol for use-->
+    <bean id="as2Manager" class="org.adroitlogic.as2.manager.AS2Manager">
+        <constructor-arg value="UltraESB-AS2"/>                     <!--User Agent string to use-->
+        <constructor-arg value="adroitlogic"/>                      <!--Local AS2 Identifier-->
+        <constructor-arg value="as2@adroitlogic.com"/>              <!--Local email address-->
+        <constructor-arg ref="ksManager"/>
+        <constructor-arg ref="fileCache"/>
+        <!--<constructor-arg ref="as2-persistence"/>-->             <!--enable to use AS2 persistence-->
+        <property name="asyncURLForMDN" value="http://localhost:8280/service/as2-async-mdn-receiver"/>
+        <property name="metricsEngine" ref="metrics-engine"/>
+    </bean>
+
+    <!--<bean id="as2-persistence" class="org.adroitlogic.as2.service.DefaultPersistenceServiceImpl">
+        <property name="saveMetaInformationToDB" value="false"/>
+    </bean>-->
+
+    <!--A bean that defines keystores for use with AS2-->
+    <bean id="ksManager" class="org.adroitlogic.as2.util.KeystoreManager">
+        <constructor-arg value="samples/conf/keys/server1.jks"/>    <!--Identity store file-->
+        <constructor-arg value="JKS"/>                              <!--Identity store type-->
+        <constructor-arg value="password"/>                         <!--Identity store password-->
+        <constructor-arg value="samples/conf/keys/trust.jks"/>      <!--Trust store file-->
+        <constructor-arg value="JKS"/>                              <!--Trust store type    -->
+        <constructor-arg value="password"/>                         <!--Trust store password-->
+        <property name="identityAlias" value="server1"/>            <!--Alias for identity-->
+        <property name="identityKeypass" value="password"/>         <!--Identity Key password-->
+    </bean>
+
+    <!--Handles incoming AS2 messages and sends sync MDNs or the transport closure-->
+    <u:proxy id="as2-receiver">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.as2.api.*; org.adroitlogic.ultraesb.api.transport.file.*; org.apache.commons.lang.time.*;"><![CDATA[
+                    ReceiveInfo rcvInfo = mediation.getAS2Manager().processIncomingAS2Message(msg);
+                    if (rcvInfo.isAsyncMDNRequested() && !rcvInfo.isMDNSent()) {
+                        Message asyncMdn = msg.cloneMessage();
+                        mediation.getAS2Manager().prepareAsyncMDNForSend(asyncMdn, rcvInfo);
+                        msg.addMessageProperty("async-mdn", true);
+                        mediation.sendToEndpoint(asyncMdn, "async-mdn-ep");
+                    }
+
+                    if (!rcvInfo.processingFailed()) {
+                        // recognize the target ftp user account to place file (use a random number)
+                        String username = "ftpuser" +  (1 + new java.util.Random(System.currentTimeMillis()).nextInt(3));
+                        String fileName = "/tmp/" + username + "/inbox/" +
+                            FastDateFormat.getInstance("yyyy_MM_dd_'T'HH_mm_ss.SSSS-").
+                            format(System.currentTimeMillis()) +
+                            mediation.getFileSupport().getReceivedFileName(msg);
+                        // make sure the target path exists
+                        new java.io.File(fileName).getParentFile().mkdirs();
+                        mediation.savePayloadToFile(msg, fileName);
+                        logger.info("Received from : " + rcvInfo.getFrom() + " for FTP user : " + username + " saved to : " + fileName);
+
+                    } else {
+                        logger.warn("Message received from : {} failed : {}", rcvInfo.getFrom(), rcvInfo.getErrorInfoList());
+                    }
+                ]]></u:java>
+            </u:inSequence>
+            <u:outSequence>
+                <u:java import="org.adroitlogic.as2.api.*; org.adroitlogic.ultraesb.api.transport.http.*;"><![CDATA[
+                    logger.debug("A/MDN response received : " + msg.getMessageProperty(HttpConstants.MessageProperties.RESPONSE_STATUS_CODE));
+                    mediation.getAS2Manager().processAsyncMDNSendResult(msg);
+                ]]></u:java>
+            </u:outSequence>
+            <u:errorSequence>
+                <u:java import="org.adroitlogic.as2.api.*; org.adroitlogic.ultraesb.api.transport.file.*;"><![CDATA[
+                    if (msg.isResponse()) {
+                        // response received for an async mdn
+                        logger.warn("Did not receive a successful confirmation for the async MDN : {}", msg.getLastException());
+                        mediation.getAS2Manager().recordSendFailure(msg);
+                    } else if (msg.getMessageProperty("async-mdn") != null) {
+                        // the attempt to send the async-mdn has a failure before being sent
+                        logger.warn("Unexpected error during async MDN send attempt : {}", msg.getLastException());
+                    } else {
+                        logger.warn("Unexpected error {}", msg.getLastException().getException());
+                    }
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--Endpoint to send out async MDNs to trading partners to any URL specified by them in the message-->
+    <u:endpoint id="async-mdn-ep">
+        <u:address type="default"/>
+    </u:endpoint>
+
+    <!--A directory polling service which sends out the files to AS2 partners-->
+    <u:proxy id="xml-file-poller">
+        <u:transport id="file-rcv">
+            <u:property name="ultra.transport.url" value="file:///tmp/"/>
+            <u:property name="ultra.file.path_pattern" value="ftpuser*/outbox/*.xml"/>
+            <u:property name="ultra.polling.start_delay" value="1000"/>
+            <u:property name="ultra.polling.repeat_interval" value="2000"/>
+            <!--<u:property name="ultra.polling.concurrent" value="true"/>-->
+            <!--<u:property name="ultra.polling.cron_expression" value="0/20/40 * * ? * MON-FRI"/>-->
+            <u:property name="ultra.file.move_after_process" value="processed"/>
+            <u:property name="ultra.file.move_after_failure" value="../error"/>
+            <u:property name="ultra.file.move_timestamp_format" value="yyyy_MM_dd_'T'HH_mm_ss.SSSSZ"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.as2.api.*; org.adroitlogic.ultraesb.api.transport.file.*;"><![CDATA[
+                    msg.addResponseCorrelation("file-path", msg.getFirstTransportHeader(FileConstants.PATH));
+
+                    // detect target AS2 partner ID by reading XML element etc, and look it up from the persistence
+                    // database by AS2 id
+                    // msg.addResponseCorrelation("partner", "mendelson");
+                    // mediation.getAS2Manager().prepareAS2MessageForSend(msg, "mendelson");
+
+                    Partner partner = new Partner("mendelson");
+                    partner.setEncryptCertAlias("server2");
+                    partner.setRequestMDN(true);
+                    partner.setRequestSignedMDN(true);
+                    partner.setSignatureInfo(new org.adroitlogic.as2.api.SignatureInfo());
+                    partner.setEncryptionInfo(new org.adroitlogic.as2.api.EncryptionInfo());
+                    partner.setUrl("http://localhost:8080/as2/HttpReceiver");
+                    // to request for an async MDN
+                    // partner.setRequestAsyncMDN(true);
+                    // partner.setAsyncReceiptURL("http://localhost:8280/service/AS2Receiver");
+                    msg.addResponseCorrelation("partner", "mendelson");
+                    mediation.getAS2Manager().prepareAS2MessageForSend(msg, partner);
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address type="default"/>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java import="org.adroitlogic.as2.api.*;"><![CDATA[
+                    SyncResponseInfo srInfo = mediation.getAS2Manager().processSyncResponse(msg);
+                    logger.debug("Sync response received : {}", srInfo);
+                    logger.info("Completed sending file : " + msg.getMessageProperty("file-path") + " to " + msg.getMessageProperty("partner"));
+                ]]></u:java>
+            </u:outSequence>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    logger.error("AS2 send failed : {}", msg.getLastException(), msg.getLastException().getException());
+                    if (msg.isResponse()) {
+                        mediation.getAS2Manager().recordSendFailure(msg);
+                    }
+                    msg.setMarkedAsFailed(true);
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--A service to receive async MDNs - if used/expected -->
+    <u:proxy id="as2-async-mdn-receiver">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    org.adroitlogic.as2.api.AsyncMDNInfo mdnInfo = mediation.getAS2Manager().processAsyncMDN(msg);
+                    logger.info("Async MDN received : {}", mdnInfo);
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <bean id="metrics-engine" class="org.adroitlogic.metrics.core.MetricsEngineImpl"/>
+
+    <!--AS2 DB Persistence Support : enable if used (Start a local derby database and create the sample schema) -->
+    <!--<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="org.apache.derby.jdbc.ClientDriver"/>
+        <property name="url" value="jdbc:derby://localhost:1527/as2;create=true"/>
+        <property name="username" value="ultraesb"/>
+        <property name="password" value="ultraesb"/>
+    </bean>
+
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+                <property name="database" value="DERBY"/>
+                <property name="showSql" value="false"/>
+            </bean>
+        </property>
+        <property name="persistenceUnitName" value="punit"/>
+    </bean>
+
+    <bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor"/>
+
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="transactionManager"/>-->
+
+</beans>

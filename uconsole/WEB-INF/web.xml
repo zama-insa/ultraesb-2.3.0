@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+         version="2.4">
+
+    <display-name>UltraESB Console - Wink JSON App</display-name>
+
+    <filter>
+        <filter-name>Shiro</filter-name>
+        <filter-class>org.adroitlogic.ultraesb.admin.util.ConsoleIniShiroFilter</filter-class>
+    </filter>
+
+    <servlet>
+        <servlet-name>WinkJSONApp</servlet-name>
+        <servlet-class>org.apache.wink.server.internal.servlet.RestServlet</servlet-class>
+        <init-param>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>org.adroitlogic.ultraesb.admin.util.WinkJSONApplication</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>default</servlet-name>
+        <servlet-class>org.eclipse.jetty.servlet.DefaultServlet</servlet-class>
+        <init-param>
+            <param-name>cacheControl</param-name>
+            <param-value>max-age=7776000,public</param-value>
+        </init-param>
+        <init-param>
+            <param-name>gzip</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>maxCacheSize</param-name>
+            <param-value>1000000</param-value>
+        </init-param>
+        <init-param>
+            <param-name>maxCachedFileSize</param-name>
+            <param-value>254000</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>maxCachedFiles</param-name>
+            <param-value>1000</param-value>
+        </init-param>
+    </servlet>
+
+    <filter-mapping>
+        <filter-name>Shiro</filter-name>
+        <url-pattern>/services/*</url-pattern>
+    </filter-mapping>
+
+    <servlet-mapping>
+        <servlet-name>WinkJSONApp</servlet-name>
+        <url-pattern>/services/*</url-pattern>
+    </servlet-mapping>
+
+    <session-config>
+        <cookie-config>
+            <http-only>true</http-only>
+        </cookie-config>
+    </session-config>
+
+</web-app>

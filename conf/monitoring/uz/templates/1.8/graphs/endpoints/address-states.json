@@ -1,0 +1,45 @@
+{
+    "uz_meta": {
+        "parent": "endpoint-graphs-parent"
+    },
+    "params":{
+        "gitems":[{
+            "itemid":"jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.activeAddressCount]",
+            "drawtype":"0",
+            "sortorder":"0",
+            "color":"999900",
+            "yaxisside":"0",
+            "calc_fnc":"2",
+            "type":"0",
+            "periods_cnt":"5"
+        }, {
+            "itemid":"jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.readyAddressCount]",
+            "drawtype":"0",
+            "sortorder":"0",
+            "color":"666600",
+            "yaxisside":"0",
+            "calc_fnc":"2",
+            "type":"0",
+            "periods_cnt":"5"
+        }, {
+            "itemid":"jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.suspendedAddressCount]",
+            "drawtype":"0",
+            "sortorder":"0",
+            "color":"333300",
+            "yaxisside":"0",
+            "calc_fnc":"2",
+            "type":"0",
+            "periods_cnt":"5"
+        }, {
+            "itemid":"jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.warnAddressCount]",
+            "drawtype":"0",
+            "sortorder":"0",
+            "color":"CCCC00",
+            "yaxisside":"0",
+            "calc_fnc":"2",
+            "type":"0",
+            "periods_cnt":"5"
+        }],
+        "name":"Address state counts graph of the endpoint ${.*}$"
+    }
+}

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <bean id="timer" class="org.adroitlogic.ultraesb.transport.timer.TimerTaskListener"/>
+
+    <!--Refer to the unit test TxnWithTimerProxyTest for more details about this sample and a unit test for it-->
+    
+    <!--Demonstrates a scheduled service. A simple schedule maybe specified with a start delay and repeat interval along
+    with an optional ultra.polling.repeat_count; OR specified as a cron expression that allows the specification of very advanced
+    schedules
+
+    This example is exercised by the unit test TxnWithTimerProxyTest, that starts a Derby database and sets up a
+    table to insert stock symbols, and then uses this scheduled proxy to insert a symbol every 5 seconds. At the first
+    iteration the symbol "ADRT" is returned by the static 'TxnWithTimerProxyTest.symbol' and the transaction commits.
+    The test then changes the symbol to "FAIL" and at the next iteration the transaction is rolled back. Refer to the
+    unit test for better understanding-->
+    <u:proxy id="timer-proxy">
+        <u:transport id="timer">
+            <u:property name="ultra.polling.start_delay" value="1000"/>
+            <u:property name="ultra.polling.repeat_interval" value="5000"/>
+            <!--u:property name="ultra.polling.cron_expression" value="0/20/40 * * ? * MON-FRI"/-->
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.springframework.jdbc.core.simple.*;"><![CDATA[
+                    String symbol = org.adroitlogic.ultraesb.txn.TxnWithTimerProxyTest.symbol;
+
+                    msg.beginTransaction();
+
+                    SimpleJdbcTemplate t = new SimpleJdbcTemplate(mediation.getDataSource("dataSource"));
+                    t.update("INSERT INTO quotes (symbol) VALUES (?)", new Object[] {symbol});
+
+                    if ("FAIL".equals(symbol)) {
+                        msg.rollbackTransaction();
+                        System.out.println("Rolledback...");
+                    } else {
+                        msg.commitTransaction();
+                        System.out.println("Committed...");
+                    }
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="org.apache.derby.jdbc.ClientDriver"/>
+        <property name="url" value="jdbc:derby://localhost:1529/../modules/sample/target/unittestdb"/>
+    </bean>
+</beans>

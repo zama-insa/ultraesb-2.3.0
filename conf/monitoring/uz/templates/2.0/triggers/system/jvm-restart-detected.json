@@ -1,0 +1,10 @@
+{
+    "uz_meta": {
+        "parent": "system-triggers-parent"
+    },
+    "params":{
+        "description": "JVM Restart detected",
+        "expression": "{$host$:jmx[java.lang:type=Runtime][Uptime].last(0)}<{$host$:jmx[java.lang:type=Runtime][Uptime].prev(0)}",
+        "priority": "1"
+    }
+}

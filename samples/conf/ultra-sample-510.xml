@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:amq="http://activemq.apache.org/schema/core"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd
+http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="100"/>
+    </bean>
+
+    <!-- Define the HTTP transport listener -->
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+        <property name="requestFilters">
+            <list>
+                <bean class="org.adroitlogic.ultraesb.transport.http.ServiceResourceRequestFilter">
+                    <property name="resourcePrefix" value="http://localhost:8280"/>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="amqp-listener" class="org.adroitlogic.ultraesb.transport.amqp.AMQPTransportListener">
+        <property name="connectionFactory" ref="rabbitConnectionFactory"/>
+    </bean>
+
+    <!--Define the HTTP transport sender-->
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <bean id="amqp-sender" class="org.adroitlogic.ultraesb.transport.amqp.AMQPTransportSender">
+        <property name="template" ref="rabbitmq-template"/>
+    </bean>
+
+    <bean id="rabbitmq-template" class="org.springframework.amqp.rabbit.core.RabbitTemplate">
+        <property name="connectionFactory" ref="rabbitConnectionFactory"/>
+        <property name="messageConverter">
+            <bean class="org.adroitlogic.ultraesb.transport.amqp.AMQPMessageConverter"/>
+        </property>
+    </bean>
+
+    <bean id="rabbitConnectionFactory" class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
+        <constructor-arg value="localhost"/>
+        <property name="username" value="guest"/>
+        <property name="password" value="guest"/>
+        <property name="channelCacheSize" value="25"/>
+    </bean>
+
+
+    <!--Defines a SOAP proxy service, that will forward requests to another the actual SOAP service at
+    http://localhost:9000/service/SimpleStockQuoteService. The SOAP response received is sent back to
+    the original client, as well as written to a JMS queue -->
+    <u:proxy id="soap-proxy">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.wsdl_url" value="http://localhost:9000/service/SimpleStockQuoteService?wsdl"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                        System.out.println("Sending a message to the AMQP queue myQueue");
+                        mediation.sendToEndpoint(msg, "rabbitMQQueue");
+                        mediation.setPayloadFromString(msg, "Accepted");
+                        mediation.sendResponse(msg, 200);
+                    ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="amqp-proxy">
+        <u:transport id="amqp-listener">
+            <u:property name="ultra.amqp.queue" value="myQueue"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                        System.out.println("Found an AMQP message of content type " + msg.getContentType() + "!");
+                        System.out.println(mediation.readPayloadAsString(msg));
+                    ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="rabbitMQQueue">
+        <u:address>amqp:/myQueue</u:address>
+    </u:endpoint>
+
+</beans>

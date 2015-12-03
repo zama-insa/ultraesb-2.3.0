@@ -1,0 +1,8 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "parent": "triggers-parent",
+        "key": "file-cache-triggers-parent",
+        "type": "file-cache"
+    }
+}

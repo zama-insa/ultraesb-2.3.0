@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="container" title="Node Details">
+    <header class="helpedHeading">
+        <h2>Node Details</h2>
+        <div class="ultraHelp" title="Node Details Help">
+            <div>This page gives you an idea of a particular node and its session history. States
+                whether the node is currently alive or not and the sessions table.
+                <p>Navigate to the session using the linked session id from the session table to get a
+                more detailed view of the session including the command executed in that session with there
+                execution results.</p>
+                <p>If you have many sessions in a node you could adjust the number of session entries shown
+                per page in the session table by adjusting the <b>Show</b> value of the top left corner of the session table.
+                <img src="images/help/show-entries.png"/></p>
+                <p>Or use the <b>Search</b> box on the top right corner of the table to filter sessions to be displayed.
+                <img src="images/help/search-box.png"/></p>
+                Apart from that you could use the pagination on the bottom of the table to move between pages.
+            </div>
+        </div>
+    </header>
+    <section>Detailed information about the node</section>
+    <div id="nodeDetails" class="outer_wrapper">
+    <form>
+        <fieldset>
+            <header><h3>Node Information</h3></header>
+            <div id="nodeView">
+                <ul>
+                    <li>
+                        <label for="cNodeName">Node name</label>
+                        <input id="cNodeName" type="text" value="" class="disabledText" readonly="readonly">
+                    </li>
+                    <li>
+                        <label for="domain">Cluster domain</label>
+                        <input id="domain" type="text" value="" class="disabledText" readonly="readonly">
+                    </li>
+                    <li>
+                        <label for="state">Node state</label>
+                        <input id="state" type="text" value="" class="disabledText" readonly="readonly">
+                    </li>
+                </ul>
+            </div>
+
+            <header><h3>Node Sessions</h3></header>
+            <section>Session information of the node</section>
+
+            <table cellpadding="0" cellspacing="0" border="0" class="display" id="sessionList">
+                <thead>
+                <tr>
+                    <th>Session ID</th>
+                    <th>Start time</th>
+                    <th>End time</th>
+                    <th>Begin state</th>
+                    <th>Final state</th>
+                    <th>Failures</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="sessionId"><a href="index.html?pageName=cluster-mgt/session-details.html&nodeName="></a></td>
+                    <td class="startTime"></td>
+                    <td class="endTime"></td>
+                    <td class="beginState"></td>
+                    <td class="finalState"></td>
+                    <td class="failures"></td>
+                </tr>
+                </tbody>
+            </table>
+        </fieldset>
+        </form>
+        </div>
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+
+            var nodeName = getURLParameter("nodeName");
+            var jqxhr = $.getJSON(getCallURLBase() + 'cluster/getNodeDetails/' + nodeName, function(dataset) {
+
+                if (dataset.active) {
+                    dataset.state = "Running";
+                } else {
+                    dataset.state = "Stopped";
+                }
+                var data = {node:dataset};
+                var dataDir = {
+                    'input#cNodeName@value' :'node.nodeName',
+                    'input#domain@value'   :'node.domain',
+                    'input#state@value'    :'node.state'
+                };
+
+                $("#nodeView").render(data, dataDir);
+
+                var sessionData = {sessions:dataset.sessionViews};
+                var sessionDataDir = {
+                    'tbody tr':{
+                        'session<-sessions':{
+                            'td.sessionId a'        :'session.sessionId',
+                            'td.sessionId@title'    :'session.sessionId',
+                            'td.sessionId a@href+'  :function(session){ return nodeName + "&sessionId=" + session.item.sessionId;},
+                            'td.startTime'          :function(session) {return formattedLocaleDateTime(session.item.startTime);},
+                            'td.endTime'            :function(session) {if (!session.item.alive) {return formattedLocaleDateTime(session.item.endTime);} else {return "Currently active";}},
+                            'td.beginState'         :'session.beginCommandState',
+                            'td.finalState'         :'session.finalCommandState',
+                            'td.failures'           :function(session) {if (session.item.failedCommands.length==0){return " -- ";}else{return session.item.failedCommands.length}}
+                        }
+                    }
+                };
+
+                $('#sessionList').render(sessionData, sessionDataDir);
+                $('#sessionList').dataTable({
+                    "aaSorting": [[ 1, "desc" ]],
+                    "bLengthChange"  : true,
+                    "bJQueryUI"      : true,
+                    "sPaginationType": "full_numbers"
+                });
+                encodeURLs();
+            });
+        });
+    </script>
+</div>
+</html>

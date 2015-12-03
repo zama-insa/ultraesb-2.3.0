@@ -1,0 +1,25 @@
+{
+    "uz_meta": {
+        "parent": "screens-parent",
+        "type": "work-manager"
+    },
+    "params": {
+        "name":"Threading dashboard of the instance $node$",
+        "screenitems":[{
+            "resourcetype":"0",
+            "resourceid":"Primary threads view of the work manager ${.*}$",
+            "width":"500",
+            "height":"100",
+            "x":"0",
+            "y":"0",
+            "colspan":"0",
+            "rowspan":"0",
+            "elements":"0",
+            "valign":"0",
+            "halign":"0",
+            "style":"0",
+            "url":"",
+            "dynamic":"0"
+        }]
+    }
+}

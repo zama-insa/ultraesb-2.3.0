@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+        <property name="requestFilters">
+            <list>
+                <bean class="org.adroitlogic.ultraesb.transport.http.auth.BasicAuthenticationFilter">
+                    <property name="realmName" value="adroitlogic"/>
+                    <property name="userDetailsService" ref="plain-user-service"/>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <s:authentication-manager alias="authenticationManager">
+    <s:authentication-provider>
+        <s:user-service id="plain-user-service">
+            <s:user name="asankha" password="adroitlogic" authorities="users, admins"/>
+        </s:user-service>
+    </s:authentication-provider>
+    </s:authentication-manager>
+
+    <!--Refer to the unit test XACMLTest for more details about this sample and a unit test for it-->
+
+    <!--Demonstrates using PicketBox XACML from JBoss for entitlement verification-->
+    <u:proxy id="soap-proxy-1">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    if (mediation.getXACMLSupport().isPermitted("xacmlProcessor", msg)) {
+                        logger.info("Request allowed");
+                    } else {
+                        mediation.getSOAPSupport().setPayloadToSOAP11Fault(msg, null, "Request denied", null);
+                        mediation.sendResponse(msg, 500);
+                    }
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="soap-proxy-2">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="java.util.*; org.adroitlogic.ultraesb.api.transport.http.*;"><![CDATA[
+                        Map<String, Object> attributeValues = new HashMap<String, Object>();
+                        attributeValues.put("action-id", mediation.getHTTPSupport().getMethod(msg).toString());
+                        attributeValues.put("role", mediation.getHTTPSupport().getAuthenticatedRolesArray(msg));
+                        attributeValues.put("resource-id", mediation.getHTTPSupport().getServiceURL(msg));
+
+                        if (mediation.getXACMLSupport().isPermitted("xacmlProcessor", attributeValues)) {
+                            logger.info("Request allowed");
+                        } else {
+                            mediation.getSOAPSupport().setPayloadToSOAP11Fault(msg, null, "Request denied", null);
+                            mediation.sendResponse(msg, 500);
+                        }
+                    ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <bean id="xacmlProcessor" class="org.adroitlogic.ultraesb.core.helper.XACMLProcessor" init-method="init">
+        <property name="configFile" value="file:samples/resources/test/xacml-config.xml"/>
+        <property name="attributes">
+            <map>
+                <entry key="action-id:string"       value="urn:oasis:names:tc:xacml:1.0:action:action-id"/>
+                <!--subject-id is shown as an illustration only, its not used in the example policy used in this example-->
+                <entry key="subject-id:string"      value="urn:oasis:names:tc:xacml:1.0:subject:subject-id"/>
+                <entry key="role:string"            value="urn:oasis:names:tc:xacml:2.0:subject:role"/>
+                <entry key="resource-id:string"     value="urn:oasis:names:tc:xacml:1.0:resource:resource-id"/>
+                <!--current-time is shown as an illustration only, its not used in the example policy used in this example-->
+                <entry key="current-time:dateTime"  value="urn:oasis:names:tc:xacml:1.0:environment:current-time"/>
+            </map>
+        </property>
+    </bean>
+
+</beans>

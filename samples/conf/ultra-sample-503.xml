@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg value="10" type="int"/>
+    </bean>
+
+    <!--Defines the mail transport listener. See http://api.adroitlogic.org/ for a complete list of the
+    many configuration properties -->
+    <bean id="mail" class="org.adroitlogic.ultraesb.transport.mail.MailTransportListener">
+        <property name="properties">
+            <map>
+                <entry key="mail.pop3.socketFactory.fallback"  value="false"/>
+ 	            <entry key="mail.pop3.host" value="pop.gmail.com"/>
+	            <entry key="mail.pop3.socketFactory.class" value="javax.net.ssl.SSLSocketFactory"/>
+	            <entry key="mail.pop3.socketFactory.port" value="995"/>
+	            <entry key="mail.pop3.port" value="995"/>
+                <!--<entry key="ultra.mail.remove_headers" value="RemoveHeader, AnotherHeaderToRemove"/>-->
+                <!--<entry key="ultra.mail.preserve_headers" value="To, Subject, From"/>-->
+            </map>
+        </property>
+    </bean>
+
+    <!--A POP3 mail proxy service that checks an email account, prints the subject and body to the logger and
+    saves attachments into the file system -->
+    <u:proxy id="mail-proxy">
+        <u:transport id="mail">
+            <u:property name="ultra.transport.url" value="mail.maildemo.demo@gmail.com"/>               <!-- REPLACE THIS -->
+            <u:property name="mail.pop3.password" value="password"/>                    <!-- REPLACE THIS -->
+            <u:property name="ultra.polling.start_delay" value="1000"/>
+            <u:property name="ultra.polling.repeat_interval" value="10000"/>
+            <!--<u:property name="ultra.polling.concurrent" value="true"/>-->
+            <!--<u:property name="ultra.polling.cron_expression" value="0/20/40 * * ? * MON-FRI"/>-->
+            <u:property name="mail.pop3.user" value="mail.maildemo.demo"/>
+            <!--<u:property name="ultra.mail.remove_headers" value="RemoveHeader"/>-->
+            <!--<u:property name="ultra.mail.preserve_headers" value="To, Subject, From"/>-->
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    String subject = msg.getFirstTransportHeader("Subject");
+                    logger.info("Got mail with Subject : " + subject + " with body : " + mediation.readPayloadAsString(msg));
+                    java.util.Map<String, MessageFormat> attachments = msg.getAttachments();
+                    for (java.util.Map.Entry<String, MessageFormat> entry : attachments.entrySet()) {
+                        logger.info("Saving attachment : {}", entry.getKey());
+                        entry.getValue().writeTo(new java.io.FileOutputStream("/tmp/" + entry.getKey()));
+                    }
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

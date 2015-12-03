@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--suppress SpringBeanNameConventionInspection, UnparsedCustomBeanInspection -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <bean id="cache-manager" class="org.adroitlogic.ultraesb.cache.ehcache.EhCacheManager">
+        <property name="ehCacheConfig" value="conf/ehcache.xml"/>
+    </bean>
+
+    <bean id="myThrottleConfig" class="org.adroitlogic.ultraesb.core.mediation.throttle.GlobalFrequencyThrottle">
+        <property name="unitTime" value="1"/>
+        <property name="timeUnit" value="MINUTES"/>
+        <property name="rate" value="3"/>
+    </bean>
+
+    <u:proxy id="counter">
+        <u:transport id="http-8280">
+            <u:property name="ultra.transport.url" value="counter*"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.mediation.ThrottleSupport; org.adroitlogic.ultraesb.api.cache.Cache;"><![CDATA[
+                        ThrottleSupport throttle = mediation.getThrottleSupport("myThrottleConfig");
+                        Cache cache = mediation.getCachingSupport().getLocalPermanentCache();
+                        int counter = 0;
+                        synchronized (this) {
+                            String counterKey = "sample-counter";
+                            if (cache.get(counterKey) != null) {
+                                counter = Integer.valueOf(cache.get(counterKey).toString());
+                            }
+                            counter++;
+                            cache.put(counterKey, String.valueOf(counter));
+                        }
+                        Message res = msg.createDefaultResponseMessage();
+                        if (throttle.isAllowed(msg)) {
+                            mediation.setPayloadFromString(res, "Success : count " + String.valueOf(counter));
+                            mediation.sendResponse(res, 200);
+                        } else {
+                            mediation.setPayloadFromString(res, "Failure : count " + String.valueOf(counter));
+                            mediation.sendResponse(res, 500);
+                        }
+                    ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

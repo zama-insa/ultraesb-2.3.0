@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "endpoint-item-parent"
+    },
+    "params":{
+        "description": "Address of the endpoint ${.*}$ (suspended)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=Endpoints,Name=${.*}$][Details.suspendedAddressCount]"
+    }
+}

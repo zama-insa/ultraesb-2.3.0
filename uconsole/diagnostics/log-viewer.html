@@ -1,0 +1,247 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="container" title="Log Viewer">
+    <header class="helpedHeading">
+        <h2>Log Viewer</h2>
+        <div class="ultraHelp" title="Log Viewer Help">
+        <div>
+        <p>The log viewer displays the tail end of the UltraESB log file through the management console. The number of
+        log entries retained, and other configuration parameters are specified on the <b>conf/log4j.properties</b>
+        file</p>
+        <strong>Using the MEMORY_APPENDER may have a slight performance and memory overhead -
+        You may disable the memory appender when not required in production environments, and only enable it via
+        Node Monitoring -> Appenders when needed</strong>
+<pre>log4j.appender.MEMORY_APPENDER=org.adroitlogic.ultraesb.core.helper.memoryappender.InMemoryAppender
+log4j.appender.MEMORY_APPENDER.Size=500
+log4j.appender.MEMORY_APPENDER.layout=org.apache.log4j.PatternLayout</pre>
+        <p>Using the Error, Warn, Info and Debug button at the top will filter the log file to only those entries of
+        severity of the selected level or higher. e.g. Selecting WARN will hide debug and info messages, and display
+        only Warning and Error messages (if any)</p>
+        </div>
+    </div>
+    </header>
+        <section id="thresholdOff" style="display:none">MEMORY_APPENDER is disabled. To view log messages on the console,
+        set a threshold value to the MEMORY_APPENDER by editing the 'log4j.properties' file or by updating the appender
+        <a href="index.html?pageName=diagnostics/edit-appender.html&appender=MEMORY_APPENDER">here</a> </section>
+    <div id="body" style="display:none">
+        <section>Shows the tail end of the current log file, with the option to filter on severity</section>
+        <div class="outer_wrapper">
+        <div class="log-viewer-toolbar" style="float: left">
+            Auto Refresh <input id="refresh" type="checkbox" checked onclick="changeRefreshMode()"/>
+        </div>
+        <div class="top-right-controls log-viewer-toolbar">
+            <button class="clickable button" onclick="filterError();">Error</button> <button class="clickable button" onclick="filterWarn();">Warn</button> <button class="clickable button" onclick="filterInfo();">Info</button> <button class="clickable button" onclick="filterDebug();">Debug</button> <button class="clickable button" onclick="filterTrace();">Trace</button>
+        </div>
+        <table class="display" id="logs">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Log ID</th>
+                    <!--<th>IP</th>
+                    <th>Host</th>-->
+                    <th>Thread Name</th>
+                    <th>Level</th>
+                    <th>Logger Name</th>
+                    <th width="50%">Message</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td id="timeStamp"></td>
+                    <td id="id"></td>
+                    <!--<td id="ip"></td>
+                    <td id="host"></td>-->
+                    <td id="threadName"></td>
+                    <td id="level"></td>
+                    <td id="loggerName"></td>
+                    <td width="50%" id="mssg"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    </div>
+    <script type="text/javascript">
+
+    var timer;
+    function filterError() {
+        oTable = $('#logs').dataTable();
+        oTable.fnFilter('ERROR', 3, false, false, false);
+    }
+
+    function filterWarn() {
+        oTable = $('#logs').dataTable();
+        oTable.fnFilter("(WARN|ERROR)", 3, true, false, false);
+    }
+
+    function filterInfo() {
+        oTable = $('#logs').dataTable();
+        oTable.fnFilter("(INFO|WARN|ERROR)",3, true, false, false);
+    }
+
+    function filterDebug() {
+         oTable = $('#logs').dataTable();
+         oTable.fnFilter("(INFO|WARN|ERROR|DEBUG)", 3, true, false, false);
+    }
+
+    function filterTrace() {
+         oTable = $('#logs').dataTable();
+         oTable.fnFilter("(INFO|WARN|ERROR|DEBUG|TRACE)", 3, true, false, false);
+    }
+
+    function changeRefreshMode() {
+        if ($('#refresh').is(":checked")) {
+            timer = window.setInterval(function() {updateTable($('#logs').dataTable());}, 5000);
+        } else {
+            clearInterval(timer);
+        }
+    }
+
+    function updateTable(oTable) {
+
+        var indexOfRow = oTable.fnGetData().length - 1;
+        var data = oTable.fnGetData();
+        var row = data[indexOfRow];
+        var index = parseInt(row[1]) + 1;
+
+        var jqxhr = $.getJSON(getCallURLBase() + 'logging/getFrom/' + index, function(dataset) {
+            if (dataset != null) {
+                $.each(dataset, function(index, val) {
+                    oTable.fnAddData( [
+                        val.formattedTime,
+                        val.id,
+                        val.threadName,
+                        val.logLevel,
+                        val.loggerName,
+                        val.message
+                    ] );
+                    oTable.fnPageChange('last');
+                });
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        var jqxhr = $.getJSON(getCallURLBase() + 'logging/getAll', function(dataset) {
+            var showTable = true;
+            if (dataset.length == 0) {
+                var threshold;
+                var jqxhr = $.getJSON(getCallURLBase() + 'logging/appenders/MEMORY_APPENDER', function(appenderView) {
+                    threshold = appenderView.threshold;
+
+                    if(threshold == 'OFF') {
+                        $('section#thresholdOff').removeAttr('style');
+                        showTable = false;
+                    }
+                });
+            } else {
+                $('section#thresholdOff').attr('style', 'display:none');
+                $('div#body').removeAttr ('style');
+
+                var data = {logs:dataset};
+                var directive = {
+                    'tbody tr' : {
+                        'log<-logs' : {
+                            'td#timeStamp' : 'log.formattedTime',
+                            'td#id' : 'log.id',
+                            'td#mssg' : 'log.message',
+                            'td#threadName' : 'log.threadName',
+                            'td#loggerName' : 'log.loggerName',
+                            'td#level' : 'log.logLevel'
+                        }
+                    }
+                };
+
+                $('#logs').render(data, directive);
+            }
+
+            if (showTable) {
+                var debugEven = true;
+                var infoEven = true;
+                var warnEven = true;
+                var errorEven = true;
+                var oTable = $('#logs').dataTable({
+                    "fnRowCallback": function( nRow, aData, iDisplayIndex ) {
+
+                        if ( aData[3] == "DEBUG" ) {
+                            if (debugEven) {
+                                $(nRow).attr('class','debug-even');
+                                debugEven = false;
+                            } else {
+                                $(nRow).attr('class','debug-odd');
+                                debugEven = true;
+                            }
+                        }
+                        if ( aData[3] == "WARN" ) {
+                            if (warnEven) {
+                                $(nRow).attr('class','warn-even');
+                                warnEven = false;
+                            } else {
+                                $(nRow).attr('class','warn-odd');
+                                warnEven = true;
+                            }
+                        }
+                        if ( aData[3] == "INFO" ) {
+                            if (infoEven) {
+                                $(nRow).attr('class','info-even');
+                                infoEven = false;
+                            } else {
+                                $(nRow).attr('class','info-odd');
+                                infoEven = true;
+                            }
+                        }
+                        if ( aData[3] == "ERROR" ) {
+                            if (errorEven) {
+                                $(nRow).attr('class','error-even');
+                                errorEven = false;
+                            } else {
+                                $(nRow).attr('class','error-odd');
+                                errorEven = true;
+                            }
+                        }
+                        return nRow;
+                    },
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers",
+                    "iDisplayLength": 50,
+                    "aoColumns" : [null, {"bVisible": false, "asSorting": ["asc"]}, null, null, null, null]
+                });
+
+                if ($('#refresh').is(":checked") && dataset != '') {
+                    timer = window.setInterval(function() {updateTable(oTable);}, 5000);
+                }
+            }
+        });
+    });
+    </script>
+</div>
+</html>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<datasources>
+    <xa-datasource>
+        <jndi-name>TransactedDB</jndi-name>
+
+        <!-- uncomment to enable interleaving <interleaving/> -->
+        <isSameRM-override-value>false</isSameRM-override-value>
+        <xa-datasource-class>org.apache.derby.jdbc.ClientXADataSource</xa-datasource-class>
+
+        <!-- path to the database. (${jboss.server.data.dir}${/}derby${/}default didn't work on win) -->
+        <xa-datasource-property name="portNumber">1527</xa-datasource-property>
+        <xa-datasource-property name="DatabaseName">database</xa-datasource-property>
+        <xa-datasource-property name="User">admin</xa-datasource-property>
+        <xa-datasource-property name="Password">admin</xa-datasource-property>
+
+        <!-- corresponding type-mapping in the standardjbosscmp-jdbc.xml (optional) -->
+        <metadata>
+            <type-mapping>Derby</type-mapping>
+        </metadata>
+    </xa-datasource>
+</datasources>
+

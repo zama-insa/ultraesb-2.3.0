@@ -1,0 +1,8 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "parent": "graphs-parent",
+        "key": "work-manager-graphs-parent",
+        "type": "work-manager"
+    }
+}

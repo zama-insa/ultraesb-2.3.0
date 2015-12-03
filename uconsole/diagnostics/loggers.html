@@ -1,0 +1,242 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+<!doctype html>
+<html>
+<div id="container" title="Loggers">
+    <header class="helpedHeading">
+        <h2>Loggers</h2>
+        <div class="ultraHelp" title="Loggers">
+            <p>The Loggers page displays information about loggers which are defined in UltraESB. It also provides with the
+                functionality of changing the log level and the additivity of a logger </p>
+        </div>
+    </header>
+    <section>Loggers defined for the server</section>
+    <div class="outer_wrapper">
+    <div class="top-right-controls log-viewer-toolbar">
+        <button style="float: right" class="clickable button" onclick="create();">Add Logger</button>
+    </div>
+    <br/>
+    <div id="pkgLevelSelect"><label for="pkgLevel">Shorten Package Level </label><select id="pkgLevel" onchange="changeShortenLevel()">
+        <option value="0">- NONE -</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3" selected>3</option>
+    </select></div>
+    <div id="changeApplicationLevel" class="hidden">
+        <label><input type="radio" name="applyChangeTo" value="" checked/> Apply changes to local node</label>
+        <label><input type="radio" name="applyChangeTo" value="cluster/"/> Apply changes cluster wide</label>
+    </div>
+    <table id="loggers" class="display">
+        <thead>
+            <tr>
+                <th>Logger</th>
+                <th>Parent Logger</th>
+                <th>Level</th>
+                <th>Additivity</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td class="logger"></td>
+                <td class="parentLogger"></td>
+                <td class="change">
+                    <select class="_80"></select>
+                </td>
+                <td class="additivity">
+                    <select class="_80"></select>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <script type="text/javascript">
+        function create() {
+            loadPage('index.html?pageName=diagnostics/logger-creator.html');
+        }
+
+        function changeLevel(loggerName) {
+            var level = document.getElementById(loggerName).value;
+
+            var levelUpdateMessage = '{"loggerName":"' + loggerName;
+            levelUpdateMessage += '", "currLevel":"' + level;
+            levelUpdateMessage += '"}';
+
+            $.ajax({
+                type: 'PUT',
+                url: getCallURLBase() + $("input[@name='applyChangeTo']:checked").val() + 'logging/' + loggerName + '/logLevel',
+                data: levelUpdateMessage,
+                dataType: 'text',
+                contentType: 'application/json',
+                success : function(msg) {
+                    showInfo('Changed Level of ' + loggerName + ' to ' + level, 'index.html?pageName=diagnostics/loggers.html');
+                }
+            });
+        }
+
+        function changeAdditivity(loggerName) {
+            var additivity = $('select#' + loggerName.replace(/\./g,'_') + ' option:selected').val();
+            var value;
+
+            if (additivity == 'True') {
+                value = true;
+            } else if (additivity == 'False') {
+                value = false;
+            }
+
+            var additivityUpdateMessage = '{"loggerName":"' + loggerName;
+            additivityUpdateMessage += '", "additivity":"' + value ;
+            additivityUpdateMessage += '"}';
+
+            $.ajax({
+                type: 'PUT',
+                url: getCallURLBase() + $("input[@name='applyChangeTo']:checked").val()  + 'logging/' + loggerName + '/additivity',
+                data: additivityUpdateMessage,
+                dataType: 'text',
+                contentType: 'application/json',
+                success : function(msg) {
+                    showInfo('Changed Additivity of ' + loggerName + ' to ' + additivity, 'index.html?pageName=diagnostics/loggers.html');
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            if ($.cookie("clustering") == "true") {
+                $('#changeApplicationLevel').removeClass("hidden");
+                $('#changeApplicationLevel').addClass("shown");
+            }
+            var jqxhr = $.getJSON(getCallURLBase() + 'logging/getLoggers', function(dataset) {
+
+                var packageLevels = 4;
+                var level = $('#pkgLevel').val();
+                var data = {loggers:dataset};
+                var directive = {
+                    'tbody tr' : {
+                        'logger<-loggers' : {
+                            'td.logger@title' : 'logger.loggerName',
+                            'td.logger' : function(logger) {
+                                var loggerName = logger.item.loggerName.split(".");
+                                var loggerPackageLevel = loggerName.length - 1;
+                                if (packageLevels < loggerPackageLevel) {
+                                    for (;packageLevels <= loggerPackageLevel; packageLevels++) {
+                                        $('#pkgLevel').append('<option value="' + packageLevels + '">' + packageLevels + '</option>');
+                                    }
+                                }
+                                return shortenForm(loggerName, level);
+                            },
+                            'td.parentLogger@title' : 'logger.parentLogger',
+                            'td.parentLogger' : function(logger) { return logger.item.parentLogger != null ?
+                                    shortenForm(logger.item.parentLogger.split("."), level) : "";},
+                            'td.change select@id': 'logger.loggerName',
+                            'td.change select@onchange' : '{changeLevel("#{logger.loggerName}");}',
+                            'td.change select'    : function(logger) {
+                                if (logger.item.currLevel == 'ERROR') {
+                                    return '<option selected value="ERROR">ERROR</option>' +
+                                            '<option value="WARN">WARN</option>' +
+                                            '<option value="INFO">INFO</option>' +
+                                            '<option value="DEBUG">DEBUG</option>' +
+                                            '<option value="TRACE">TRACE</option>';
+                                } else if (logger.item.currLevel == 'WARN') {
+                                    return '<option value="ERROR">ERROR</option>' +
+                                            '<option selected value="WARN">WARN</option>' +
+                                            '<option value="INFO">INFO</option>' +
+                                            '<option value="DEBUG">DEBUG</option>' +
+                                            '<option value="TRACE">TRACE</option>';
+                                } else if (logger.item.currLevel == 'INFO') {
+                                    return '<option value="ERROR">ERROR</option>' +
+                                            '<option value="WARN">WARN</option>' +
+                                            '<option selected value="INFO">INFO</option>' +
+                                            '<option value="DEBUG">DEBUG</option>' +
+                                            '<option value="TRACE">TRACE</option>';
+                                } else if (logger.item.currLevel == 'DEBUG') {
+                                    return '<option value="ERROR">ERROR</option>' +
+                                            '<option value="WARN">WARN</option>' +
+                                            '<option value="INFO">INFO</option>' +
+                                            '<option selected value="DEBUG">DEBUG</option>' +
+                                            '<option value="TRACE">TRACE</option>';
+                                } else if (logger.item.currLevel == 'TRACE') {
+                                    return '<option value="ERROR">ERROR</option>' +
+                                            '<option value="WARN">WARN</option>' +
+                                            '<option value="INFO">INFO</option>' +
+                                            '<option value="DEBUG">DEBUG</option>' +
+                                            '<option selected value="TRACE">TRACE</option>';
+                                }
+                            },
+                            'td.additivity select@id' : function(logger) { return logger.item.loggerName.replace(/\./g, '_');},
+                            'td.additivity select@onchange' :  '{changeAdditivity("#{logger.loggerName}");}',
+                            'td.additivity select' : function(logger) {
+                                if (logger.item.additivity) {
+                                    return '<option selected value="True">True</option><option value="False">False</option>';
+                                } else {
+                                    return '<option value="True">True</option><option selected value="False">False</option>';
+                                }
+                            }
+                        }
+                    }
+                };
+                $('#loggers').render(data, directive);
+                oTable = $('#loggers').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers",
+                    "iDisplayLength": 25,
+                    "aoColumns" : [null, null, null,null]
+                });
+//                oTable.fnFilter("(ultraesb)",null, true, false, true);
+            });
+        });
+
+        function shortenForm(loggerName, level) {
+            var computedName = "";
+            $.each(loggerName, function(key, value) {
+                if (!computedName == "") {
+                    computedName += ".";
+                }
+                if (key < level && key < loggerName.length - 1) {
+                    computedName += value.charAt(0);
+                } else {
+                    computedName += value;
+                }
+            });
+            return computedName;
+        }
+
+        function changeShortenLevel() {
+            var level = $('#pkgLevel').val();
+            var oTable = $('#loggers').dataTable();
+            $.each($('td.logger', oTable.fnGetNodes()), function(key, value) {
+                $(value).html(shortenForm($(value).attr("title").split("."), level));
+            });
+            $.each($('td.parentLogger', oTable.fnGetNodes()), function(key, value) {
+                $(value).html(shortenForm($(value).attr("title").split("."), level));
+            })
+        }
+    </script>
+</div>
+</html>

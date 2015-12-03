@@ -1,0 +1,22 @@
+<endpoints xmlns='http://java.sun.com/xml/ns/jax-ws/ri/runtime' version='2.0'>
+    <endpoint
+        name='stockquote'
+        implementation='samples.services.soap.SimpleStockQuoteService'
+        url-pattern='/service/SimpleStockQuoteService'/>
+    <endpoint
+        name='errorquote'
+        implementation='samples.services.soap.ErrorStockQuoteService'
+        url-pattern='/service/ErrorStockQuoteService'/>
+    <endpoint
+        name='multiply'
+        implementation='samples.services.jaxws.MultiplicationService'
+        url-pattern='/service/MultiplicationService'/>
+    <endpoint
+        name='patient'
+        implementation='samples.services.jaxws.PatientInformationService'
+        url-pattern='/service/PatientInformationService'/>
+    <endpoint
+        name='arrayMultiplication'
+        implementation='samples.services.multiplicationstresstest.ArrayMultiplication'
+        url-pattern='/service/ArrayMultiplication'/>
+</endpoints>

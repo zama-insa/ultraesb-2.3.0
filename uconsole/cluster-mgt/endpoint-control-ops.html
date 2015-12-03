@@ -1,0 +1,100 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="tabs-2">
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var jqxhr = $.getJSON(getCallURLBase() + "endpoints/getEndpoints", function(dataset) {
+                var blankEpArray = [{id:""}];
+                var newDataSet = blankEpArray.concat(dataset);
+                var data = {endpoints:newDataSet};
+                var dir = {
+                    'option':{
+                        "endpoint <- endpoints":{
+                            ".":"#{endpoint.id}",
+                            "@value":"endpoint.id"
+                        },
+                        sort: function(a, b) {
+                            return a.id > b.id ? 1 : -1;
+                        }
+                    }
+                };
+
+                $('#endpointId-start').render(data, dir);
+                $('#endpointId-start').combobox();
+                $('#endpointId-stop').render(data, dir);
+                $('#endpointId-stop').combobox();
+                $('#endpointId-enbDbg').render(data, dir);
+                $('#endpointId-enbDbg').combobox();
+                $('#endpointId-disDbg').render(data, dir);
+                $('#endpointId-disDbg').combobox();
+            });
+        });
+    </script>
+
+    <fieldset id="endpoint-control-ops">
+        <ul>
+            <li class="control-panel-li"><div class="start-endpoint">
+                <label>Start endpoint with id</label>
+                <select id="endpointId-start" title="Endpoint id to be started">
+                    <option value="">Select one...</option>
+                </select>
+                <input type="button" class="button clickable" value="Start Endpoint" title="Start endpoint"
+                       onclick="invokeOperation('endpoint', 'endpoint', 'start', 'start', $('div.start-endpoint input.ui-widget').val())"/>
+            </div></li>
+            <li class="control-panel-li"><div class="stop-endpoint">
+                <label>Stop endpoint with id</label>
+                <select id="endpointId-stop" title="Endpoint id to be stopped">
+                    <option value="">Select one...</option>
+                </select>
+                <input type="button" class="button clickable" value="Stop Endpoint" title="Stop endpoint"
+                       onclick="invokeOperation('endpoint', 'endpoint', 'stop', 'stop', $('div.stop-endpoint input.ui-widget').val())"/>
+            </div></li>
+            <br/>
+            <li class="control-panel-li"><div class="enbDbg-endpoint">
+                <label>Enable debug of endpoint with id</label>
+                <select id="endpointId-enbDbg" title="Endpoint id of which debug will be enabled">
+                    <option value="">Select one...</option>
+                </select>
+                <input type="button" class="button clickable" value="Enable Debug" title="Enable debug of endpoint"
+                       onclick="invokeOperation('endpoint', 'endpoint', 'enableDebug', 'enable debug for', $('div.enbDbg-endpoint input.ui-widget').val())"/>
+            </div></li>
+            <li class="control-panel-li"><div class="disDbg-endpoint">
+                <label>Disable debug of endpoint with id</label>
+                <select id="endpointId-disDbg" title="Endpoint id of which debug will be disabled">
+                    <option value="">Select one...</option>
+                </select>
+                <input type="button" class="button clickable" value="Disable Debug" title="Disable debug of endpoint"
+                       onclick="invokeOperation('endpoint', 'endpoint', 'disableDebug', 'disable debug for', $('div.disDbg-endpoint input.ui-widget').val())"/>
+            </div></li>
+        </ul>
+    </fieldset>
+</div>
+</html>

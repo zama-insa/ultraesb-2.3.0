@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+<!-- Demonstrates the HTTP to VM transport invocation -->
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <bean id="vm-listener" class="org.adroitlogic.ultraesb.transport.vm.VMTransportListener"/>
+
+    <bean id="vm-sender" class="org.adroitlogic.ultraesb.transport.vm.VMTransportSender"/>
+
+    <!--Refer to the unit testHttp2VMTest for more details about this sample and unit tests for it-->
+    <u:proxy id="vm-echo-back">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                        mediation.getLogSupport().getServiceLogger().info("Request payload : {}", mediation.readPayloadAsString(msg));
+                    ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>vm://echo-back</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                        mediation.getLogSupport().getServiceLogger().info("Reply payload : {}", mediation.readPayloadAsString(msg));
+                    ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="vm-echo-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                        mediation.getLogSupport().getServiceLogger().info("Request payload : {}", mediation.readPayloadAsString(msg));
+                    ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>vm://echo-proxy</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                        mediation.getLogSupport().getServiceLogger().info("Reply payload : {}", mediation.readPayloadAsString(msg));
+                    ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="echo-proxy">
+        <u:transport id="http-8280"/>
+        <u:transport id="vm-listener"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                        mediation.getLogSupport().getServiceLogger().info("Request payload : {}", mediation.readPayloadAsString(msg));
+                    ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/EchoService</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                        mediation.getLogSupport().getServiceLogger().info("Reply payload : {}", mediation.readPayloadAsString(msg));
+                    ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="echo-back" pinnedServers="node1,localhost">
+        <u:transport id="http-8280"/>
+        <u:transport id="vm-listener"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.http.HttpConstants;"><![CDATA[
+                        mediation.setPayloadFromString(msg,
+                                "<response>" +
+                                        "<method>" + mediation.getHTTPSupport().getMethod(msg) + "</method>" +
+                                        "<uri>" + msg.getDestinationURL() + "</uri>" +
+                                        "<query>" + mediation.getHTTPSupport().getQueryString(msg) + "</query>" +
+                                        "<request>" + mediation.readPayloadAsString(msg) + "</request>" +
+                                        "</response>");
+                        mediation.sendResponse(msg, 200);
+                    ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

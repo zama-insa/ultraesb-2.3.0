@@ -1,0 +1,402 @@
+<!doctype html>
+<html>
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta http-equiv="X-UA-Compatible" content="IE=9">
+        <link rel="icon" href="favicon.ico">
+        <title>UltraESB - Web Management Console</title>
+        <style type="text/css" title="mainStyle">
+            @import "ext/jqueryui/css/smoothness/jquery-ui-1.8.11.custom.css";
+            @import "ext/datatables/css/demo_table_jui.css";
+            @import "css/content.css";
+            @import "css/graph.css";
+            @import "css/style.css";
+        </style>
+            <!--[if lt IE 10]><script type="text/javascript" src="ext/json/json2.js"></script><![endif]-->
+            <script type="text/javascript" src="ext/jquery/js/jquery-1.5.1.min.js"></script>
+            <!--[if lt IE 10]><script type="text/javascript" src="ext/html5/html5.js"></script><![endif]-->
+            <!--[if lt IE 10]><script type="text/javascript" src="ext/html5/innershiv.js"></script><![endif]-->
+            <!--[if lt IE 10]><script type="text/javascript" src="ext/html5/jquery.loadshiv.js"></script><![endif]-->
+            <script type="text/javascript" src="ext/datatables/js/jquery.dataTables.min.js"></script>
+            <script type="text/javascript" src="ext/cookie/jquery.cookie.js"></script>
+            <script type="text/javascript" src="ext/pure/pure_min.js"></script>
+            <script type="text/javascript" src="js/main.js"></script>
+            <script type="text/javascript" src="ext/jqueryui/js/jquery-ui-1.8.11.custom.min.js"></script>
+            <script type="text/javascript" src="ext/jscontext/jquery.jscontext-1.0.js"></script>
+            <script type="text/javascript" src="ext/jshashtable/jshashtable-2.1.js"></script>
+            <script type="text/javascript" src="ext/numberformatter/jquery.numberformatter-1.2.1.min.js"></script>
+            <script type="text/javascript" src="ext/blockui/jquery.blockUI.js"></script>
+            <script language="javascript" type="text/javascript" src="ext/editarea/edit_area_full.js"></script>
+            <script language="javascript" type="text/javascript" src="ext/d3/d3.v3.min.js"></script>
+
+            <script type="text/javascript">
+
+                var blockUIActive = true;
+                (function( $ ) {
+                    $.widget( "ui.combobox", {
+                        _create: function() {
+                            var self = this,
+                                    select = this.element.hide(),
+                                    selected = select.children( ":selected" ),
+                                    value = selected.val() ? selected.text() : "";
+                            var input = this.input = $( "<input>" )
+                                    .insertAfter( select )
+                                    .val( value )
+                                    .autocomplete({
+				                		delay: 0,
+						                minLength: 0,
+						                source: function( request, response ) {
+							                var matcher = new RegExp( $.ui.autocomplete.escapeRegex(request.term), "i" );
+							                response( select.children( "option" ).map(function() {
+								            var text = $( this ).text();
+								            if ( this.value && ( !request.term || matcher.test(text) ) )
+									            return {
+										            label: text.replace(
+                                                        new RegExp(
+												            "(?![^&;]+;)(?!<[^<>]*)(" +
+												            $.ui.autocomplete.escapeRegex(request.term) +
+												            ")(?![^<>]*>)(?![^&;]+;)", "gi"
+											            ), "<strong>$1</strong>" ),
+										            value: text,
+										            option: this
+									            };
+                                            }) );
+                                        },
+                                        select: function( event, ui ) {
+                                            ui.item.option.selected = true;
+                                            self._trigger( "selected", event, {
+                                                item: ui.item.option
+                                            });
+                                        },
+                                        change: function( event, ui ) {
+                                            if ( !ui.item ) {
+                                                var matcher = new RegExp( "^" + $.ui.autocomplete.escapeRegex( $(this).val() ) + "$", "i" ),
+                                                        valid = false;
+                                                select.children( "option" ).each(function() {
+                                                    if ( $( this ).text().match( matcher ) ) {
+                                                        this.selected = valid = true;
+                                                        return false;
+                                                    }
+                                                });
+                                                if ( !valid ) {
+                                                    // remove invalid value, as it didn't match anything
+                                                    $( this ).val( "" );
+                                                    select.val( "" );
+                                                    input.data( "autocomplete" ).term = "";
+                                                    return false;
+                                                }
+                                            }
+                                        }
+                                    })
+                                    .addClass( "ui-widget ui-widget-content ui-corner-left" );
+
+                            input.data( "autocomplete" )._renderItem = function( ul, item ) {
+                                return $( "<li></li>" )
+                                        .data( "item.autocomplete", item )
+                                        .append( "<a>" + item.label + "</a>" )
+                                        .appendTo( ul );
+                            };
+
+                            this.button = $( "<button type='button'>&nbsp;</button>" )
+                                    .attr( "tabIndex", -1 )
+                                    .attr( "title", "Show All Items" )
+                                    .insertAfter( input )
+                                    .button({
+                                        icons: {
+                                            primary: "ui-icon-triangle-1-s"
+                                        },
+                                        text: false
+                                    })
+                                    .removeClass( "ui-corner-all" )
+                                    .addClass( "ui-corner-right ui-button-icon" )
+                                    .click(function() {
+                                // close if already visible
+                                if ( input.autocomplete( "widget" ).is( ":visible" ) ) {
+                                    input.autocomplete( "close" );
+                                    return;
+                                }
+
+                                // pass empty string as value to search for, displaying all results
+                                input.autocomplete( "search", "" );
+                                input.focus();
+                            });
+                        },
+
+                        destroy: function() {
+                            this.input.remove();
+                            this.button.remove();
+                            this.element.show();
+                            $.Widget.prototype.destroy.call( this );
+                        }
+                    });
+                })( jQuery );
+
+                $(document).ready(function() {
+                    $.ajaxSetup({cache: false});
+                    $("#loading").ajaxStart(function() {
+                        if(!blockUIActive) {
+                            blockUIActive = true;
+                        } else {
+                            $.blockUI({
+                                theme:     true
+                            });
+                        }
+                    }).ajaxStop(function() {
+                        $.unblockUI();
+                    }).ajaxError(function() {
+                        $.unblockUI();
+                    });
+
+                    if (!$.cookie("logged_in")) {
+                         window.location.href = "login.html";
+                    }
+
+                    $('#logout').html('Signed in as ' + $.cookie("username") +', managing ' + $.cookie("server_name")
+                            + ' | <a href="index.html?pageName=settings.html&bc=clear">Settings</a> | <a href="#" onclick="switchJMXURL()">Switch server</a> | <a href="#" onclick="logoutTOConsole()">Sign out</a>');
+
+                    var pageName = getURLParameter("pageName");
+                    var superMenu = "";
+                    if (pageName != null && pageName.indexOf("/") != -1) {
+                        superMenu = pageName.substring(0, pageName.indexOf("/")) + "-menu";
+                    }
+                    var initBreadcrumb = [{"title":"Home","link":"index.html"}];
+                    if (!$.cookie("breadcrumb") || pageName == null) {
+                        if ($.cookie("secure_mode") == "true") {
+                            $.cookie("breadcrumb", JSON.stringify(initBreadcrumb), { path: '/', secure: true});
+                        } else {
+                            $.cookie("breadcrumb", JSON.stringify(initBreadcrumb), { path: '/'});
+                        }
+                    } else if (getURLParameter("bc") == "clear") {
+                        if (superMenu != "") {
+                            var superMenuLink = $("#" + superMenu);
+                            var superMenuSection = $("#" + superMenu + " > section");
+                            if (superMenuSection.text() != null) {
+                                initBreadcrumb[initBreadcrumb.length] = {"title":superMenuSection.text(), "link":superMenuLink.attr("href")};
+                            }
+                        }
+                        if ($.cookie("secure_mode") == "true") {
+                            $.cookie("breadcrumb", JSON.stringify(initBreadcrumb), { path: '/', secure: true});
+                        } else {
+                            $.cookie("breadcrumb", JSON.stringify(initBreadcrumb), { path: '/'});
+                        }
+                    } else if (getURLParameter("bc")) {
+                        var breadcrumbSet = $.parseJSON($.cookie("breadcrumb"));
+                        var bcToSet = new Array();
+                        for (var i=0; i < getURLParameter("bc"); i++) {
+                            bcToSet[i] = breadcrumbSet[i];
+                        }
+                        if ($.cookie("secure_mode") == "true") {
+                            $.cookie("breadcrumb", JSON.stringify(bcToSet), { path: '/', secure: true});
+                        } else {
+                            $.cookie("breadcrumb", JSON.stringify(bcToSet), { path: '/'});
+                        }
+                    }
+
+                    if ($.cookie("clustering") == null) {
+                        $.ajax({
+                            type: 'GET',
+                            url: getCallURLBase() + 'cluster/clusteringEnabled',
+                            success: function(msg) {
+                                if ($.cookie("secure_mode") == "true") {
+                                    $.cookie("clustering", msg, { path: '/', secure: true});
+                                } else {
+                                    $.cookie("clustering", msg, { path: '/'});
+                                }
+                                if ($.cookie("clustering") != "true") {
+                                    $("#clustering li").addClass("hidden");
+                                } else {
+                                    $("#clustering li").removeClass("hidden");
+                                }
+                            }
+                        });
+                    }
+
+                    if ($.cookie("metricsStepTime") == null) {
+                        $.ajax({
+                            type: 'GET',
+                            url: getCallURLBase() + 'metrics/stepTime',
+                            success: function(msg) {
+                                if ($.cookie("secure_mode") == "true") {
+                                    $.cookie("metricsStepTime", msg.stepTime, { path: '/', secure: true});
+                                    $.cookie("metricsSteps", msg.steps, { path: '/', secure: true});
+                                } else {
+                                    $.cookie("metricsStepTime", msg.stepTime, { path: '/'});
+                                    $.cookie("metricsSteps", msg.steps, { path: '/'});
+                                }
+                            }
+                        });
+                    }
+
+                    if ($.cookie("clustering") != "true") {
+                        $("#clustering li").addClass("hidden");
+                    } else {
+                        $("#clustering li").removeClass("hidden");
+                    }
+
+                    /*var expandMenu = $.parseJSON($.cookie("expand-menu"));
+                    // Collapse everything but the first menu:
+                    $("#VerColMenu > li > a").not(":first").find("+ ul").slideUp(1);
+                    var superMenuSlideDone = false;
+                    for (var n in expandMenu) {
+                        $('#' + expandMenu[n] + ' span').removeClass("ui-icon-triangle-1-e");
+                        $('#' + expandMenu[n] + ' span').addClass("ui-icon-triangle-1-s");
+                        $('#' + expandMenu[n]).find("+ ul").slideToggle("fast");
+                        if (!superMenuSlideDone && expandMenu[n] == superMenu) {
+                            superMenuSlideDone = true;
+                        }
+                    }
+                    if (superMenu != "" && !superMenuSlideDone) {
+                        $('#' + superMenu).find("+ ul").slideToggle("fast");
+                        expandMenu.push(superMenu);
+                    }
+                    // Expand or collapse:
+                    $("#VerColMenu > li > a").click(function() {
+                        var clickedId = $(this).attr("id");
+                        if (clickedId != null && clickedId != "") {
+
+                            if (expandMenu != null) {
+
+                                var inExpandMenu = false;
+                                for (var cIndex in expandMenu) {
+                                    if (expandMenu[cIndex] == clickedId) {
+                                        inExpandMenu = true;
+                                        expandMenu.splice(cIndex, 1);
+                                        break;
+                                    }
+                                }
+
+                                if (!inExpandMenu) {
+                                    expandMenu.push(clickedId);
+                                }
+
+                            } else {
+                                expandMenu = [$(this).attr('id')];
+                            }
+                            $.cookie("expand-menu", JSON.stringify(expandMenu), { path: '/', secure: true});
+                        }
+                    });*/
+
+                    $('#content').ajaxError(function(e, jqxhr, settings, exception) {
+                        ajaxErrorHandler(e, jqxhr, settings, exception);
+                    });
+
+                    // override the default getJSON and ajax calls to encode special characters such as #
+                    var oriGetJSON = jQuery.getJSON;
+                    jQuery.getJSON = function(url, data, success) {
+                        if (url.indexOf("%") == -1) {
+                            arguments[0] = encodeURI(url).replace(/#/g, "%23");
+                        }
+                        return oriGetJSON.apply(this, arguments);
+                    }
+
+                    var oriAjax = jQuery.ajax;
+                    jQuery.ajax = function(options) {
+                        if (options.url.indexOf("%") == -1) {
+                            options.url = encodeURI(options.url).replace(/#/g, "%23");
+                        }
+                        return oriAjax.apply(this, arguments);
+                    }
+
+                    var pageToLoad = "dashboard.html";
+                    var urlParamStruct = getURLParams();
+                    if (urlParamStruct != null && urlParamStruct.pageName) {
+                        pageToLoad = urlParamStruct.pageName;
+                    }
+                    loadContentPane(pageToLoad);
+                });
+            </script>
+    </head>
+    <body>
+        <div id="loading" style="display:none;"></div>
+        <div id="dialogs">
+        <div id="warning" title="Warning">
+            <p id="msgWarning"><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span></p>
+        </div>
+        <div id="info" title="Information">
+            <p id="msgInfo"><span class="ui-icon ui-icon-info" style="float:left; margin:0 7px 50px 0;"></span></p>
+        </div>
+        <div id="error" title="Error">
+            <p id="msgError"><span class="ui-icon ui-icon-circle-close" style="float:left; margin:0 7px 50px 0;"></span></p>
+        </div>
+        <div id="confirm" title="Confirmation">
+            <p id="msgConfirm"><p><span class="ui-icon ui-icon-check" style="float:left; margin:0 7px 20px 0;"></span></p>
+        </div>
+        <div id="switchServer" title="Switch Server">
+            <p>Specify the JMX URL of the server you want to switch to </p><p><span class="ui-icon ui-icon-check" style="float:left; margin:0 7px 20px 0;"></span></p>
+            <select id="jmxURLs">
+                <option></option>
+            </select>
+        </div>
+        </div>
+
+<header>
+	<div id="top-banner">
+		<div id="left">
+			<div id="logo"><img align="top" src="images/ultraesb-original.png"/></div>
+		</div>
+		<div id="right">
+			<div id="title">Management Console</div>	
+			<div id="logout"></div>
+		</div>
+	</div>
+	<div id="toolbar">
+	<span class="color-bg"><img align="top" src="images/borderbg.png"></span>
+			<span class="menu">
+					<a href="http://docs.adroitlogic.org/display/esb" target="_blank" title="Getting Started Resources">Documentation</a>
+					&nbsp;&nbsp;<a href="http://api.adroitlogic.org" target="_blank" title="The API for mediation with Java/JSR 223 Scripting languages">Mediation API</a>
+					&nbsp;&nbsp;<a href="http://docs.adroitlogic.org/display/esb/Sample+Use+Cases" target="_blank" title="Documented Samples (More at samples/conf directory)">Samples</a>
+					&nbsp;&nbsp;<a href="http://esbperformance.org" target="_blank" title="Performance">Performance</a>
+					&nbsp;&nbsp;<a href="http://www.adroitlogic.org" target="_blank" title="About AdroitLogic">About</a>
+		</span>
+	</div>
+</header>
+
+		<nav>
+            <ul id="VerColMenu">
+                <li><a href="index.html?bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Dashboard</section></a></li>
+                <li><a href="index.html?pageName=nodes.html&bc=clear" id="node-mgt-menu"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Node Management</section></a>
+                    <ul>
+                        <li><a href="index.html?pageName=node-mgt/server-manager.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Server Manager</section></a></li>
+                        <li><a href="index.html?pageName=node-mgt/proxy-services.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Proxy Services</section></a></li>
+                        <li><a href="index.html?pageName=node-mgt/sequences.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Sequences</section></a></li>
+                        <li><a href="index.html?pageName=node-mgt/endpoints.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Endpoints</section></a></li>
+                        <li><a href="index.html?pageName=node-mgt/filecache.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>File Caches</section></a></li>
+                        <li><a href="index.html?pageName=node-mgt/work-manager.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Work Managers</section></a></li>
+                        <li><a href="index.html?pageName=node-mgt/transportListener.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Transport Listeners</section></a></li>
+                        <li><a href="index.html?pageName=node-mgt/transportSender.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Transport Senders</section></a></li>
+                    </ul>
+                    </a>
+                </li>
+                <li><a href="index.html?pageName=cluster-mgt.html&bc=clear" id="cluster-mgt-menu"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Cluster Management</section></a>
+                    <ul id="clustering">
+                        <li><a href="index.html?pageName=cluster-mgt/cluster.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Cluster Navigator</section></a></li>
+                        <li><a href="index.html?pageName=cluster-mgt/control-ops.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Control Panel</section></a></li>
+                        <li><a href="index.html?pageName=cluster-mgt/commands.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Command History</section></a></li>
+                    </ul>
+                </li>
+                <li><a href="index.html?pageName=monitoring.html&bc=clear" id="monitoring-menu"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Monitoring</section></a>
+                    <ul id="monitoring">
+                        <li><a href="index.html?pageName=monitoring/metrics-dashboard.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Metrics Dashboard</section></a></li>
+                        <li><a href="index.html?pageName=monitoring/alerts-dashboard.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Alerts Dashboard</section></a></li>
+                        <li><a href="index.html?pageName=monitoring/uz-template-registry.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Zabbix Monitoring</section></a></li>
+                    </ul>
+                </li>
+                <li><a href="index.html?pageName=diagnostics.html&bc=clear" id="diagnostics-menu"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Diagnostics</section></a>
+                    <ul id="node-monitoring">
+                        <li><a href="index.html?pageName=diagnostics/log-viewer.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Log Viewer</section></a></li>
+                        <li><a href="index.html?pageName=diagnostics/loggers.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Loggers</section></a></li>
+                        <li><a href="index.html?pageName=diagnostics/appender-viewer.html&bc=clear"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span><section>Log Appenders</section></a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <section class="mainsection">
+            <div id="content">
+				<div id="breadcrumbs"></div><div class="innerPage" id="main"></div>
+			</div>
+        </section>
+        
+        <footer>
+            <section style="float: left; margin-left: 10px;"><small>Best viewed in Mozilla Firefox and Google Chrome</small></section><section style="margin-right: 10px;"><small>Copyright &copy; 2010 - 2014 AdroitLogic [<a href="http://adroitlogic.org" target="_blank">http://adroitlogic.org</a>]. All Rights Reserved.</small></section>
+        </footer>
+    </body>
+</html>

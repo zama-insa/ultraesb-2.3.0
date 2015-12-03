@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "jvm-classloading-item-parent"
+    },
+    "params":{
+        "name": "Classes loaded (total)",
+        "key_": "jmx[java.lang:type=ClassLoading][TotalLoadedClassCount]"
+    }
+}

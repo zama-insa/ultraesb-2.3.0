@@ -1,0 +1,36 @@
+{
+    "uz_meta": {
+        "parent": "file-cache-graphs-parent"
+    },
+    "params":{
+        "gitems":[{
+            "itemid":"jmx[org.adroitlogic.ultraesb.detail:Type=FileCaches,Name=${.*}$][Details.availableForUse]",
+            "drawtype":"0",
+            "sortorder":"0",
+            "color":"999900",
+            "yaxisside":"0",
+            "calc_fnc":"2",
+            "type":"0",
+            "periods_cnt":"5"
+        }, {
+            "itemid":"jmx[org.adroitlogic.ultraesb.detail:Type=FileCaches,Name=${.*}$][Details.peakUsage]",
+            "drawtype":"0",
+            "sortorder":"0",
+            "color":"666600",
+            "yaxisside":"0",
+            "calc_fnc":"2",
+            "type":"0",
+            "periods_cnt":"5"
+        }, {
+            "itemid":"jmx[org.adroitlogic.ultraesb.detail:Type=FileCaches,Name=${.*}$][Details.totalFilesCreated]",
+            "drawtype":"0",
+            "sortorder":"0",
+            "color":"333300",
+            "yaxisside":"0",
+            "calc_fnc":"2",
+            "type":"0",
+            "periods_cnt":"5"
+        }],
+        "name":"Files usage of the file cache ${.*}$"
+    }
+}

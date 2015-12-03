@@ -1,0 +1,190 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="container" title="Cluster Control Panel">
+    <header class="helpedHeading">
+        <h2>Cluster Control Panel</h2>
+        <div class="ultraHelp" title="Cluster Control Panel Help">
+            <div>This is the control panel from which you can issue the cluster control commands.
+                There are 4 types of cluster control commands available under 4 tabs;
+                <br/>
+                <br/>
+                <img src="images/help/control-ops-tabs.png"/>
+                <br/>
+                <ol>
+                    <li><b>Proxy services operations</b> - Start, Stop, Enable/Disable debug operations for proxy services
+                        on the cluster. You could either type in the name of the proxy or select from the available list.</li>
+                    <li><b>Endpoints operations</b> - Start, Stop, Enable/Disable debug operations for endpoints on the cluster.
+                        You could either type in the name of the endpoint or select from the available list.</li>
+                    <li><b>Sequences operations</b> - Start, Stop, Enable/Disable debug operations for sequences on the cluster.
+                        You could either type in the name of the proxy or select from the available list.</li>
+                    <li><b>Server/Node operations</b> - Round-Robin/Instant, Graceful/Hard restart operation invocation of the cluster nodes.</li>
+                </ol>
+                Upon invoking the operation the system will issue a control command to the cluster and you will be
+                taken to the respective command page which will give you a view of the execution results.
+            </div>
+        </div>
+    </header>
+    <section>Control the cluster behavior in one go with certain cluster level control operations</section>
+    <div id="tabs">
+        <ul>
+            <li><a href="cluster-mgt/proxy-control-ops.html">Proxy services</a></li>
+            <li><a href="cluster-mgt/endpoint-control-ops.html">Endpoints</a></li>
+            <li><a href="cluster-mgt/sequence-control-ops.html">Sequences</a></li>
+            <li><a href="cluster-mgt/server-control-ops.html">Servers</a></li>
+        </ul>
+    </div>
+    <script type="text/javascript">
+
+(function( $ ) {
+		$.widget( "ui.combobox", {
+			_create: function() {
+				var self = this,
+					select = this.element.hide(),
+					selected = select.children( ":selected" ),
+					value = selected.val() ? selected.text() : "";
+				var input = this.input = $( "<input>" )
+					.insertAfter( select )
+					.val( value )
+					.autocomplete({
+						delay: 0,
+						minLength: 0,
+						source: function( request, response ) {
+							var matcher = new RegExp( $.ui.autocomplete.escapeRegex(request.term), "i" );
+							response( select.children( "option" ).map(function() {
+								var text = $( this ).text();
+								if ( this.value && ( !request.term || matcher.test(text) ) )
+									return {
+										label: text.replace(
+											new RegExp(
+												"(?![^&;]+;)(?!<[^<>]*)(" +
+												$.ui.autocomplete.escapeRegex(request.term) +
+												")(?![^<>]*>)(?![^&;]+;)", "gi"
+											), "<strong>$1</strong>" ),
+										value: text,
+										option: this
+									};
+							}) );
+						},
+						select: function( event, ui ) {
+							ui.item.option.selected = true;
+							self._trigger( "selected", event, {
+								item: ui.item.option
+							});
+						},
+						change: function( event, ui ) {
+							if ( !ui.item ) {
+								var matcher = new RegExp( "^" + $.ui.autocomplete.escapeRegex( $(this).val() ) + "$", "i" ),
+									valid = false;
+								select.children( "option" ).each(function() {
+									if ( $( this ).text().match( matcher ) ) {
+										this.selected = valid = true;
+										return false;
+									}
+								});
+								if ( !valid ) {
+									// remove invalid value, as it didn't match anything
+									$( this ).val( "" );
+									select.val( "" );
+									input.data( "autocomplete" ).term = "";
+									return false;
+								}
+							}
+						}
+					})
+					.addClass( "ui-widget ui-widget-content ui-corner-left" );
+
+				input.data( "autocomplete" )._renderItem = function( ul, item ) {
+					return $( "<li></li>" )
+						.data( "item.autocomplete", item )
+						.append( "<a>" + item.label + "</a>" )
+						.appendTo( ul );
+				};
+
+				this.button = $( "<button type='button'>&nbsp;</button>" )
+					.attr( "tabIndex", -1 )
+					.attr( "title", "Show All Items" )
+					.insertAfter( input )
+					.button({
+						icons: {
+							primary: "ui-icon-triangle-1-s"
+						},
+						text: false
+					})
+					.removeClass( "ui-corner-all" )
+					.addClass( "ui-corner-right ui-button-icon" )
+					.click(function() {
+						// close if already visible
+						if ( input.autocomplete( "widget" ).is( ":visible" ) ) {
+							input.autocomplete( "close" );
+							return;
+						}
+
+						// pass empty string as value to search for, displaying all results
+						input.autocomplete( "search", "" );
+						input.focus();
+					});
+			},
+
+			destroy: function() {
+				this.input.remove();
+				this.button.remove();
+				this.element.show();
+				$.Widget.prototype.destroy.call( this );
+			}
+		});
+	})( jQuery );
+
+    function invokeOperation(artifact, artifactText, operation, operationText, id) {
+        showConfirmation("Do you want to " + operationText + " " + artifactText + " with id : " + id + " in the complete cluster?", function() {
+            $.ajax({
+                type: 'POST',
+                dataType: 'text',
+                url: getCallURLBase() + 'cluster/' + artifact + "/" + operation + "/" + id,
+                success: function(msg) {
+                    showInfo('Successfully published the ' + operationText + " command for " + artifactText + " with id : " + id + ' into the cluster with command id : ' + msg + '.', 'index.html?pageName=cluster-mgt/command-details.html&commandId=' + msg);
+                }
+            });
+        });
+    }
+
+    $(document).ready(function() {
+        $('#tabs').tabs({
+			ajaxOptions: {
+				error: function( xhr, status, index, anchor ) {
+					$( anchor.hash ).html(
+						"Couldn't load this control operations tab." );
+				}
+			}
+		});
+    });
+</script>
+</div>
+</html>

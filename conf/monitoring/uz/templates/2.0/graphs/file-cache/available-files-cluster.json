@@ -1,0 +1,28 @@
+{
+    "uz_meta": {
+        "parent": "file-cache-graphs-parent",
+        "cluster": "true"
+    },
+    "params":{
+        "gitems":[{
+            "itemid":"$node.host$:jmx[org.adroitlogic.ultraesb.detail:Type=FileCaches,Name=${.*}$][Details.availableForUse]",
+            "drawtype":"0",
+            "sortorder":"0",
+            "color":"$node.color.1$",
+            "yaxisside":"0",
+            "calc_fnc":"2",
+            "type":"0",
+            "periods_cnt":"5"
+        }, {
+            "itemid":"$node.host$:jmx[java.lang:type=OperatingSystem][OpenFileDescriptorCount]",
+            "drawtype":"0",
+            "sortorder":"0",
+            "color":"$node.color.2$",
+            "yaxisside":"0",
+            "calc_fnc":"2",
+            "type":"0",
+            "periods_cnt":"5"
+        }],
+        "name":"Available files for use in the file cache ${.*}$ and system open file descriptors across the cluster"
+    }
+}

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Refer to the unit tests HttpPathPatternTest, for more details about this sample and unit tests for it-->
+
+    <!--A proxy service that acts as a REST service and demonstrates the use of http path pattern to expose services
+    with the ability to extract the path patter values at the mediation via the HTTPSupport interface-->
+    <u:proxy id="rest-proxy">
+        <u:transport id="http-8280">
+            <u:property name="ultra.http.path_pattern" value="/service/accountDetails/{customerId:(\d*)}/account/{accountId:(\d*)}"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.http.HttpConstants;"><![CDATA[
+                        mediation.setPayloadFromString(msg,
+                                "<response>" +
+                                        "<method>" + mediation.getHTTPSupport().getMethod(msg) + "</method>" +
+                                        "<uri>" + msg.getDestinationURL() + "</uri>" +
+                                        "<customerId>" + mediation.getHTTPSupport().getFirstRequestParameter(msg, "customerId") + "</customerId>" +
+                                        "<accountId>" + mediation.getHTTPSupport().getFirstRequestParameter(msg, "accountId") + "</accountId>" +
+                                "</response>");
+                        mediation.sendResponse(msg, 200);
+                    ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

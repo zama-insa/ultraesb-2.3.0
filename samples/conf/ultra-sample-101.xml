@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Refer to the unit tests HttpCompressionTest, TextServletTest, RestfulServicesProxyTest
+    for more details about this sample and unit tests for it-->
+    
+    <!--A proxy service for the REST sample services hosted by the sample back-end simulator ToolBox. See
+    http://adroitlogic.org/samples-articles-and-tutorials/15/18 for more details
+
+    Forwards any REST request received at context path /service/rest-proxy to the sample REST service at
+    http://localhost:9000/rest-services and switches back any Location headers from the original response to point back
+    to the Proxy (instead of the original service) so that the backend service will be completely transparent to the
+    client using the proxy-->
+    <u:proxy id="rest-proxy">
+        <u:transport id="http-8280">
+            <u:property name="ultra.transport.url" value="rest-proxy*"/>
+        </u:transport>
+        <u:target>
+            <u:inDestination>
+                <u:address type="prefix">http://localhost:9000/rest-services</u:address>
+                <u:property name="ultra.endpoint.switch_location_headers_to" value="http://localhost:8280/service/rest-proxy"/>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--A proxy service for Text responses over HTTP. Unless a content type constraint is forced, a proxy service can handle-->
+    <!--SOAP, REST, Hessian, JSON, Text or binary etc-->
+    <u:proxy id="text-proxy">
+        <u:transport id="http-8280">
+            <u:property name="ultra.transport.url" value="text-proxy*"/>
+        </u:transport>
+        <u:target>
+            <u:inDestination>
+                <u:address>http://localhost:9000/service/TextServlet</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+</beans>

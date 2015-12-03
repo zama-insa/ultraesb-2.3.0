@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="container" title="Command Details">
+    <header class="helpedHeading">
+        <h2>Command Details</h2>
+        <div class="ultraHelp" title="Command Details Help">
+            <div>This page gives you an idea of a particular command issued to the cluster and its
+                execution results stating which nodes has executed this command in which sessions,
+                and whether the execution was successful or not. It also gives the command metadata
+                like the time of command issue, whether the command is archived and the actual command
+                with the set of parameters.
+                <p>Execution result table gives a clear picture of who executed this command and you
+                may navigate to the nodes or sessions using the linked node id and session id respectively
+                from the execution results table to get an understanding of those and the other commands
+                executed by the same node or session. You may use the <b>Control Panel</b> available on the
+                top right corner of the page to archive the command by using the "Archive" icon
+                    <img src="icons/archive.png"/> or re-publish the command by using the "Re-publish" icon
+                    <img src="icons/redo.png"/></p>
+                <i>Note that both these operations are not available for an already archived command.</i>
+            </div>
+        </div>
+    </header>
+    <section>Detailed information abut the command</section>
+    <div id="commandDetails" class="outer_wrapper">
+        <div id="command-controls" class="top-right-controls">
+            <div class="controls">
+                <ul>
+            <li class="archive clickable left-span"><img src="icons/mga-archive.png" title="Archive command "/><br/> Archive</li>
+            <li class="repub clickable"><img src="icons/mga-redo.png" title="Republish command "/><br/> Republish</li>
+            </ul>
+            </div>
+        </div>
+        <form class="tab_less_pane">
+        <fieldset id="commandView">
+            <header><h3>Command Metadata</h3></header>
+            <ul>
+                <li>
+                    <label>Command ID</label>
+                    <input id="commandId" type="text" value="" class="disabledText" readonly="readonly">
+                </li>
+                <li>
+                    <label>Received Time</label>
+                    <input id="receivedTime" type="text" value="" class="disabledText" readonly="readonly">
+                </li>
+                <li>
+                    <label>Command State</label>
+                    <input id="state" type="text" value="" class="disabledText" readonly="readonly">
+                </li>
+            </ul>
+            <h3>Command Description</h3>
+            <ul>
+                <li>
+                    <label>Command Type</label>
+                    <input id="commandType" type="text" value="" class="disabledText" readonly="readonly">
+                </li>
+            </ul>
+            <section>Command Parameters</section>
+            <table cellpadding="0" cellspacing="0" border="0" class="display" id="commandParamList">
+                <thead>
+                    <tr>
+                        <th>Parameter Key</th>
+                        <th>Parameter Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="paramKey"></td>
+                        <td class="paramValue"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <h3>Execution Results</h3>
+            <section>Execution report of the command</section>
+            <table cellpadding="0" cellspacing="0" border="0" class="display" id="commandResults">
+                <thead>
+                    <tr>
+                        <th>Reported Time</th>
+                        <th>Node Name</th>
+                        <th>Session ID</th>
+                        <th>Execution Result</th>
+                        <th>Controls</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="reportedTime"></td>
+                        <td class="nodeName"><a href="index.html?pageName=cluster-mgt/node-details.html&nodeName="></a></td>
+                        <td class="sessionId"><a href="index.html?pageName=cluster-mgt/session-details.html&nodeName="></a></td>
+                        <td class="executionResult"></td>
+                        <td class="control" style="padding-bottom:0px;">
+                            &nbsp;&nbsp;<img src="icons/retry.png" title="Retry command " class="repub clickable"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </fieldset>
+        </form>
+    </div>
+    <script type="text/javascript" src="js/clustering-support.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+
+            var commandId = getURLParameter("commandId");
+            var jqxhr = $.getJSON(getCallURLBase() + 'cluster/getCommandDetails/' + commandId, function(dataset) {
+                if (dataset.archived) {
+                    dataset.state = "Archived";
+                } else {
+                    dataset.state = "Live";
+                }
+
+                dataset.commandType = dataset.command.split('?')[0];
+                dataset.receivedFormattedTime = formattedLocaleDateTime(dataset.receivedTime);
+
+                var commandParams = new Array();
+                if (dataset.command.indexOf('?') != -1) {
+                    var paramString = dataset.command.substring(dataset.command.indexOf('?') + 1);
+                    var paramArray = paramString.split('&');
+                    for (var param in paramArray) {
+                        var keyVal = paramArray[param].split('=');
+                        commandParams[commandParams.length] = {"key":keyVal[0],"value":keyVal[1]};
+                    }
+                }
+
+                var data = {node:dataset};
+                var dataDir = {
+                    'input#commandId@value'     :'node.commandId',
+                    'input#commandType@value'   :'node.commandType',
+                    'input#receivedTime@value'  :'node.receivedFormattedTime',
+                    'input#state@value'         :'node.state'
+                };
+
+                var paramData = {params:commandParams};
+                var paramDir = {
+                    'tbody tr':{
+                        'param<-params':{
+                            'td.paramKey'        :'param.key',
+                            'td.paramValue'        :'param.value'
+                        }
+                    }
+                };
+
+                var allResults = new Array();
+                for (var t1 in dataset.successResultViews) {
+                    var tmpResult1 = dataset.successResultViews[t1];
+                    tmpResult1.state = "Successful";
+                    allResults[allResults.length] = tmpResult1;
+                }
+
+                for (var t2 in dataset.failedResultViews) {
+                    var tmpResult2 = dataset.failedResultViews[t2];
+                    tmpResult2.state = "Failed";
+                    allResults[allResults.length] = tmpResult2;
+                }
+
+                var resultData = {results:allResults};
+                var resultDir = {
+                    'tbody tr':{
+                        'result<-results':{
+                            'td.reportedTime'       :function(result) {return formattedLocaleDateTime(result.item.reportedTime);},
+                            'td.nodeName a'         :'result.nodeName',
+                            'td.nodeName a@href+'   :'result.nodeName',
+                            'td.sessionId a'        :'result.sessionId',
+                            'td.sessionId a@href+'  :function(result) {return result.item.nodeName + '&sessionId=' + result.item.sessionId;},
+                            'td.executionResult'    :'result.state',
+                            'td.control img.repub@style'        :function(result) {if(result.item.state!="Failed"){return "display:none";}else {return "";}},
+                            'td.control img.repub@onclick'      :function(result) {return '{reTryCommand("' + dataset.commandId + '", "'+ result.item.nodeName +'")}';},
+                            'td.control img.repub@title+'       :function(result) {return dataset.commandId + ' on ' + result.item.nodeName;}
+                        }
+                    }
+                };
+
+                $("#commandView").render(data, dataDir);
+                if (!dataset.archived) {
+                    $(".archive").attr("title", $(".archive").attr("title") + commandId);
+                    $(".archive").bind("click", new Function("archiveCommand('" + commandId + "')"));
+                    $(".repub").attr("title", $(".repub").attr("title") + commandId);
+                    $(".repub").bind("click", new Function("rePublishCommand('" + commandId + "')"));
+                } else {
+                    $("#command-controls").attr("style", "display:none");
+                }
+                $('#commandParamList').render(paramData, paramDir);
+                $('#commandParamList').dataTable({
+                    "bLengthChange"  : true,
+                    "bJQueryUI"      : true
+                });
+                $('#commandResults').render(resultData, resultDir);
+                $('#commandResults').dataTable({
+                    "bLengthChange"  : true,
+                    "bJQueryUI"      : true
+                });
+                encodeURLs();
+            });
+        });
+    </script>
+</div>
+</html>

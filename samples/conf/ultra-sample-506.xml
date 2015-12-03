@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xmlns:amq="http://activemq.apache.org/schema/core"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd
+http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd">
+
+    <!--This sample shows a synchronous-asynchronous bridge and guaranteed message delivery using ActiveMQ as a JMS
+    provider
+
+    Start the ToolBox, and the sample Jetty Server and issue a Prefix #1 getQuote request to the URL
+    http://localhost:8280/service/soap-proxy
+
+    Without a HTTP header called "routing" the request will be rejected with an error
+    Setting a custom HTTP header "routing: something" will accept the message, and later discard due to the invalid value
+    Setting a custom HTTP header "routing: xadmin;server1;community#1.0##" will queue the message and first issue a
+    confirmation with the message ID of the JMS message included. Then it will be posted to the SimpleStockQuote service
+    one or more times until a quote value of 200 is received. A lesser value will rollback the JMS read transaction
+    causing a redelivery.
+    -->
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="100"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!-- Create an embedded ActiveMQ Broker -->
+    <amq:broker useJmx="false" persistent="false">
+        <amq:transportConnectors>
+            <amq:transportConnector uri="tcp://localhost:61616"/>
+        </amq:transportConnectors>
+    </amq:broker>
+
+    <bean id="stxManager" class="org.springframework.jms.connection.JmsTransactionManager">
+        <property name="connectionFactory" ref="queueConnectionFactory"/>
+    </bean>
+
+    <bean id="txManager" class="org.adroitlogic.ultraesb.core.spring.SpringPlatformTransactionManager">
+        <property name="txnManager" ref="stxManager"/>
+    </bean>
+
+    <!-- JMS ConnectionFactory to use, configuring the embedded broker using XML -->
+    <amq:connectionFactory id="queueConnectionFactory" brokerURL="vm://localhost"/>
+
+    <!--Define JMS transport listener-->
+    <bean id="jms-lsnr" class="org.adroitlogic.ultraesb.transport.jms.JMSTransportListener">
+        <property name="connectionFactory" ref="queueConnectionFactory"/>
+        <property name="transactionManager" ref="txManager"/>
+    </bean>
+
+    <!--Define JMS transport sender-->
+    <bean id="jms-sender" class="org.adroitlogic.ultraesb.transport.jms.JMSTransportSender">
+        <property name="template">
+            <bean id="jmsProducerTemplate" class="org.springframework.jms.core.JmsTemplate">
+                <property name="connectionFactory" ref="queueConnectionFactory"/>
+            </bean>
+        </property>
+        <property name="metaInfoPopulator">
+            <bean class="org.adroitlogic.ultraesb.transport.jms.util.ActiveMQMetaInfoPopulator"/>
+        </property>
+    </bean>
+
+    <u:proxy id="soap-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.jms.JMSConstants; org.adroitlogic.ultraesb.api.transport.http.HttpConstants;"><![CDATA[
+                    if (msg.getFirstTransportHeader("routing") == null) {
+                        mediation.setPayloadFromString(msg, "Valid routing rules does not exist");
+                        mediation.sendResponse(msg, 500);
+                    } else {
+                        //For REST forwarding, uncomment the following, and make the "stockquote-service" endpoint address a "prefix" type
+                        // msg.addTransportHeader(HttpConstants.MessageProperties.FORWARD_URL_POSTFIX,
+                        //    msg.getStringMessageProperty(HttpConstants.MessageProperties.FORWARD_URL_POSTFIX));
+                        msg.addTransportHeader(HttpConstants.MessageProperties.QUERY_STRING, mediation.getHTTPSupport().getQueryString(msg));
+                        mediation.sendToEndpoint(msg, "jmsQueue");
+                        mediation.setPayloadFromString(msg, "Accepted : " + mediation.getJMSSupport().getSentMessageId(msg) +
+                            " by broker : " + mediation.getJMSSupport().getSentProviderURL(msg));
+                        mediation.sendResponse(msg, 200);
+                    }
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="jmsQueue">
+        <u:address>jms:/Q.jmsPending</u:address>
+    </u:endpoint>
+
+    <u:proxy id="jmsToService">
+        <u:transport id="jms-lsnr">
+            <u:property name="ultra.jms.destination" value="Q.jmsPending"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    logger.info("Processing queued message from JMS..");
+                    if ("xadmin;server1;community#1.0##".equals(msg.getStringMessageProperty("routing"))) {
+                        msg.suspendTransaction("txManager");
+                        mediation.sendToEndpoint(msg, "stockquote-service");
+                    } else {
+                        logger.error("Discard undeliverable message : {}", msg.getMessageUUID());
+                    }
+                ]]></u:java>
+            </u:inSequence>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    double quotedPrice = Double.parseDouble(mediation.getXMLSupport().extractAsStringUsingXPath(msg, "//last"));
+                    msg.resumeTransaction();
+                    if (quotedPrice > 100) {
+                        logger.info("Confirm order at : {}", quotedPrice);
+                        msg.commitTransaction();
+                    } else {
+                        logger.warn("Quote price : {} - order rejected", quotedPrice);
+                        msg.rollbackTransaction();
+                    }
+                ]]></u:java>
+            </u:outSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="stockquote-service">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+
+</beans>

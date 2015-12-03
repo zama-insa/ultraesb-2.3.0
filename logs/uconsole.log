@@ -1,0 +1,16 @@
+2015-12-03 22:42:04,210 [-] [main]  INFO ConsoleJettyServer Attached the uconsole web application context
+2015-12-03 22:42:06,608 [-] [main]  INFO ConsoleJettyServer UltraESB management console is running at https://localhost:8043/uconsole
+2015-12-03 22:42:23,020 [-] [qtp125622176-23]  INFO SunJMXUtils Found UltraESB instance running locally with PID : 11309
+2015-12-03 22:42:24,029 [-] [qtp125622176-14]  INFO RefreshableJMXConnection Connected to JMX service URL : service:jmx:rmi://127.0.0.1/stub/rO0ABXNyAC5qYXZheC5tYW5hZ2VtZW50LnJlbW90ZS5ybWkuUk1JU2VydmVySW1wbF9TdHViAAAAAAAAAAICAAB4cgAaamF2YS5ybWkuc2VydmVyLlJlbW90ZVN0dWLp/tzJi+FlGgIAAHhyABxqYXZhLnJtaS5zZXJ2ZXIuUmVtb3RlT2JqZWN002G0kQxhMx4DAAB4cHc0AAtVbmljYXN0UmVmMgAACTEyNy4wLjEuMQAAsG99KnSo4n76fmMUoqIAAAFRacvO5oABAHg=
+2015-12-03 22:42:35,313 [-] [qtp125622176-23]  INFO UserManagerAdmin User admin logged in.
+2015-12-03 22:42:35,313 [-] [qtp125622176-23]  INFO UserManagerAdmin The JMX URL for the associated user is : default
+2015-12-03 22:42:35,353 [-] [qtp125622176-23]  INFO RefreshableJMXConnection Connected to JMX service URL : service:jmx:rmi://127.0.0.1/stub/rO0ABXNyAC5qYXZheC5tYW5hZ2VtZW50LnJlbW90ZS5ybWkuUk1JU2VydmVySW1wbF9TdHViAAAAAAAAAAICAAB4cgAaamF2YS5ybWkuc2VydmVyLlJlbW90ZVN0dWLp/tzJi+FlGgIAAHhyABxqYXZhLnJtaS5zZXJ2ZXIuUmVtb3RlT2JqZWN002G0kQxhMx4DAAB4cHc0AAtVbmljYXN0UmVmMgAACTEyNy4wLjEuMQAAsG99KnSo4n76fmMUoqIAAAFRacvO5oABAHg=
+2015-12-03 22:49:26,392 [-] [main]  INFO ConsoleJettyServer Attached the uconsole web application context
+2015-12-03 22:49:36,075 [-] [main]  INFO ConsoleJettyServer UltraESB management console is running at https://localhost:8043/uconsole
+2015-12-03 22:59:39,715 [-] [qtp125622176-13]  INFO SunJMXUtils Found UltraESB instance running locally with PID : 2431
+2015-12-03 22:59:45,616 [-] [qtp125622176-13]  INFO UserManagerAdmin User admin logged in.
+2015-12-03 22:59:45,616 [-] [qtp125622176-13]  INFO UserManagerAdmin The JMX URL for the associated user is : default
+2015-12-03 22:59:46,024 [-] [qtp125622176-13]  INFO RefreshableJMXConnection Connected to JMX service URL : service:jmx:rmi://127.0.0.1/stub/rO0ABXNyAC5qYXZheC5tYW5hZ2VtZW50LnJlbW90ZS5ybWkuUk1JU2VydmVySW1wbF9TdHViAAAAAAAAAAICAAB4cgAaamF2YS5ybWkuc2VydmVyLlJlbW90ZVN0dWLp/tzJi+FlGgIAAHhyABxqYXZhLnJtaS5zZXJ2ZXIuUmVtb3RlT2JqZWN002G0kQxhMx4DAAB4cHc0AAtVbmljYXN0UmVmMgAACTEyNy4wLjEuMQAAkJDH0C+lJQRWWc26jdYAAAFRadugZoABAHg=
+2015-12-03 22:59:46,086 [-] [qtp125622176-13]  INFO RefreshableJMXConnection Connected to JMX service URL : service:jmx:rmi://127.0.0.1/stub/rO0ABXNyAC5qYXZheC5tYW5hZ2VtZW50LnJlbW90ZS5ybWkuUk1JU2VydmVySW1wbF9TdHViAAAAAAAAAAICAAB4cgAaamF2YS5ybWkuc2VydmVyLlJlbW90ZVN0dWLp/tzJi+FlGgIAAHhyABxqYXZhLnJtaS5zZXJ2ZXIuUmVtb3RlT2JqZWN002G0kQxhMx4DAAB4cHc0AAtVbmljYXN0UmVmMgAACTEyNy4wLjEuMQAAkJDH0C+lJQRWWc26jdYAAAFRadugZoABAHg=
+2015-12-03 23:14:46,487 [-] [qtp125622176-29]  INFO UserManagerAdmin Logout user admin
+2015-12-03 23:14:46,875 [-] [qtp125622176-50]  INFO SunJMXUtils Found UltraESB instance running locally with PID : 2431

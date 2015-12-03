@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "transport-sender-item-parent"
+    },
+    "params":{
+        "name": "Receiving timeouts for the transport sender ${.*}$",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=TransportSenders,Name=${.*}$][Details.timeoutsReceiving]"
+    }
+}

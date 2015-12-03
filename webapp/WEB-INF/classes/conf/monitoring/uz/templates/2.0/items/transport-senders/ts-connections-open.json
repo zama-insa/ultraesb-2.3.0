@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "transport-sender-item-parent"
+    },
+    "params":{
+        "name": "Connections from the transport sender ${.*}$ (open)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=TransportSenders,Name=${.*}$][Details.openConnectionsCount]"
+    }
+}

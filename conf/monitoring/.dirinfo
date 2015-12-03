@@ -1,0 +1,2 @@
+All monitoring related configurations are placed in this directory including the metrics engine configuration and the
+Zabbix integration JSON templates etc..

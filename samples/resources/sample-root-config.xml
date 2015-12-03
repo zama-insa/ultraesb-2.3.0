@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+    <!--
+    ============================================================================================
+    THIS IS A SAMPLE ROOT CONFIGURATION FILE TO BE USED FOR TESTING WITH MULTIPLE CONFIGURATIONS
+    DO NOT USE THIS FOR ANY OTHER PURPOSES
+    ============================================================================================
+    -->
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg value="tmp"/>
+        <constructor-arg value="10" type="int"/>
+    </bean>
+
+    <bean id="http-8380" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8380"/>
+    </bean>
+
+    <bean id="https-8543" class="org.adroitlogic.ultraesb.transport.http.HttpsNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="sslVerifyClient" value="optional"/>
+        <property name="identityStorePath" value="conf/keys/identity.jks"/>
+        <property name="identityKeyPassword" value="password"/>
+        <property name="identityStorePassword" value="password"/>
+        <property name="trustStorePath" value="conf/keys/trust.jks"/>
+        <property name="trustStorePassword" value="password"/>
+        <property name="port" value="8543"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <bean id="https-sender" class="org.adroitlogic.ultraesb.transport.http.HttpsNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl"/>
+</beans>

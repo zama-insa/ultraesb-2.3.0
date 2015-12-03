@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+***********************************************************************************************************************
+
+    NOTE: This is the default root configuration file of the UltraESB, and it includes most of the important
+    production deployment time configuration options as commented text. Do NOT try to understand this if you
+    are still new to the UltraESB
+
+    To Start learning about the UltraESB first refer to the sample configurations found in the samples/conf
+    directory which are much more simplified as tutorial examples. Also, look at the screen casts and other
+    documented articles found from http://adroitlogic.org
+
+***********************************************************************************************************************
+
+This is the default configuration file for the UltraESB and is picked up when the bin/ultraesb.sh or .bat scripts are
+used, or the UltraESB is started as a service with the ultraesb-daemon.sh
+
+To simplify management, the configuration is broken into two separate files, The ultra-root.xml (this file) is used to
+define the transports, common more static configurations like clustering, caching, JMX management etc, and the
+individual deployment units contain there own ultra-unit.xml file which is used to define the [more dynamic] proxy
+services, sequences and endpoints to be hosted on the instance. When executing a sample configuration
+(e.g. bin/ultraesb.sh -sample <n>), all configuration is held in one file for simplicity.
+
+An UltraESB configuration is a Spring framework configuration file, and thus maybe broken into multiple fragments for
+easier administration for a large configuration.
+-->
+<!--suppress SpringBeanNameConventionInspection, XmlUnusedNamespaceDeclaration -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <!--The fileCache bean is used by the HTTP/S transports to write messages received into optionally memory mapped
+    files for best performance. A FileCache instance facilitates the pooling and re-using of files for optimal
+    performance. See API documentation at http://api.adroitlogic.org for complete details on
+    configuration options available. Some of the configuration properties available includes:
+        memoryMapEnabled, memoryMapSize, warnThreshold, stopThreshold
+
+    Supports monitoring and management via JMX -->
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg value="tmp"/>              <!--directory for temporary files (must be a local disk)-->
+        <constructor-arg value="200" type="int"/>   <!--number of initial temporary files (~ average concurrancy x 2)-->
+        <!-- Advanced options See http://api.adroitlogic.org/ for more options
+        <constructor-arg value="true" type="boolean"/>    memory map temp files
+        <constructor-arg value="4096" type="long"/>       memory mapped size
+        -->
+    </bean>
+
+    <!-- The new RAMDisk based file cache for even better performance  (since v1.5.0)
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.RAMDiskFileCache">
+        <constructor-arg value="/tmp/ram"/>               ram disk path
+        <constructor-arg value="200" type="int"/>         initial size
+        <constructor-arg value="1024" type="int"/>        warn threshold
+        <constructor-arg value="2048" type="int"/>        stop threshold
+        <constructor-arg value="1024" type="int"/>        max files on ram disk
+        <constructor-arg value="/tmp/overflow"/>          disk to use on overflow
+    </bean-->
+
+    <!--The HTTP transport configuration. See API documentation at http://api.adroitlogic.org for complete details on
+    configuration options available.
+    e.g. properties such as:
+            bindAddress, defaultContextPath, replaceOriginServer, zeroCopyEnabled, requestFilters
+
+    Supports monitoring and management via JMX -->
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8283"/>
+        <!-- Uncomment to set a custom context path e.g. /services/ for all proxy services
+        <property name="defaultContextPath" value="/services/"/>-->
+
+        <!--Advanced options See http://api.adroitlogic.org/ for more options
+        <property name="zeroCopyEnabled" value="false"/>    use zero copy
+        <property name="bindAddress" value="192.168.1.3"/>  a host name or IP address
+        <property name="noCompression" value="true"/>       turn off response gzip compression, even if client requests
+        <property name="requestFilters">                    optional request filters
+            <list>                                          serve WSDLs and XSDs for a SOAP service
+                <bean class="org.adroitlogic.ultraesb.transport.http.ServiceResourceRequestFilter">
+                    <property name="resourcePrefix" value="http://localhost:8280"/>
+                </bean>                                      see sample 110 for basic and digest authentication
+                <bean class="org.adroitlogic.ultraesb.transport.http.auth.BasicAuthenticationFilter">
+                    <property name="realmName" value="adroitlogic"/>
+                </bean>
+            </list>
+        </property>
+        <property name="enableConnectionDebug" value="true"/>   turn on detailed connection debug info on errors
+        <property name="connectionDebugHeaders">
+            <set>
+                <value>all</value>   specify HTTP headers to debug or 'none' or 'all'
+            </set>
+        </property>
+        <property name="properties">                        advanced HttpCore NIO tuning properties
+            <map>
+                <entry key="http.socket.timeout" value="120000"/>
+            </map>
+        </property>
+        <property name="errorHandlers">
+            <map>
+                <entry key="404">
+                    <bean class="org.adroitlogic.ultraesb.api.transport.TransportErrorHandler - Implementation"/>
+                </entry>
+            </map>
+        </property>
+        -->
+    </bean>
+
+    <!--The HTTPS transport configuration. See API documentation at http://api.adroitlogic.org for complete details on
+    configuration options available.
+    e.g. properties inherited from the HTTP transport such as :
+            bindAddress, defaultContextPath, replaceOriginServer, zeroCopyEnabled, requestFilters
+         and properties specific to the HTTPS transport such as :
+            sslVerifyClient, nonProductionNoRemoteCertValidation
+
+    Supports monitoring and management via JMX -->
+    <bean id="https-8443" class="org.adroitlogic.ultraesb.transport.http.HttpsNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="sslVerifyClient" value="optional"/>
+        <property name="identityStorePath" value="conf/keys/identity.jks"/>
+        <property name="identityKeyPassword" value="password"/>
+        <property name="identityStorePassword" value="password"/>
+        <property name="trustStorePath" value="conf/keys/trust.jks"/>
+        <property name="trustStorePassword" value="password"/>
+        <property name="port" value="8443"/>
+        <!-- Uncomment to set a custom context path e.g. /services/ for all proxy services
+        <property name="defaultContextPath" value="/services/"/>-->
+
+        <!--Advanced options Refer HttpNIOListener (applies to this too) above, and als http://api.adroitlogic.org/
+        <property name="nonProductionNoRemoteCertValidation" value="true"/> use to turn off SSL validations for testing
+        -->
+    </bean>
+
+    <!--The HTTP transport sender configuration. See API documentation at http://api.adroitlogic.org for complete details
+    on configuration options available.
+    e.g. properties such as:
+            proxyHost, proxyPort, proxyBypassList, replaceUserAgent, unzipResponseEntities, zeroCopyEnabled
+
+    Supports monitoring and management via JMX -->
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+
+        <!--Advanced options See http://api.adroitlogic.org/ for more options
+        <property name="zeroCopyEnabled" value="false"/>        use zero copy
+        <property name="proxyHost" value="proxy.server.com"/>   the proxy server to use for outgoing connections
+        <property name="proxyPort" value="3128"/>               the proxy server port
+                                                                (set a "proxyBypassList" to bypass proxy for some hosts)
+        <property name="unzipResponseEntities" value="false"/>  do not unzip compressed responses received (e.g. no out mediation)
+        <property name="enableConnectionDebug" value="true"/>   turn on detailed connection debug info on errors
+        <property name="keepalive" value="30000"/>              the maximum time to keep a socket open for later reuse
+        <property name="keepAliveSafetyThreshold" value="5000"/>the threshold to not re-use a keepalive socket when its about to timeout
+        <property name="connectionDebugHeaders">
+            <set>
+                <value>all</value>   specify HTTP headers to debug or 'none' or 'all'
+            </set>
+        </property>
+        <property name="properties">                        advanced HttpCore NIO tuning properties
+            <map>
+                <entry key="http.socket.timeout" value="120000"/>
+                <entry key="http.connection.timeout" value="10000"/>
+            </map>
+        </property>
+        -->
+    </bean>
+
+    <!--The HTTPS transport sender configuration. See API documentation at http://api.adroitlogic.org for complete
+    details on configuration options available.
+    e.g. properties inherited from the HTTP transport such as :
+            proxyHost, proxyPort, proxyBypassList, replaceUserAgent, unzipResponseEntities, zeroCopyEnabled
+         and properties specific to the HTTPS transport such as :
+            hostnameVerifier, nonProductionNoRemoteCertValidation
+
+    Supports monitoring and management via JMX -->
+    <bean id="https-sender" class="org.adroitlogic.ultraesb.transport.http.HttpsNIOSender">
+        <constructor-arg ref="fileCache"/>
+
+        <!-- Advanced options see HttpNIOSender (applies to this too) above and http://api.adroitlogic.org/
+        <property name="hostnameVerifier" value="Default"/>     Strict & DefaultAndLocalHost are options too
+        <property name="nonProductionNoRemoteCertValidation" value="true"/>  disable SSL validation for testing
+        -->
+    </bean>
+
+    <!--
+        Uncomment to use Jasypt to secure passwords used on this configuration (e.g. keystore, DB passwords etc)
+        e.g. specify the HTTPS identity store password as <property name="identityKeyPassword" value="${secure_password}"/>
+        where the default conf/encypted.properties file contains the below encrypted password
+        secure_password=ENC(Rtk9+TzSec70ikJLwXlT9Y0tiwNCybE0)
+    -->
+    <!--<bean id="propertyConfigurer" class="org.jasypt.spring.properties.EncryptablePropertyPlaceholderConfigurer">
+        <constructor-arg>
+            <bean class="org.jasypt.encryption.pbe.StandardPBEStringEncryptor">
+                <property name="config">-->
+    <!-- Use this to specify the Jasypt password as an Environment variable (e.g. named APP_PASSWORD)-->
+    <!--<bean class="org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig">
+        <property name="algorithm" value="PBEWithMD5AndDES"/>
+        <property name="passwordEnvName" value="APP_PASSWORD"/>
+    </bean>-->
+    <!--A simple hard coded master password (e.g. "jasypt") for Jasypt-->
+    <!--<bean class="org.jasypt.encryption.pbe.config.SimpleStringPBEConfig">
+        <property name="algorithm" value="PBEWithMD5AndDES"/>
+        <property name="password" value="jasypt"/>
+    </bean>
+</property>
+</bean>
+</constructor-arg>
+<property name="locations">
+<list>
+<value>encrypted.properties</value>
+</list>
+</property>
+</bean>-->
+    <!--
+    To encrypt the passwords using a rather simple mechanism (the same used in JBoss AS) use the following bean. To
+    improve the password with a salt, you could set the salted attribute to true, forcing a unique string on each run
+    -->
+    <!--<bean class="org.adroitlogic.ultraesb.util.encrypt.SecurePropertyManager" init-method="init">
+        <property name="salted" value="true"/>
+        <property name="location">
+            <value>encrypted.properties</value>
+        </property>
+    </bean>-->
+
+
+    <!-- Clustering configuration of the UltraESB server -->
+    <bean id="cluster-manager" class="org.adroitlogic.ultraesb.clustering.ClusterManager">
+        <!-- Change the value to true of this constructor argument to enable cluster controls -->
+        <!-- then change the following 4 properties according to your zookeeper configuration -->
+        <constructor-arg value="true" type="boolean"/>
+
+        <!-- Connection String of the zookeeper, which could have a comma separated ${host}:${port}
+        pairs. All of those should be running zookeeper instances. In the development environment
+        it is OK to have only one ZooKeeper instance while it is recommended to have a ZooKeeper
+        quorum -->
+        <property name="zkConnectString" value="127.0.0.1:2181"/>
+
+        <!-- session timeout value used in seconds when creating the ZooKeeper session from
+        the UltraESB to the ZooKeeper server -->
+        <property name="zkSessionTimeout" value="30"/>
+
+        <!-- Clustering domain the UltraESB instance is in. You can use the same ZooKeeper instances
+        with same connection string and different domains to isolate 2 clusters running on the same
+        ZooKeeper instances -->
+        <property name="domain" value="default"/>
+
+        <!-- Name of the node tobe used for storing node details in the cluster in ZooKeeper, it is
+        a must to have a unique nodeName for the UltraESB servers on a single clustering domain -->
+        <property name="nodeName" value="node3"/>
+
+        <!-- Timeout value in seconds to detect a cluster manager startup failure. In other words
+        the server startup thread will wait for the cluster manager to start maximum this amount of
+        seconds. The value of this property should be a positive integer for the timeout to be
+        effective with the following 2 exceptions;
+            1) setting a -1 or any minus value will result in the server startup to infinitely wait
+            for the cluster manager to start
+            2) setting this to 0 will result in the startup thread to not to wait for the cluster
+            manager startup completion. In this case the server startup will not worry about the
+            cluster manager state.
+        Default value of this property is 30 and it is highly recommended to have a finite non zero
+        value in production environments
+        -->
+        <property name="startupTimeout" value="30"/>
+
+        <!-- Up time reporter timer interval. This guarantees the session end time is reported to
+        an accuracy of this time interval -->
+        <property name="upTimeReportInterval" value="60"/>
+
+        <!-- The failover processing configuration. Uncomment this and configure the failover-processor bean
+        to activate failover of nodes in a clustered deployment -->
+        <property name="failoverProcessor" ref="failover-processor"/>
+    </bean>
+
+    <!-- Uncomment, link to the cluster manager with "failoverProcessor" property and configure to activate
+    clustered node failover functionality to transfer the failed node pinned services automatically to failover node -->
+    <bean id="failover-processor" class="org.adroitlogic.ultraesb.clustering.FailoverProcessor">
+
+        <!-- The matrix defined supporting failover configuration, all nodes in the cluster should have identical
+        failover node matrix. The entry keys specify the names of the nodes and the value is the corresponding
+        failover node set for that node as a comma separated list of server names -->
+        <property name="failoverNodeMatrix">
+            <map>
+                <entry key="node1" value="node2,node3"/>
+                <entry key="node2" value="node1,node3"/>
+                <entry key="node3" value="node1,node2"/>
+            </map>
+        </property>
+
+        <!-- If configured the delay that the server waits to see whether the failed node re-joins the cluster
+        before starting to act as it. This defaults to zero meaning that the server will immediately act as
+        the failed node -->
+        <!--<property name="secondsBeforeFailover" value="60"/>-->
+
+        <!-- Whether the missing nodes at startup, configured this node as there failover node,
+        be treated as failed by this node, and start to act as them at startup -->
+        <!--<property name="failoverMissingNodesAtStartup" value="true"/>-->
+
+        <!-- If the The "failoverMissingNodesAtStartup" is true, the delay that gives some time for the
+        missing nodes to appear on the cluster -->
+        <!--<property name="secondsBeforeFailoverAtStartup" value="300"/>-->
+    </bean>
+
+    <!-- Caching/State replication configuration of the UltraESB server -->
+    <!--bean id="cache-manager" class="org.adroitlogic.ultraesb.cache.ehcache.EhCacheManager">
+        <!- EH Cache configuration file ->
+        <property name="ehCacheConfig" value="conf/ehcache.xml"/>
+    </bean-->
+
+    <!-- Environment configuration. You could use any named environment of which the name is given as the constructor
+     argument. There are pre-defined environments for "dev", "unit_test", "sample", "test", "stage", "prod". Please
+     read the documentation on runtime environments to understand the default behavior of each environments and to
+     tune the environments -->
+    <bean id="environment" class="org.adroitlogic.ultraesb.api.Environment">
+        <constructor-arg value="dev" type="java.lang.String"/>
+    </bean>
+
+    <!--This bean definition is a required part of any UltraESB configuration and is for internal use only -->
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <!-- Advanced properties to tune
+        <property name="defaultWorkManager">
+            <bean class="org.adroitlogic.ultraesb.core.work.SimpleQueueWorkManager" id="default-wm">
+                <constructor-arg ref="ultra-config"/>
+                <property name="primaryCoreThreads" value="20"/>
+                <property name="primaryMaxThreads" value="300"/>
+                <property name="primaryKeepaliveSeconds" value="5"/>
+                <property name="primaryQueueSize" value="0"/>
+                <property name="secondaryCoreThreads" value="10"/>
+                <property name="secondaryMaxThreads" value="10"/>
+                <property name="secondaryKeepaliveSeconds" value="5"/>
+                <property name="secondaryQueueSize" value="-1"/>
+            </bean>
+        </property>-->
+
+        <!--<property name="configurationWatchers">
+            <bean class="java.util.ArrayList">
+                <constructor-arg>
+                    <list>
+                        <bean name="detailedMXBeanRegistrar" class="org.adroitlogic.ultraesb.core.mgt.DetailedMXBeanRegistrar"/>
+                    </list>
+                </constructor-arg>
+            </bean>
+        </property>-->
+
+        <!--<property name="parserCount" value="2048"/>
+        <property name="serializerCount" value="2048"/>
+        <property name="xPathCount" value="2048"/>
+        <property name="transformerCount" value="2048"/>
+        <property name="secureProcessingEnabled" value="true"/>
+        <property name="cipherCacheMax" value="2048"/>
+        <property name="xmlCipherCacheMax" value="2048"/>
+        <property name="keyGeneratorCacheMax" value="2048"/>-->
+
+        <!-- enable custom Spring beans to be re-loaded (Experimental Feature)
+        <property name="dynamicSpringBeansEnabled" value="true"/>-->
+        <!--<property name="extensionPackages">
+            <list>
+                <value>com.mycompany</value>
+            </list>
+        </property>-->
+        <property name="environment" ref="environment"/>
+    </bean>
+
+    <!--This is a standard Spring import for another configuration fragment file to be imported as part of the root
+    configuration. None of the elements of a root configuration can be unloaded/reloaded dynamically-->
+    <import resource="../../conf/ultra-custom.xml"/>
+    <!-- Metrics related configurations -->
+    <import resource="../../conf/monitoring/ultra-metrics.xml"/>
+
+    <!--JMX management and monitoring configuration
+
+    Uncomment and configure JMX access as required for remote JMX connections.
+    This is a standard Spring framework bean - thus refer to the Spring documentation for specifics and examples-->
+
+    <!--<bean id="serverConnector" class="org.springframework.jmx.support.ConnectorServerFactoryBean" depends-on="registry">
+        <property name="objectName" value="connector:name=iiop"/>
+        <!- Remember to edit bin/ultraesb.sh or conf/wrapper.conf to specify the -Djava.rmi.server.hostname=<your-ip-address> property for JMX ->
+        <property name="serviceUrl" value="service:jmx:rmi://localhost:9994/jndi/rmi://localhost:1099/ultra"/>
+        <property name="threaded" value="true"/>
+        <property name="daemon" value="true"/>
+        <property name="environment">
+            <map>
+                <entry key="jmx.remote.x.password.file" value="conf/management/jmxremote.password"/>
+                <entry key="jmx.remote.x.access.file" value="conf/management/jmxremote.access"/>
+            </map>
+        </property>
+    </bean>
+    <bean id="registry" class="org.springframework.remoting.rmi.RmiRegistryFactoryBean">
+        <property name="port" value="1099"/>
+    </bean>-->
+
+    <!-- Zabbix agent configuration for management and monitoring via JMX -->
+    <bean id="zabbix-agent" class="org.adroitlogic.ultraesb.core.mgt.zabbix.ZabbixAgent" init-method="init" destroy-method="destroy">
+        <!-- Uncomment and change for configuring the zabbix agent request handler listen port -->
+        <property name="port" value="11813"/>
+        <property name="bindAddress" value="127.0.0.1"/>
+    </bean>
+</beans>

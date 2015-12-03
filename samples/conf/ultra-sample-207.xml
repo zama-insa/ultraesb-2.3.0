@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-8281" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8281"/>
+    </bean>
+
+    <!--Defines the standard HTTP sender-->
+    <bean id="http-sender-1" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Define an annitional HTTP sender that will use a Squid proxy over port 3128 on the localhost to reach
+    external endpoints. Requests to hosts 'asankha' and IP address '127.0.0.1' bypasses the proxy-->
+    <bean id="http-sender-2" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+        <property name="proxyHost" value="localhost"/>
+        <property name="proxyPort" value="3128"/>                
+        <property name="proxyBypassList" value="asankha,127.0.0.1"/>                
+    </bean>
+
+    <!--Defines a proxy service that will use the transport sender defined as 'http-sender-1' when sending messages
+    out over HTTP. This format of the URL should only be used when multiple sender definitions exists in the
+    configuration-->
+    <u:proxy id="soap-proxy-1">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inDestination>
+                <u:address>{http-sender-1}http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--Defines a proxy service that will use the transport sender defined as 'http-sender-2' when sending messages
+    out over HTTP - thus using a Proxy server. This format of the URL should only be used when multiple sender
+    definitions exists in the configuration-->
+    <u:proxy id="soap-proxy-2">
+        <u:transport id="http-8281"/>
+        <u:target>
+            <u:inDestination>
+                <u:address>{http-sender-2}http://localhost:9000/service/SimpleStockQuoteService</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+</beans>

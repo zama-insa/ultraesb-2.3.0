@@ -1,0 +1,132 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!DOCTYPE html>
+
+<html>
+    <div id="container" title="Endpoints">
+        <header class="helpedHeading">
+            <h2>Endpoints</h2>
+            <div class="ultraHelp" title="Endpoints Help">
+            <div>
+                <p>The Endpoints tab lists the endpoints available on the instance along with the status, active, ready
+                and suspended address counts and the failed messages counts. The control buttons allows an endpoint to
+                be started, stopped and debug enabled or disabled, or edited.</p>
+                <p>To search for an Endpoint of interest, or to filter endpoints displayed type the ID or
+                any part of it, on the <b>Search</b> box on top of the table</p>
+            </div>
+        </div>
+        </header>        <section>Defined endpoints and addresses to send out the messages</section>
+
+        <div class="outer_wrapper">
+        <table class="display" id="endpointlist">
+            <thead>
+                <tr>
+                    <th >Name</th>
+                    <th>Type</th>
+                    <th>Addresses<br/>Active</th>
+                    <th>Addresses<br/>Ready</th>
+                    <th>Addresses<br/>Suspended</th>
+                    <th>Messages<br/>Failed</th>
+                    <th>State</th>
+                    <th>Control</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td id="name"><a href="index.html?pageName=node-mgt/endpoint-details.html&mode=view&epId="></a></td>
+                    <td class="numeric" id="type"></td>
+                    <td class="numeric" id="active"></td>
+                    <td class="numeric" id="ready"></td>
+                    <td class="numeric" id="suspended"></td>
+                    <td class="numeric" id="failed"></td>
+                    <td class="state " id="state"></td>
+
+                    <td id="control">
+                        <img class="start clickable" title="Start" src="icons/start.png"/>
+                        <img class="stop clickable"  title="Stop"  src="icons/stop.png"/>
+                        <img class="enDebug clickable" title="Enable Debug" src="icons/enable-debug.png"/>
+                        <img class="disDebug clickable" title="Disable Debug" src="icons/disable-debug.png"/>
+                        <img class="edit clickable"  title="Edit"  src="icons/edit.png"/>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+
+        <script type="text/javascript" src="js/endpoint-support.js"></script>
+        <script type="text/javascript">
+
+            $(document).ready(function() {
+
+                var jqxhr = $.getJSON(getCallURLBase() + 'endpoints/getEndpoints', function(dataset) {
+
+                    var data = {endpoints:dataset};
+                    var directive = {
+                        'tbody tr ':{
+                            'endpoint <-endpoints':{
+                                'td#name@title'                  :'endpoint.id',
+                                'td#name a'                      :function(endpoint) {if (null == endpoint.item.id) {return "-";} else {return endpoint.item.id;}},
+                                'td#name a@href+'                :'endpoint.id',
+                                'td#type'                        :function(endpoint){if (null == endpoint.item.typeAsString) {return "-";} else {return endpoint.item.typeAsString;}},
+                                'td#active'                      :function(ep){ return formatNumber(ep.item.activeAddressCount);},
+                                'td#ready'                       :function(ep){ return formatNumber(ep.item.readyAddressCount);},
+                                'td#suspended'                   :function(ep){ return formatNumber(ep.item.suspendedAddressCount);},
+                                'td#failed'                      :function(ep){ return formatNumber(ep.item.failedMessageCount);},
+                                'td#state'                       :'endpoint.state',
+                                'td#state @class+'               :'endpoint.state',
+                                'td#control img.start@onclick'   :'{startEndpoint("#{endpoint.state}","#{endpoint.id}");}',
+                                'td#control img.start@id'        : function (endpoint) { return endpoint.item.id + "-start"},
+                                'td#control img.stop@onclick'    :'{stopEndpoint("#{endpoint.state}", "#{endpoint.id}");}',
+                                'td#control img.stop@id'         : function (endpoint) { return endpoint.item.id + "-stop"},
+                                'td#control img.enDebug@onclick' :'{enableDebug("#{endpoint.id}" , "#{endpoint.debugOn}");}',
+                                'td#control img.enDebug@id'      :function (endpoint) { return endpoint.item.id + "-enDebug"},
+                                'td#control img.disDebug@onclick':'{disableDebug("#{endpoint.id}" , "#{endpoint.debugOn}");}',
+                                'td#control img.disDebug@id'     :function (endpoint) { return endpoint.item.id + "-disDebug"},
+                                'td#control img.edit@onclick'    :'{editEndpoint("#{endpoint.id}");}',
+                                'td#control img.enDebug@onload'  :'{displayDebugIcon("#{endpoint.id}" ,"#{endpoint.debugOn}");}',
+                                'td#control img.start@onload'    :'{displayIcon("#{endpoint.id}" ,"#{endpoint.state}");}'
+                            }
+                        }
+                    };
+
+                    $('#endpointlist').render(data,directive);
+                    encodeURLs();
+                    $('#endpointlist').dataTable({
+                        "bLengthChange": true,
+                        "bJQueryUI": true,
+                        "sPaginationType": "full_numbers",
+                        "aoColumns" : [null, null, null, null, null, null, null, {"sWidth": "120px"}]
+                    });
+                });
+            });
+        </script>
+    </div>
+</html>

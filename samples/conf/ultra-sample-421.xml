@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+<!-- Demonstrates the direct VM transport test case -->
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="vm-listener" class="org.adroitlogic.ultraesb.transport.vm.VMTransportListener"/>
+
+    <bean id="vm-sender" class="org.adroitlogic.ultraesb.transport.vm.VMTransportSender"/>
+
+    <u:proxy id="vm-direct">
+        <u:transport id="vm-listener"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.vm.TestBean;"><![CDATA[
+                        org.adroitlogic.ultraesb.core.format.ObjectMessage objMsg = (org.adroitlogic.ultraesb.core.format.ObjectMessage) msg.getCurrentPayload();
+                        TestBean b = (TestBean) objMsg.getObject();
+                        int initVal = b.getTestValue();
+                        int testVal = b.incrementAndAssign();
+                        mediation.setPayloadFromString(msg, "<response><init>" + initVal + "</init><gen>" + testVal + "</gen></response>");
+                        mediation.sendResponse(msg, 200);
+                    ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

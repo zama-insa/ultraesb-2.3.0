@@ -1,0 +1,11 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "parent": "items-parent",
+        "key": "proxy-service-item-parent",
+        "type": "proxy-service"
+    },
+    "params": {
+        "applications": ["Proxy Services"]
+    }
+}

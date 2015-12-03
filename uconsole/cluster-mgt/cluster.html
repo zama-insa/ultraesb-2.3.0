@@ -1,0 +1,136 @@
+<!doctype html>
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<html>
+<div id="container" title="Cluster Navigator">
+    <header class="helpedHeading">
+        <h2>Cluster Navigator</h2>
+        <div class="ultraHelp" title="Cluster Navigator Help">
+            <div>Cluster navigator is used to navigate through the nodes in the cluster to the
+                sessions to the commands that are executed in the session and so forth. By default this
+                shows only the active nodes in the cluster, if you want to see all nodes which were on
+                this cluster domain at any point in time, change the <b>Show nodes in state</b> select
+                control value from "Active" to "All" as follows;
+                <br/>
+                <br/>
+                <img src="images/help/cluster-navigator-all.png"/>
+
+                <p>Navigate to the nodes using the linked node id to get a more detailed view including
+                the session details of the nodes. If you have many nodes in the cluster you could
+                adjust the number of node entries shown per page by adjusting the <b>Show</b> value
+                of the top left corner of the table.
+                <img src="images/help/show-entries.png"/></p>
+                <p>Or use the <b>Search</b> box on the top right corner of the table to filter nodes to be displayed.
+                <img src="images/help/search-box.png"/></p>
+                Apart from that you could use the pagination on the bottom of the table to move between pages.
+            </div>
+        </div>
+    </header>
+    <section>Navigate through the nodes and sessions of the cluster</section>
+
+    <script type="text/javascript">
+
+        function loadNodes(state) {
+            var locStr = window.location.href;
+            if (window.location.href.indexOf("&nodeState=") != -1) {
+                var locationStr = window.location.href.split("&nodeState=");
+                if (locationStr[1].indexOf("&") != -1) {
+                    locStr = locationStr[0] + locationStr[1].substring(locationStr[1].indexOf("&"), locationStr[1].length);
+                } else {
+                    locStr = locationStr[0];
+                }
+            }
+            loadPage(locStr + "&nodeState=" + state);
+        }
+
+        function loadNodeData(state) {
+            var jqxhr = $.getJSON(getCallURLBase() + "cluster/getNodes/" + state, function(dataset) {
+
+
+                var data = {nodes:dataset};
+                var dataDir = {
+                    'tbody tr':{
+                        'node<-nodes':{
+                            'td.nodeName a'        :'node.nodeName',
+                            'td.nodeName@title'    :'node.nodeName',
+                            'td.nodeName a@href+'  :'node.nodeName',
+                            'td.domain'            :'node.domain',
+                            'td.domain@title'      :'node.domain',
+                            'td.state'             :function(node){if (node.item.active) { return "Running";} else { return "Stopped";}},
+                            'td.state@title'       :function(node){if (node.item.active) {return "Running";} else { return "Stopped";}}
+                        }
+                    }
+                };
+                $('#nodeList').render(data,dataDir);
+                $('#nodeList').dataTable({
+                    "bLengthChange"  : true,
+                    "bJQueryUI"      : true,
+                    "sPaginationType": "full_numbers"
+                });
+                encodeURLs();
+            });
+        }
+
+        $(document).ready(function() {
+            var stateParam = getURLParameter("nodeState");
+            if (stateParam == null) {
+                stateParam = "active";
+            }
+            $("#state-" + stateParam).attr("selected", "selected");
+            loadNodeData(stateParam);
+        });
+    </script>
+
+    <div class="outer_wrapper">
+    <fieldset>
+        <label>Show nodes in state <select id="state-select" onchange="loadNodes($('select#state-select').val())">
+            <option id="state-active" value="active">Active</option>
+            <option id="state-all" value="all">All</option>
+        </select></label>
+    </fieldset>
+
+    <table cellpadding="0" cellspacing="0" border="0" class="display" id="nodeList">
+        <thead>
+        <tr>
+            <th>Node Name</th>
+            <th>Domain</th>
+            <th>State</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td class="nodeName"><a href="index.html?pageName=cluster-mgt/node-details.html&nodeName="></a></td>
+            <td class="domain"></td>
+            <td class="state"></td>
+        </tr>
+        </tbody>
+    </table>
+    </div>
+</div>
+</html>

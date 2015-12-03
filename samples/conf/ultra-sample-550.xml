@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This example shows receiving FIX messages from a FIX initiator and forwarding to a FIX acceptor type endpoint -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xmlns:amq="http://activemq.apache.org/schema/core"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd
+http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <!--Define FIX transport listener
+    These are the [Default] configuration settings for the FIX acceptor. FIX messages receive by this fix transport listener
+    will receive through acceptor sessions which has following default settings-->
+    <bean id="fix-lsnr" class="org.adroitlogic.ultraesb.transport.fix.FIXTransportListener">
+        <!--Essential settings for the acceptor-->
+        <property name="socketAcceptPort" value="12000"/>
+        <property name="heartBeatIntervalSec" value="30"/>
+        <property name="senderCompID" value="UESB"/>
+        <property name="messageStoreFactory" ref="acc-fileMessageStore"/>
+        <property name="logFactory" ref="acc-fileLogFactory"/>
+        <property name="startTime" value="00:00:00"/>
+        <property name="endTime" value="23:00:00"/>
+        <!--Optional settings for the acceptor. Use a valid configuration ID as the key of each entry-->
+        <property name="otherSettings">
+            <map>
+                <entry key="AcceptorTemplate" value="Y" />
+                <entry key="UseDataDictionary" value="N" />
+            </map>
+        </property>
+    </bean>
+
+    <!--Define FIX transport sender
+    These are the [Default] settings for the initiator. FIX messages send through this fix transport sender will send
+    through initiator sessions which has following default settings-->
+    <bean id="fix-sender" class="org.adroitlogic.ultraesb.transport.fix.FIXTransportSender">
+        <property name="reconnectInterval" value="5"/>
+        <property name="heartBeatIntervalSec" value="30"/>
+        <property name="startTime" value="00:00:00"/>
+        <property name="endTime" value="23:00:00"/>
+        <property name="messageStoreFactory" ref="ini-fileMessageStore"/>
+        <property name="logFactory" ref="ini-fileLogFactory"/>
+        <!--Optional settings for the acceptor. Use a valid configuration ID as the key of each entry-->
+        <property name="otherSettings">
+            <map>
+                <entry key="LogonTimeout" value="6" />
+            </map>
+        </property>
+    </bean>
+
+    <bean id="acc-fileMessageStore" class="org.adroitlogic.ultraesb.transport.fix.FileMessageStoreFactoryImpl">
+        <property name="fileStorePath" value="${java.io.tmpdir}/fixTest"/>
+    </bean>
+
+    <bean id="ini-fileMessageStore" class="org.adroitlogic.ultraesb.transport.fix.FileMessageStoreFactoryImpl">
+        <property name="fileStorePath" value="${java.io.tmpdir}/fixTest"/>
+    </bean>
+
+    <bean id="acc-fileLogFactory" class="org.adroitlogic.ultraesb.transport.fix.FileLogFactoryImpl">
+        <property name="fileLogPath" value="${java.io.tmpdir}/fixTest"/>
+    </bean>
+
+    <bean id="ini-fileLogFactory" class="org.adroitlogic.ultraesb.transport.fix.FileLogFactoryImpl">
+        <property name="fileLogPath" value="${java.io.tmpdir}/fixTest"/>
+    </bean>
+
+    <!--This service implemented using quickfix/j
+    When using quickfix/j you will need to place the following JAR files into lib/custom directory.
+    You may need to add additional JARs if your code requires any, or if you use a later version of quickfix/j
+        mina-core-1.1.7.jar
+        quickfixj-all-1.5.3.jar
+    -->
+    <!--This sample service receives FIX messages from 'BANZAI' through acceptor type session established with 'BANZAI'
+    and forward it to FIX endpoint 'EXEC' from initiator type session established with 'EXEC'.-->
+    <u:proxy id="fix-proxy">
+        <u:transport id="fix-lsnr">
+            <!-- settings related to one session need to be defined under same u:property name suffix
+            eg: session settings end with u:property name .BANZAISession1 belogs to one session
+            These sessions are added to the acceptor initiated with fix-lsnr-->
+            <u:property name="ultra.fix.session.begin_string.BANZAISession1" value="FIX.4.2"/>
+            <u:property name="ultra.fix.session.target_comp_id.BANZAISession1" value="BANZAI"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.fix.FIXConstants; java.util.Date;"><![CDATA[
+
+                  mediation.sendToEndpoint(msg, "fix-endpoint");
+
+                ]]></u:java>
+            </u:inSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <!--End point address must be in format-fix://<host>:<port>?BeginString=<>&amp;SenderCompID=<>&amp;TargetCompID=< >
+    which defines 3 essential configuration properties need for the initiator session.
+    A new fix-initiator is created for an end-point and properties you define here are the [SESSION] configuration
+    properties of the fix-initiator -->
+    <u:endpoint id="fix-endpoint">
+        <u:address>fix://localhost:9879?BeginString=FIX.4.2&amp;SenderCompID=UESB&amp;TargetCompID=EXEC</u:address>
+        <!--Other setting properties need to add to session can be added under <u.property with giving correct
+        fix configuration ID as the suffix and 'ultra.fix.endpoint.session.' as the prefix-->
+        <u:property name="ultra.fix.endpoint.session.DefaultMarketPrice" value="12.30"/>
+    </u:endpoint>
+
+    <!--jdbcMessageStore is used by Quickfix/j to store messages in database.
+    To enable fix jdbcMessageStore uncomment this and provide correct database settings.
+    Set this bean as a property in fix-transport listener
+    eg: <property name="messageStoreFactory" ref="fix-jdbcMessageStore"/>
+    You need to create the required database schema with using resources provided by Quickfix/j in
+    "quickfix/etc/sql" file.-->
+    <!-- <bean id="fix-jdbcMessageStore" class="org.adroitlogic.ultraesb.transport.fix.JDBCMessageStoreFactoryImpl">
+        <property name="JdbcDataSourceName" value="datasource"/>
+        <property name="JdbcDriver" value="com.mysql.jdbc.Driver"/>
+        <property name="JdbcURL" value="jdbc:mysql://localhost/quickfix"/>
+        <property name="JdbcUser" value="root"/>
+        <property name="JdbcPassword" value="root"/>
+        <property name="JdbcLogHeartBeats" value="N"/>
+        <property name="dataSource" ref="dataSource"/>
+    </bean>-->
+
+    <!--jdbcLogFactory is used by Quickfix/j to save logs in database.
+    To enable fix jdbcLogFactory uncomment this section and provide correct database settings.
+    Set this as a property in fix-transport listener
+    eg: <property name="logFactory" ref="fix-jdbcLogFactory"/>
+    You need to create the required database schema with using resources provided by Quickfix/j in
+    "quickfix/etc/sql" file-->
+    <!--<bean id="fix-jdbcLogFactory" class="org.adroitlogic.ultraesb.transport.fix.JDBCLogFactoryImpl">
+        <property name="JdbcDataSourceName" value="datasource"/>
+        <property name="JdbcDriver" value="com.mysql.jdbc.Driver"/>
+        <property name="JdbcURL" value="jdbc:mysql://localhost/quickfix"/>
+        <property name="JdbcUser" value="root"/>
+        <property name="JdbcPassword" value="root"/>
+        <property name="dataSource" ref="dataSource"/>
+    </bean>-->
+
+    <!-- enable this to define a datasource -->
+    <!--<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+       <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+       <property name="url" value="jdbc:mysql://localhost/quickfix"/>
+       <property name="username" value="root"/>
+       <property name="password" value="root"/>
+    </bean>-->
+
+</beans>

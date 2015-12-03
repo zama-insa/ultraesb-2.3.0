@@ -1,0 +1,12 @@
+{
+    "jsonrpc":"2.0",
+    "method":"graph.get",
+    "params":{
+        "output":"extend",
+        "filter":{
+            "host":["$host$"]
+        }
+    },
+    "auth":"$auth$",
+    "id":2
+}

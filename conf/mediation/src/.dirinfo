@@ -1,0 +1,2 @@
+The directory where the mediation sources including java and scripts are placed at. This is just a conventional
+directory and is *NOT* being automatically loaded by UltraESB unlike the conf/mediation/classes directory

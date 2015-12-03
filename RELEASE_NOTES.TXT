@@ -1,0 +1,649 @@
+AdroitLogic UltraESB
+
+Copyright (c) 2010-2014 AdroitLogic Private Ltd. All Rights Reserved
+
+** Changes for 2.3.0 ** [09-06-2014]
+------------------------------------
+    - In VM Transport for calling internal proxy service via VM calls
+    - Addition of the invokeService API call to the mediation API
+    - The HTTP access logger has been renamed to transport.http-response from org.adroitlogic.ultraesb.transport.access
+    and turned off by default
+    - Fixes HTTP socket timeout not being affective and connection debugging issues
+    - Workaround for the HttpCore JDK issue causing high CPU utilization with zero-copy
+    - Improvements to the JavaBench UTerm command (jbrun)
+
+** Changes for 2.2.0 ** [07-04-2014]
+------------------------------------
+    - Improved Deployment Units support facilitating externalized resources
+    - Enhanced XMLSupport and SOAPSupport interfaces to provide variable argument based namespace handling
+    - Introduction of the new Split-Aggregate implementation for the XMLSupport
+    - JSON Path support for the JSON content extraction
+    - The transport property "pattern" for the HTTP transport REST service path parameter handling has been changed
+    to "ultra.http.path_pattern"
+    - Ability to retrieve path parameter values configured with the ultra.http.path_pattern via
+    HttpSupport.getFirstRequestParameter method
+    - FIX transport and the inclusion of the FIX Support API using QuifixJ
+    - Default metrics step time has been changed to 1 second from 3 seconds
+    - UConsole Metrics Dashboard to have individual descriptive graphs for each and every metrics stream
+    - Ability to plot max and min values apart from the moving average of metrics streams in UConsole
+    - Introducing the secure mode for the UConsole, with the use of secure cookies
+    - Improved UTerm command consistency and the addition of the server-shutdown command
+    - Improved Zabbix integration with fixes to trigger templates
+    - Embedded JavaBench performance testing tool in UTerm
+    - Java 1.7 runtime support
+    - UTerm based JavaBench for easier performance testing
+
+    ** Non backwards compatible change **
+        - UTerm commands which could be passed in through the "-c" short form is not supported anymore. Any commands to
+        UTerm now needs to be specified with the "-command" or "--command" options
+
+** Changes for 2.1.0 ** [17-02-2014]
+------------------------------------
+    - New logging API to be used by ultraesb with the concept of logger types, status and severity MDC arguments
+    - LogSupport API to be used in mediation to use the new loggers per service, deployment unit or complete bus
+    - Dynamically appending the file appender for the respective service and deployment loggers
+    - ClusterSupport API to access the cluster clocks with distributed synchronization at the mediation API
+    - AlertSupport API to raise instantaneous alerts at the mediation API without having to go through the metrics engine
+    - Ability to deploy external web applications in the UConsole embedded jetty server
+    - Ability to externalize the deployment unit configurations such as endpoint address, proxy transport properties etc..
+    - Enhanced Deployment Unit Support
+    - Dynamic Spring Beans support matured to mainstream from experimental
+    - SWIFT support for the mediation API
+    - UConsole and UltraESB seamless integration with LDAP/ActiveDirectory
+    - AuditRecordMapper has been moved from the API into the Core.
+    - Upgrade the embedded jetty version to 8.1.13.v20130916
+    - Upgrade the spring version to 3.2.4.RELEASE
+    - Upgrade the servlet-api to 2.5
+
+** Changes for 2.0.0 ** [19-08-2013]
+------------------------------------
+    - Introduction of deployment units and treating different dynamic sub contexts as different deployment units
+    - Ability to reload binary jar files and classes in a deployment unit add or update, guaranteeing the atomicity
+    - Introduction of the Metrics Engine and the new metrics related graphs of the runtime in UConsole
+    - Introduction of the runtime environment configurations, such as development, testing, staging and production
+    - In-factory proxy service for health-check is introduced to the UltraESB, with the ability to change the status
+    code to be returned, via UConsole and UTerm
+    - The message flow interceptor framework based on annotations allowing the users to intercept the message at
+    request/response received to proxy, before starting the processing and after finishing the processing of sequences
+    and endpoints without any configuration
+    - The server interceptors framework based on annotations to intercept the server actions such as, initialized, start,
+    stop or restart to take custom actions or change the configurations
+    - Programable API for managing the UltraESB programatically, which can be used in-conjunction with server
+    interceptors or third party plugins/features to dynamically build the ESB configuration at runtime
+    - Concept of the FeatureInitializer and related engine extension initialization
+    - Ability to add or overwrite an existing MediationSupport implementation purely based on annotations
+    - Deprecation of the message properties and the introduction of the support interfaces such as HTTPSupport,
+    JMSSupport etc to access transport level properties via an API, unbinding the user from the internal properties
+    - File transport enhanced to support local and distributed locking to be able to concurrently poll files across a cluster
+    - AS2 persistence layer has been improved to support multi-tenancy (Refer to Appendix C)
+    - UTerm commands made consistent by making all commands subject first (Refer to Appendix D)
+    - Configuration changes done on 2.0.0 release
+        - Endpoint property to define the response validator as a class has been changed from responseValidatorClass into
+        ultra.endpoint.response_validator_class
+    - Upgrade from Spring 3.1.0-RELEASE to 3.1.1-RELEASE
+    - Upgrade from Spring Security 3.1.0-RELEASE to 3.1.1-RELEASE
+    - Upgrade from HttpCore 4.1.4 into 4.2.4
+
+** Changes for 1.7.1 ** [06-03-2012]
+------------------------------------
+    - Enhancements to the Zabbix registration in UConsole
+    - Zabbix trigger dependencies integration for monitoring
+    - Zabbix screens integration for monitoring
+    - Improved Zabbix registration templates
+    - UConsole and UTerm extracted as separate distributions apart from being part of the complete distribution
+
+** Changes for 1.7.0 ** [01-02-2012]
+------------------------------------
+    - Introducing the new Mediation API with the support interfaces (Refer to Appendix B)
+    - AS2 support overhauled
+        - Improved and more user friendly AS2Manager API and error reporting and recovery
+        - Support for any proxy service to accept or send AS2
+        - Support to save messages and meta information to a database and file system
+        - Support for improved sync/async MDN handling
+    - Native AMQP transport
+    - Throttling support for mediation
+    - Protocol-Buffers based message mediation
+    - Enhanced Zabbix monitoring integration
+        - New Zabbix monitoring element registration wizard
+        - Automatically creating the Zabbix hosts, host groups and applications as specified in the templates
+        - Clustered registration of the templates into a single Zabbix server
+        - Cluster graphs with consistent node colors
+        - Improved registration statistics
+    - Support regular expression based file path patterns for file transport
+    - Support relative paths for processed and error locations for file transport
+    - Enhanced connection debug logging for premature reads
+    - Support restarts of services using JMS, File, Mail and Timer transports on dynamic sub contexts
+    - Allow dynamic sub contexts to load/reload custom Spring beans possibly with the same name
+    - Audit logs for the management activities
+    - Upgrade from Spring 2.5.6 to 3.1.0-RELEASE
+    - Upgrade from Spring Security 2.0.5-RELEASE to 3.1.0-RELEASE
+
+** Changes for 1.6.2 ** [08-12-2011]
+------------------------------------
+    - Improved file handling in file cache
+    - Fix the issue with starting the sample configurations in Windows based systems
+    - Enhanced logging to remove error logs, which are not errors from the ESB users point of view
+    - Fix to stop the server if a compilation failure or configuration error is detected in the dynamic sub context at the startup
+    - Fix to acquire the ZooKeeper session and close it properly in a startup just after an abnormal stop of the server
+    - Enhanced JMS transport to simplify the implementation of Guaranteed-Delivery pattern
+    - Improved REST proxying support when a JMS intermediary is used for guaranteed delivery
+
+** Changes for 1.6.1 ** [24-10-2011]
+------------------------------------
+    - Introducing the error description for errors mapped to the error codes
+    - Improved Zabbix template registration making the process asynchronous
+    - Introduction of a global endpoint "mediation.response" and streamline error handling when sending response messages
+    - Improved UConsole Zabbix registration interfaces
+    - Improved UTerm commands
+    - Enhanced the HTTP/S transports
+
+** Changes for 1.6.0 ** [26-09-2011]
+------------------------------------
+    - Configuration update with zero downtime via JMX, UTerm and UConsole
+    - Ability to pin proxy services to a given server name
+    - Ability for a server to run as another and UTerm commands to start/stop server acting as another
+    - Provide failover for failed nodes automatically in a clustered deployment
+    - UltraESB minimal distribution artifact (nearly 6MB)
+    - Improved connection debugging information
+    - Improved UConsole settings to manage permissions
+    - New theme for the UConsole
+    - Configuration operations and server state commands added to UTerm
+    - UTerm default print width changed to 120 characters and making it a configuration
+    - Fixed the server startup and shutdown order
+    - Improved logging
+    - Improved Zabbix integration for monitoring
+    - Enhanced AS2 support
+    - Custom password encryption utility
+
+** Changes for 1.5.0 ** [19-7-2011]
+------------------------------------
+    ** Non backwards compatible change **
+    - Ensuring consistency of properties used (See Appendix A below for the complete list)
+
+    - Introduce UTerm the command line management terminal for the UltraESB
+    - Zabbix Registration and Template management for instance monitoring
+    - Logger and Appender management
+    - RAM Disk based file cache for extreme performance
+    - Connection debugging facility to show detailed information about connection errors
+    - Allow configuration of conditions when a fail-over is safe for an endpoint
+    - Better and improved handling of temporary failures of endpoints and subsequent suspension
+
+    - Fix rendering and styling issues for Internet Explorer support for UConsole
+    - Fix issue #17 - Implement a Graceful Stop for Proxy Services / Sequences
+    - Bundle missing Jar file for XACML support
+    - Secure JMX access to UltraESB runtime via UConsole
+    - Ability to define servers, users and roles for UConsole access
+
+    Known Issues
+    - On IE web browsers the error code table and keep-alive statistics tables for the transport senders and
+    listeners may not render properly
+
+** Changes for 1.4.0 ** [2-5-2011]
+------------------------------------
+    - Implementation of JSON management services and a Web based management console (uconsole) for the UltraESB
+    - Support for centralized cluster management via ZooKeeper, with Round-Robin restart of the cluster
+    - Support for local and distributed caching across cluster via ehCache - for stateful service state replication
+    - JMX support enhancements using MXBeans
+    - Native agent for reporting monitoring information to Zabbix monitoring console
+    - Integration with FastXML to boost XML processing performance using libraries such as VTD XML
+    - Dynamic configuration changes - Updating, loading and unloading of configuration elements
+    - Preparation of a configuration before updates to ensure that a switch or load will work
+    - Support for XACML for entitlement using PicketBox
+    - XML / SOAP to JSON auto conversion
+
+    - Issue #11 - Support for XML / SOAP to JSON conversion using direct streaming or XSLT
+    - Enhancements to the SOA ToolBox (Save and restore configurations)
+
+    - Support single addresses for group endpoints such as round-robin, fail over etc.
+    - Fix SOAP header extraction to support headers without prefixes
+    - Resolve WS-Security compatibility issue with .Net
+    - Fix for NTLM authenticated connections without a zero byte expect 100-continue request
+
+    - ** NOTE: Deprecated variable name **
+      The variable name used for the current message passed to the JSR 223 scripting language as been changed to "msg"
+      to be the same name as passed into Java code fragments. Please update any scripting language sequences accordingly
+    - ** NOTE: Service URL pattern change **
+      Remove default mapping of "<service_name>*" as the URL of a service (Note: This may require a configuration change)
+
+** Changes for 1.3.0 ** [22-10-2010]
+------------------------------------
+    - Include a temporary patch for HTTPCORE-239 until its next version is released
+    - Issue #8 Support the creation of JSON Data Services using JDBC queries
+    - Enhance the Mediation API to convert between JSON and Java beans
+    - Enhance the Mediation API to convert between ISO8601 and UTC date formats into java.util.Date and java.sql.Date 
+    - Add a sample showing the use of multiple JTA resources, and transaction semantic compliant file system updates
+    - Allow response compression to be disabled, even if the request contains Accept-Encoding headers
+    - Add a sample showing an email poll and saving attachments into the file system
+    - Start sample Jetty server of SOA ToolBox on port 9002 for easy SSL testing
+
+** Changes for 1.2.0 ** [24-9-2010]
+-----------------------------------
+    - Issue #5 Allow an XML message to be easily split with an XPath and parts processed serially
+    - Issue #4 Allow the invocation of a sub-sequence during mediation
+    - Issue #3 Provide the ability to log wire-level messages in UltraESB
+    - Issue #2 File locking support on Windows
+    - Issue #1 Support NTLM / v2 authentication for outgoing requests
+    - Update Eclipse project file
+    - Expose ability to invoke other sequences
+    
+    - ToolBox Issue #2 Provide an option in the Toolbox to turn on HTTP/S logging
+    - ToolBox Issue #1 Add support for NTLM / v2 authentication to the ToolBox
+
+** Changes for 1.1.0 ** [24-8-2010]
+-----------------------------------
+    - Release the source code under the GNU Affero General Public License version 3
+    - Inclusion of XBean JAR file to optionally configure an ActiveMQ JMS Server within the UltraESB Configuration
+    - Added samples related to Email / JMS
+    - Fix JMS listener shutdown
+
+** Changes for 1.0.1 ** [7-7-2010]
+----------------------------------
+    - Support for Gmail/ SSL authenticated email access options for the email transport
+
+** Changes for 1.0.0 ** [3-5-2010]
+----------------------------------
+    - Add a Quickstart Guide PDF
+
+    - Enable deployment over JEE containers to tap into JTA transaction manager capabilities to suspend/resume from
+    different threads
+
+    - Add a JMS Client to the ToolBox for testing purposes
+
+    - Annotate sample configurations for better understanding
+
+    - Simplify execution of performance test scenarios
+
+    - Simplify load balancing and failover for proxying to Tomcat servers with sticky session support
+
+    - Includes debug information for Java code fragments to specify line numbers on Exceptions etc
+
+    - Supports Basic, Digest and AWS S3 authentication for outgoing HTTP/S connections with pre-emptive authentication
+    support for Basic and AWS S3 authentication
+
+    - Enhancement of the public APIs with many convenience methods - including support for WS-Addressing and Faults
+
+    - Support for HTTP/S cookie manipulation - reading and setting
+
+    - Support multi-entity response streaming over HTTP/S with support for timeout processing and pre-mature entity close
+
+    - Message splitting and aggregation support with timeouts
+
+    - Introduces MLLP and MLLPS (i.e. over SSL) support for the Health Level 7 (HL7) protocol.
+
+    - Introduces XQuery support using The Saxon XSLT and XQuery Processor from Saxonica Limited. The free and  open
+    source version Saxon-HE maybe downloaded from http://sourceforge.net/projects/saxon/ while the more advanced
+    Professional and Enterprise editions maybe downloaded from http://www.saxonica.com. To install the Saxon-HE library
+    simply copy the saxon9he.jar into the lib/optional directory
+
+    - Introduces Support for Json using the Jackson library
+
+    - Various enhancements and bug fixes
+
+
+** Changes for 1.0-beta3-b2 ** [18-3-2010]
+------------------------------------------
+
+    - Based on user feedback of the source code, the code has now been reorganized to clearly separate the public API
+    into a separate JAR file. This will ensure that user developed code will not accidentally link with the UltraESB
+    internals.
+
+    - The API JAR is published at the AdroitLogic Maven 2 repository at : http://downloads.adroitlogic.com/maven2
+
+    - The above change removes the static methods of the Mediation class, and makes Mediation an interface. An instance
+    is now passed as the variable "mediation" into a sequence, and could be used to invoke the same mediation routines
+    as before. Message, Mediation and Configuration are the main
+
+    - The full public API of the UltraESB is published at http://api.adroitlogic.org/
+
+    - The UltraRuntime project files provided to develop with the UltraESB are mainly tested only against IntelliJ
+    IDEA Community Edition 9.0 - which is available as free and open source software. The Eclipse and Netbeans files
+    are provided-as-is, and we welcome any improvements to them from users.
+
+=== Appendix A ===
+
+This appendix describes the detailed renaming of property keys for version 1.5.0 from previous releases. The left side
+shows the pre v1.5.0 name/key of the property and the right side shows the same from v1.5.0 onwards.
+
+To migrate any pre v1.5.0 configuration to a v1.5.0 or later configuration, please refer the following tables, and/or
+request for free assistance from AdroitLogic via any preferred support chanel
+
+HttpConstants
+*************
+FORWARD_URL_POSTFIX             => ultra.http.forward_url_postfix
+QUERY_PARAM_MAP                 => ultra.http.query_param_map
+HTTP_METHOD                     => ultra.http.method
+HTTP_SIZE                       => ultra.http.message_size
+RESPONSE_STATUS_CODE            => ultra.http.response_status_code
+LOCATION_SWITCH_BACK            => ultra.http.location_switch_back
+transport.auth.username         => ultra.http.auth_username
+transport.auth.password         => ultra.http.auth_password
+transport.auth.domain           => ultra.http.ntlm_auth_domain
+transport.auth.workstation      => ultra.http.ntlm_workstation
+http.auth.scheme.holder         => ultra.http.auth_scheme_holder
+http.auth.connection            => ultra.http.auth_connection
+http.auth.scheme                => ultra.http.auth_scheme
+ultra.https.client_dn           => ultra.http.ssl_client_dn
+ultra.https.client_certs        => ultra.http.ssl_client_certs
+stripURLPrefix                  => ultra.http.strip_url_prefix
+wsdlURL                         => ultra.http.wsdl_url
+
+JMSConstants
+************
+JMS_MESSAGE_TYPE                => ultra.jms.message_type
+JMS_BYTE_MESSAGE                => bytes_message
+JMS_TEXT_MESSAGE                => text_message
+JMS_MAP_MESSAGE                 => map_message
+JMS_COORELATION_ID              => ultra.jms.correlation_id
+JMS_MESSAGE_ID                  => ultra.jms.message_id
+JMS_DELIVERY_MODE               => ultra.jms.delivery_mode
+JMS_DESTINATION                 => ultra.jms.destination
+JMS_EXPIRATION                  => ultra.jms.expiration
+JMS_REDELIVERED                 => ultra.jms.redelivered
+JMS_REPLY_TO                    => ultra.jms.reply_to
+JMS_TIMESTAMP                   => ultra.jms.timestamp
+JMS_TYPE                        => ultra.jms.type
+JMS_PRIORITY                    => ultra.jms.priority
+destinationName                 => ultra.jms.destination
+replyDestinationName            => ultra.jms.reply_destination
+
+FileConstants
+*************
+FilePath                        => ultra.file.path
+FileName                        => ultra.file.name
+FileSize                        => ultra.file.size
+FileScheme                      => ultra.file.scheme
+OriginalFileName                => ultra.file.original_name
+fileNamePattern                 => ultra.file.name_pattern
+moveAfterProcess                => ultra.file.move_after_process
+moveAfterFailure                => ultra.file.move_after_failure
+moveTimestampFormat             => ultra.file.move_timestamp_format
+fileTimestampFormat             => ultra.file.timestamp_format
+
+TCPConstants
+************
+ultra.http.request_size         => ultra.tcp.request_size
+tcp.snd_io_threads              => ultra.tcp.snd_io_threads
+tcp.lst_io_threads              => ultra.tcp.lst_io_threads
+tcp.socket.timeout              => ultra.tcp.socket_timeout
+tcp.tcp.nodelay                 => ultra.tcp.tcp_nodelay
+tcp.socket.buffer-size          => ultra.tcp.socket_buffer_size
+tcp.socket.linger               => ultra.tcp.socket_linger
+tcp.connection.timeout          => ultra.tcp.connection_timeout
+tcp.connection.stalecheck       => ultra.tcp.stale_connection_check
+
+MLLPConstants
+*************
+mllp.max_message_size           => ultra.mllp.max_message_size
+
+HL7Constants
+************
+HL7SendingApplication           => ultra.hl7.sending_application
+HL7SendingFacility              => ultra.hl7.sending_facility
+HL7ReceivingApplication         => ultra.hl7.receiving_application
+HL7ReceivingFacility            => ultra.hl7.receiving_facility
+HL7Timestamp                    => ultra.hl7.timestamp
+HL7Security                     => ultra.hl7.security
+HL7MessageType                  => ultra.hl7.message_type
+HL7TriggerEvent                 => ultra.hl7.trigger_event
+HL7MessageControl               => ultra.hl7.message_control
+HL7ProcessingId                 => ultra.hl7.processing_id
+HL7VersionId                    => ultra.hl7.version_id
+
+MailConstants
+*************
+protocol                        => ultra.mail.protocol
+folder                          => ultra.mail.folder
+concurrentPollingAllowed        => ultra.mail.concurrent_polling_allowed
+processMailInParallel           => ultra.mail.process_in_parallel
+moveAfterFailure                => ultra.mail.move_after_failure
+moveAfterProcess                => ultra.mail.move_after_process
+leaveAfterFailure               => ultra.mail.leave_after_failure
+leaveAfterProcess               => ultra.mail.leave_after_process
+preserveHeaders                 => ultra.mail.preserve_headers
+removeHeaders                   => ultra.mail.remove_headers
+mainPartIdentificationPriority  => ultra.mail.main_part_identification_priority
+retainAlternativeParts          => ultra.mail.retain_alternative_parts
+from                            => ultra.mail.from
+cc                              => ultra.mail.cc
+bcc                             => ultra.mail.bcc
+subject                         => ultra.mail.subject
+
+PollingConstants
+****************
+cronExpression                  => ultra.polling.cron_expression
+startDelay                      => ultra.polling.start_delay
+repeatInterval                  => ultra.polling.repeat_interval
+repeatCount                     => ultra.polling.repeat_count
+concurrent                      => ultra.polling.concurrent
+disabled                        => ultra.polling.disabled
+
+BaseConstants
+*************
+url                             => ultra.transport.url
+
+ConfigurationConstants
+**********************
+switchLocationHeadersTo         => ultra.endpoint.switch_location_headers_to
+socket_timeout                  => ultra.endpoint.socket_timeout
+keepalive_timeout               => ultra.endpoint.keepalive_timeout
+responseValidatorBean           => ultra.endpoint.response_validator_bean
+## Note that this constant renaming has been done in the 2.0.0 version, so anything on or before 1.7.1 should use
+## the old format of the property name
+responseValidatorClass          => ultra.endpoint.response_validator_class
+
+Misc
+****
+SOAP_HEADERS                    => ultra.soap.headers
+MERGED                          => ultra.mediation.aggregator.merged
+EXPIRED                         => ultra.mediation.aggregator.expired
+AGGREGATION_EXPIRY              => ultra.mediation.aggregator.expiry_time
+part                            => ultra.mediation.aggregator.part
+size                            => ultra.mediation.aggregator.size
+
+
+=== Appendix B ===
+
+This appendix describes the detailed re-factoring of Mediation API for version 1.7.0 from previous releases. The left side
+shows the pre v1.7.0 mediation API methods and the right side shows the same from v1.7.0 onwards with the support interfaces.
+
+Support interfaces improves the usability of the API, by grouping the similar operations into a single interface.
+
+To migrate any pre v1.7.0 configuration to a v1.7.0 or later configuration, please refer the following tables, and/or
+request for free assistance from AdroitLogic via any preferred support chanel. Please note that the previous API methods
+are still available as deprecated and planned to be removed in a next version of the UltraESB and hence migrating to the
+new API is highly recommended.
+
+
+SOAPSupport
+***********
+
+setPayloadToSOAP11Fault         => SOAPSupport#setPayloadToSOAP11Fault
+setPayloadToSOAP12Fault         => SOAPSupport#setPayloadToSOAP12Fault
+isSoap                          => SOAPSupport#isSoap
+getSoapFaultCode                => SOAPSupport#getSoapFaultCode
+getSoapFaultString              => SOAPSupport#getSoapFaultString
+getSoapFaultDetail              => SOAPSupport#getSoapFaultDetail
+getSoapHeaderAsString           => SOAPSupport#getSoapHeaderAsString
+getSoapHeadersAsStrings         => SOAPSupport#getSoapHeadersAsStrings
+getSoapAddressingTo             => SOAPSupport#getSoapAddressingTo
+getSoapAction                   => SOAPSupport#getSoapAction
+getSoapAddressingAction         => SOAPSupport#getSoapAddressingAction
+getSoapAddressingReplyTo        => SOAPSupport#getSoapAddressingReplyTo
+getSoapAddressingFaultTo        => SOAPSupport#getSoapAddressingFaultTo
+getSoapAddressingFrom           => SOAPSupport#getSoapAddressingFrom
+getSoapAddressingMessageID      => SOAPSupport#getSoapAddressingMessageID
+convertFromFI                   => SOAPSupport#convertFromFI
+convertToFI                     => SOAPSupport#convertToFI
+convertSOAPToJSONStream         => SOAPSupport#convertSOAPToJSONStream
+validate                        => SOAPSupport#validate
+filter                          => SOAPSupport#filter
+remove                          => SOAPSupport#remove
+extractAsStringUsingXPath       => SOAPSupport#extractAsStringUsingXPath
+transform                       => SOAPSupport#transform
+splitAndProcess                 => SOAPSupport#splitAndProcess
+
+
+XMLSupport
+**********
+
+convertFromFI                   => XMLSupport#convertFromFI
+convertToFI                     => XMLSupport#convertToFI
+convertToDOM                    => XMLSupport#convertToDOM
+convertXMLToJSONStream          => XMLSupport#convertXMLToJSONStream
+validate                        => XMLSupport#validate
+filter                          => XMLSupport#filter
+remove                          => XMLSupport#remove
+extractAsStringUsingXPath       => XMLSupport#extractAsStringUsingXPath
+extractAsNodeListUsingXPath     => XMLSupport#extractAsNodeListUsingXPath
+transform                       => XMLSupport#transform
+retainElementAsPayload          => XMLSupport#retainElementAsPayload
+mergeXMLAttachmentsUnderElement => XMLSupport#mergeXMLAttachmentsUnderElement
+splitAndProcess                 => XMLSupport#splitAndProcess
+createDOMDocument               => XMLSupport#createDOMDocument
+
+
+HTTPSupport
+***********
+
+isHessian                       => HTTPSupport#isHessian
+setCookie                       => HTTPSupport#setCookie
+getCookie                       => HTTPSupport#getCookie
+addPreemptiveBasicAuthentication => HTTPSupport#addPreemptiveBasicAuthentication
+getJvmRoute                     => HTTPSupport#
+
+
+JSONSupport
+***********
+
+convertXMLToJSONStream          => JSONSupport#convertXMLToJSONStream
+convertJSONToStream             => JSONSupport#convertJSONToStream
+convertSOAPToJSONStream         => JSONSupport#convertSOAPToJSONStream
+convertXMLToJSONStream          => JSONSupport#convertXMLToJSONStream
+convertToUntypedJSON            => JSONSupport#convertToUntypedJSON
+convertToTypedJSON              => JSONSupport#convertToTypedJSON
+processBasicJSONDataServiceRequest => JSONSupport#processBasicJSONDataServiceRequest
+
+
+XACMLSupport
+************
+
+isPermitted                     => XACMLSupport#isPermitted
+
+
+DateSupport
+***********
+
+getISO8601FormattedString       => DateSupport#getISO8601FormattedString
+getDateFromISO8601String        => DateSupport#getDateFromISO8601String
+getSQLDateFromISO8601String     => DateSupport#getSQLDateFromISO8601String
+getUTFFormattedString           => DateSupport#getUTFFormattedString
+getDateFromUTCString            => DateSupport#getDateFromUTCString
+getSQLDateFromUTCString         => DateSupport#getSQLDateFromUTCString
+
+
+CachingSupport
+**************
+
+getLocalCache                   => CachingSupport#getLocalCache()
+getLocalPermanentCache          => CachingSupport#getLocalPermanentCache()
+getLocalPersistentCache         => CachingSupport#getLocalPersistentCache()
+getDistributedCache             => CachingSupport#getDistributedCache()
+getDistributedPermanentCache    => CachingSupport#getDistributedPermanentCache()
+getDistributedPersistentCache   => CachingSupport#getDistributedPersistentCache()
+
+
+=== Appendix C ===
+
+This appendix describes the detailed re-factoring of AS2 persistence layer DB schema for version 2.0.0 from previous
+releases. The left side shows the pre v2.0.0 schema table column names while the right side shows the same from v2.0.0
+onwards.
+
+To migrate any pre v2.0.0 schema to a v2.0.0 or later schema, you will need to add few columns into some tables and
+change some properties of the schema too. All those properties are described next to the changed column.
+
+Please consult AdroitLogic for further support on migrating the existing AS2 system into the new version.
+
+
+PARTNER Table
+*************
+
+** The Table name itself has been changed from "PARTNER" to "partner". Note the case of the letters. This change is only
+applicable to databases case sensitive naming. (most of the databases are case sensitive, including MySQL and many other)
+
+as2Identifier           => as2identifier [This column is no more unique, the unique property has been removed]
+signMessages            => sign_messages
+encryptMessages         => encrypt_messages
+compressBefore          => compress_before
+compressAfter           => compress_after
+requestMDN              => requestmdn
+requestSignedMDN        => request_signedmdn
+requestAsyncMDN         => request_asyncmdn
+asyncReceiptURL         => async_receipturl
+messageSubject          => message_subject
+encryptCertAlias        => encrypt_cert_alias
+
+
+MESSAGE Table
+*************
+
+** The Table name itself has been changed from "MESSAGE" to "message". Note the case of the letters. This change is only
+applicable to databases case sensitive naming. (most of the databases are case sensitive, including MySQL and many other)
+
+relatedMessageID        => related_messageid
+userAgent               => user_agent
+rawFilePath             => raw_file_path
+rawHeadersPath          => raw_headers_path
+containsPayload         => contains_payload
+sendFailed              => send_failed
+transportStatusReceived => transport_status_received
+
+=== Appendix D ===
+
+This appendix describes the detailed re-factoring of UTerm command names for the 2.0.0 release from previous
+releases. The left side shows the pre v2.0.0 commands while the right side shows the same from v2.0.0
+onwards.
+
+The rationale behind this refactoring is to make the UTerm commands consistent across the norms. The change is mainly
+on bringing the subject as a first class entity to the command over the action. For example "list-endpoints" (previously
+action first - "list"), will be now "endpoint-list" (subject first "endpoint")
+
+Please consult AdroitLogic for further support on migrating the existing scripts using these commands to the newer
+version.
+     __________________________________________________________________________________________
+    |                          LONG FORM                              |    SHORT FORM          |
+    |_________________________________________________________________|________________________|
+    |       v < 2.0.0               |       v >= 2.0.0                | v < 2.0.0 | v >= 2.0.0 |
+ ___|_______________________________|_________________________________|___________|____________|
+| S | list-servers                  | server-list                     | ls        | sl         |
+| E | check-server-state            | server-state-check              | chksst    | sstchk     |
+| R | start-server                  | server-start                    | strs      | sstr       |
+| V | stop-server                   | serve-stop                      | stps      | sstp       |
+| R | restart-server                | server-restart                  | rs        | srstr      |
+|___|_______________________________|_________________________________|___________|____________|
+| E |                               |                                 |           |            |
+| N | list-endpoints                | endpoint-list                   | lep       | epl        |
+| D | get-endpoint                  | endpoint-view                   | getep     | epv        |
+| P | stop-endpoint                 | endpoint-stop                   | stpep     | epstp      |
+| O | start-endpoint                | endpoint-start                  | strep     | epstr      |
+| I | enable-debug-endpoint         | endpoint-debug-enable           | edbep     | epdbe      |
+| N | disable-debug-endpoint        | endpoint-debug-disable          | ddbep     | epdbd      |
+| T | reset-statistics-endpoint     | endpoint-statistics-reset       | rststep   | epstrst    |
+|___|_______________________________|_________________________________|___________|____________|
+| P |                               |                                 |           |            |
+| R | list-proxy-services           | proxy-service-list              | lps       | psl        |
+| O | get-proxy-service             | proxy-service-view              | getps     | psv        |
+| X | stop-proxy-services           | proxy-service-stop              | stpps     | psstp      |
+| Y | start-proxy-service           | proxy-service-start             | strps     | psstr      |
+|   | enable-debug-proxy-service    | proxy-service-debug-enable      | edbps     | psdbe      |
+| S | disable-debug-proxy-service   | proxy-service-debug-disable     | ddbps     | psdbd      |
+| V | reset-statistics-proxy-service| proxy-service-statistics-reset  | rststps   | psstrst    |
+|___|_______________________________|_________________________________|___________|____________|
+| S |                               |                                 |           |            |
+| E | list-sequences                | sequence-list                   | lsq       | sql        |
+| Q | get-sequence                  | sequence-view                   | getsq     | sqv        |
+| U | stop-sequence                 | sequence-stop                   | stpsq     | sqstp      |
+| E | start-sequence                | sequence-start                  | strsq     | sqstr      |
+| N | enable-debug-sequence         | sequence-debug-enable           | edbsq     | sqdbe      |
+| C | disable-debug-sequence        | sequence-debug-disable          | ddbsq     | sqdbd      |
+| E | reset-statistics-sequence     | sequence-statistics-reset       | rststsq   | sqstrst    |
+|___|_______________________________|_________________________________|___________|____________|

@@ -1,0 +1,264 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+<!doctype html>
+<html>
+<div id="tabs-2">
+    <div id="userInfo" class="hidden">
+        <h3>User Information</h3>
+        <fieldset id="userInfoForm">
+            <ul>
+                <li>
+                    <label>Username</label>
+                    <input type="text" id="username" class="editableText">
+                </li>
+                <li>
+                    <label>Roles</label>
+                    <input type="text" id="roles" class="editableText" style="margin-bottom: 3px; padding: 1px;">
+                </li>
+                <li>
+                    <label>Password</label>
+                    <input type="password" id="password" class="editableText">
+                </li>
+                <br/>
+                <button type="button" class="button clickable hidden" title="Add" id="userInfoAdd" onclick="addUser();">Add</button>
+                <button type="button" class="button clickable hidden" title="Update" id="userInfoUpdate" onclick="updateUser();">Update</button>
+                <button type="button" class="button clickable" title="Cancel" id="userInfoCancel" onclick="displayUsers();">Cancel</button>
+            </ul>
+        </fieldset>
+    </div>
+    <div id="users" class="shown" style="width:100%">
+        <h3>Defined Users</h3>
+        Users defined in the uconsole user manager
+        <input type="button" class="button clickable" style="float: right; margin-bottom: 5px;" value="Add User" onclick="displayAddUser()">
+        <div id="usersTable"></div>
+    </div>
+    <script type="text/javascript">
+
+        function editUser(userId) {
+            var jqxhr = $.getJSON(getCallURLBase() + "usermgt/users/" + userId, function(dataset) {
+
+                $('#username').attr('readonly', 'readonly');
+                $('#username').removeClass('editableText');
+                $('#username').addClass('disabledText');
+                populateRoles();
+                var data = {user:dataset};
+                var formDirective = {
+                    'input#username@value'          :'user.username',
+                    'input#roles@value'             :'user.roles',
+                    'input#password@value'          :'******'
+                };
+                $('#userInfoForm').render(data, formDirective);
+                $('#userInfoUpdate').removeClass('hidden');
+                $('#userInfoUpdate').addClass('shown');
+                $('#users').slideUp('fast');
+                $('#userInfo').slideDown('slow');
+            });
+        }
+
+        function displayAddUser() {
+            $('#username').removeAttr('readonly');
+            $('#username').removeClass('disabledText');
+            $('#username').addClass('editableText');
+            $('#username').attr('value', '');
+            $('#roles').attr('value', '');
+            $('#password').attr('value', '');
+            $('#userInfoAdd').removeClass('hidden');
+            $('#userInfoAdd').addClass('shown');
+            populateRoles();
+            $('#users').slideUp('fast');
+            $('#userInfo').slideDown('slow');
+        }
+
+        function split( val ) {
+            return val.split( /,\s*/ );
+        }
+
+        function extractLast( term ) {
+            return split( term ).pop();
+        }
+
+        function populateRoles() {
+            var jqxhr = $.getJSON(getCallURLBase() + "usermgt/roles/all", function(dataset) {
+
+                var availableTags = [];
+                for (var n in dataset) {
+                    availableTags[n] = dataset[n].name;
+                }
+
+                $( "#roles" )
+                            .bind( "keydown", function( event ) {
+                                if ( event.keyCode === $.ui.keyCode.TAB &&
+                                        $( this ).data( "autocomplete" ).menu.active ) {
+                                    event.preventDefault();
+                                }
+                            })
+                            .autocomplete({
+                                minLength: 0,
+                                source: function( request, response ) {
+                                    response( $.ui.autocomplete.filter(
+                                        availableTags, extractLast( request.term ) ) );
+                                },
+                                focus: function() {
+                                    return false;
+                                },
+                                select: function( event, ui ) {
+                                    var terms = split( this.value );
+                                    terms.pop();
+                                    terms.push( ui.item.value );
+                                    terms.push( "" );
+                                    this.value = terms.join( ", " );
+                                    return false;
+                                }
+                            });
+
+            });
+        }
+
+        function displayUsers() {
+            $('#userInfoAdd').removeClass('shown');
+            $('#userInfoUpdate').removeClass('shown');
+            $('#userInfoAdd').addClass('hidden');
+            $('#userInfoUpdate').addClass('hidden');
+            $('#userInfo').slideUp('fast');
+            $('#users').slideDown('slow');
+        }
+
+        function removeUser(username) {
+            showConfirmation("Do you want to remove the user with username " + username, function() {
+                $.ajax({
+                    type: 'DELETE',
+                    url: getCallURLBase() + 'usermgt/users/' + username,
+                    success: function(msg) {
+                        showInfoWithCallback("Successfully removed the user with username " + username, function() {
+                            loadUserData();
+                            displayUsers();
+                        });
+                    }
+                }).error(function () {
+                    showError("Error in removing the user with the username " + username, null);
+                });
+            });
+        }
+
+        function addUser() {
+            var username = $('#username').attr('value');
+            var params = '{';
+            params += '"username": "' + username + '",';
+            params += '"roles": [';
+            var roleNames = $('#roles').attr('value').split(',');
+            for (var roleId in roleNames) {
+                params += roleId != 0 ? ',' : '';
+                params += '"' + roleNames[roleId] + '"';
+            }
+            params += '],';
+            params += '"password": "' + $('#password').attr('value') + '"}';
+
+            $.ajax({
+                type: 'POST',
+                url: getCallURLBase() + 'usermgt/users/' + username,
+                data: params,
+                contentType: 'application/json',
+                success: function(msg) {
+                    showInfoWithCallback("Successfully added the user with username " + username, function() {
+                        loadUserData();
+                        displayUsers();
+                    });
+                }
+            }).error(function () {
+                showError("Error in adding the user information", null);
+            });
+        }
+
+        function updateUser() {
+            var params = '{';
+            var username = $('#username').attr('value');
+            params += '"username": "' + username + '",';
+            params += '"roles": [';
+            var roleNames = $('#roles').attr('value').split(',');
+            for (var roleId in roleNames) {
+                params += roleId != 0 ? ',' : '';
+                params += '"' + roleNames[roleId] + '"';
+            }
+            params += ']';
+            params += $('#password').attr('value') !== "******" ? ',"password": "' + $('#password').attr('value') + '"': '';
+            params += '}';
+
+            $.ajax({
+                type: 'PUT',
+                url: getCallURLBase() + 'usermgt/users/' + username,
+                data: params,
+                contentType: 'application/json',
+                success: function(msg) {
+                    showInfoWithCallback("Successfully updated the user with username " + username, function() {
+                        loadUserData();
+                        displayUsers();
+                    });
+                }
+            }).error(function () {
+                showError("Error in updating the user information", null);
+            });
+        }
+
+        function loadUserData() {
+
+            $('#usersTable').html('<table class="display" id="userList">'
+                    + '<thead><tr><th>Username</th><th>Roles</th><th>Controls</th></tr></thead>'
+                    + '<tbody><tr><td class="username"></td><td class="roles"></td>'
+                    + '<td class="controls"><img class="edit clickable" title="Edit" src="icons/edit.png"/>'
+                    + '<img class="remove clickable" title="Remove" src="icons/remove.png"/></td></tr></tbody></table>');
+
+            var jqxhr = $.getJSON(getCallURLBase() + "usermgt/users/all", function(dataset) {
+
+                var data = {users:dataset};
+                var dataDir = {
+                    'tbody tr':{
+                        'user<-users':{
+                            'td.username'   :'user.username',
+                            'td.roles'      :function(user) {return user.item.roles.toString();},
+                            'td.controls img.edit@onclick' :'{editUser("#{user.username}");}',
+                            'td.controls img.remove@onclick' :'{removeUser("#{user.username}");}'
+                        }
+                    }
+                };
+                $('#userList').render(data,dataDir);
+                encodeURLs();
+                $('#userList').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers"
+                });
+            });
+        }
+
+        $(document).ready(function() {
+            loadUserData();
+        });
+    </script>
+</div>
+</html>
+

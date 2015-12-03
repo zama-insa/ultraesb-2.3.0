@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <!--Refer to the unit test HessianTest for more details about this sample and a unit test for it-->
+
+    <!--Defines a Hessian service proxy, and shows a Java class and equivalent fragment sequences to read the binary
+    Hessian message contents - when the class definition is available to the UltraESB JVM-->
+    <u:proxy id="hessian-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:class name="org.adroitlogic.ultraesb.core.SampleHessianSequence"/>
+                <!--<u:java import="java.io.*; com.caucho.hessian.io.*; samples.services.soap.*;"><![CDATA[
+                    InputStream is = msg.getCurrentPayload().getInputStream();
+                    int code = is.read();
+                    int major = is.read();
+                    int minor = is.read();                    
+                    HessianInput in = new com.caucho.hessian.io.HessianInput(is);
+                    in.skipOptionalCall();
+                    String methodName = in.readMethod();
+                    Object obj = in.readObject(null);
+                    if (obj instanceof GQ) {
+                        GQ gq = (GQ) obj;
+                        System.out.println("Request is for symbol : " + gq.getSymbol());
+                    }
+                    is.close();
+                ]]></u:java>-->
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9000/hessian/hessian-stockquote</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+</beans>

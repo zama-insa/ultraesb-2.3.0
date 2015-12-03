@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "transport-listener-item-parent"
+    },
+    "params":{
+        "description": "Messages sent by the transport listener ${.*}$",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=TransportListeners,Name=${.*}$][Details.messagesSent]"
+    }
+}

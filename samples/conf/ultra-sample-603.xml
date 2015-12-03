@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+        <property name="properties">
+            <map>
+                <entry key="http.socket.timeout" value="10000"/>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <u:proxy id="ep-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inDestination timeout="1000">
+                <u:address id="port-9000">http://localhost:9000/service/SomeService</u:address>
+                <u:temporaryFailures>
+                    <u:gracePeriod>1000</u:gracePeriod>
+                </u:temporaryFailures>
+                <u:suspendOnFailure>
+                    <u:initialDuration>5000</u:initialDuration>
+                    <u:progressionFactor>1</u:progressionFactor>
+                    <u:maximumDuration>5000</u:maximumDuration>
+                </u:suspendOnFailure>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                        System.out.println("Reply payload : " + mediation.readPayloadAsString(msg));
+                ]]></u:java>
+            </u:outSequence>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    System.out.println("Executing Error Handler");
+                    mediation.setPayloadFromString(msg, "failed");
+                    mediation.sendResponse(msg, 500);
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="invalid-ep-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inDestination>
+                <u:address id="port-9000">xhttp://localhost:9000/service/SomeService</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    System.out.println("Executing Error Handler");
+                    mediation.setPayloadFromString(msg, "failed");
+                    mediation.sendResponse(msg, 500);
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="client-timeout-1">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    msg.addTransportHeader("sleep", "3000");
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9001/service/EchoService</u:address>
+            </u:inDestination>
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="client-timeout-2">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    msg.addTransportHeader("sleep", "3000");
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>http://localhost:9001/service/EchoService</u:address>
+            </u:inDestination>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    mediation.sendResponse(msg, 200);
+                ]]></u:java>
+            </u:outSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="client-timeout-3">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    mediation.setPayloadFromString(msg, "response");
+                    if (msg.getFirstTransportHeader("sleep") != null) {
+                        Thread.sleep(4000);
+                    }
+                    mediation.sendResponse(msg, 200);
+                ]]></u:java>
+            </u:inSequence>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    System.out.println("Custom error handler : " + msg.getLastException());
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="client-timeout-4">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    mediation.setPayloadFromString(msg, "response");
+                    mediation.sendResponse(msg, 200);
+                ]]></u:java>
+            </u:inSequence>
+            <u:errorSequence>
+                <u:java><![CDATA[
+                    System.out.println("Custom error handler : " + msg.getLastException());
+                ]]></u:java>
+            </u:errorSequence>
+        </u:target>
+    </u:proxy>
+
+</beans>

@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <!--This sample shows a synchronous-asynchronous bridge and guaranteed message delivery using HornetQ as a JMS
+    provider
+
+    - To run, delete the ActiveMQ jar file from the lib/optional directory (e.g. ./optional/activemq-all-5.3.0.jar)
+
+    - Next copy the following JAR files into the lib/custom directory from the HornetQ 2.2.5 distribution
+    hornetq-bootstrap.jar          hornetq-core.jar  hornetq-logging.jar  jboss-mc.jar   netty.jar
+    hornetq-core-client-java5.jar  hornetq-jms.jar   jboss-jms-api.jar    jnpserver.jar
+
+    Then copy the hornetq-configuration.xml, hornetq-jms.xml, hornetq-users.xml and jndi.properties files from the
+    samples/resources/misc directory into the conf directory. (Note: these files are configured for a Linux OS)
+
+    Start the ToolBox, and the sample Jetty Server and issue a Prefix #1 getQuote request to the URL
+    http://localhost:8280/service/soap-proxy
+
+    Without a HTTP header called "routing" the request will be rejected with an error
+    Setting a custom HTTP header "routing: something" will accept the message, and later discard due to the invalid value
+    Setting a custom HTTP header "routing: xadmin;server1;community#1.0##" will queue the message and first issue a
+    confirmation with the message ID of the JMS message included. Then it will be posted to the SimpleStockQuote service
+    one or more times until a quote value of 200 is received. A lesser value will rollback the JMS read transaction
+    causing a redelivery.
+    -->
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="100"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <bean name="namingServerImpl" class="org.jnp.server.NamingBeanImpl" init-method="start" destroy-method="stop"/>
+
+    <bean name="namingServer" class="org.jnp.server.Main" init-method="start" destroy-method="stop">
+        <property name="namingInfo" ref="namingServerImpl"/>
+        <property name="port" value="1099"/>
+        <property name="bindAddress" value="localhost"/>
+        <property name="rmiPort" value="1098"/>
+        <property name="rmiBindAddress" value="localhost"/>
+    </bean>
+
+    <bean name="mbeanServer" class="java.lang.management.ManagementFactory" factory-method="getPlatformMBeanServer"/>
+    <bean name="fileConfiguration" class="org.hornetq.core.config.impl.FileConfiguration" init-method="start" destroy-method="stop"/>
+    <bean name="hornetQSecurityManagerImpl" class="org.hornetq.spi.core.security.HornetQSecurityManagerImpl"/>
+
+    <bean name="hornetQServerImpl" class="org.hornetq.core.server.impl.HornetQServerImpl">
+        <constructor-arg ref="fileConfiguration"/>
+        <constructor-arg ref="mbeanServer"/>
+        <constructor-arg ref="hornetQSecurityManagerImpl"/>
+    </bean>
+
+    <bean name="jmsServerManagerImpl" class="org.hornetq.jms.server.impl.JMSServerManagerImpl" init-method="start" destroy-method="stop">
+        <constructor-arg ref="hornetQServerImpl"/>
+    </bean>
+
+    <bean name="queueConnectionFactory" class="org.hornetq.jms.client.HornetQJMSConnectionFactory">
+        <constructor-arg type="boolean" value="false"/>
+        <constructor-arg>
+            <bean class="org.hornetq.api.core.TransportConfiguration">
+                <constructor-arg value="org.hornetq.core.remoting.impl.netty.NettyConnectorFactory"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="stxManager" class="org.springframework.jms.connection.JmsTransactionManager">
+        <property name="connectionFactory" ref="queueConnectionFactory"/>
+    </bean>
+
+    <bean id="txManager" class="org.adroitlogic.ultraesb.core.spring.SpringPlatformTransactionManager">
+        <property name="txnManager" ref="stxManager"/>
+    </bean>
+
+    <!--Define JMS transport listener-->
+    <bean id="jms-lsnr" class="org.adroitlogic.ultraesb.transport.jms.JMSTransportListener">
+        <property name="connectionFactory" ref="queueConnectionFactory"/>
+        <property name="transactionManager" ref="txManager"/>
+    </bean>
+
+    <!--Define JMS transport sender-->
+    <bean id="jms-sender" class="org.adroitlogic.ultraesb.transport.jms.JMSTransportSender">
+        <property name="template">
+            <bean id="jmsProducerTemplate" class="org.springframework.jms.core.JmsTemplate">
+                <property name="connectionFactory" ref="queueConnectionFactory"/>
+            </bean>
+        </property>
+    </bean>
+
+    <u:proxy id="soap-proxy">
+        <u:transport id="http-8280"/>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.jms.JMSConstants; org.adroitlogic.ultraesb.api.transport.http.HttpConstants;"><![CDATA[
+                        if (msg.getFirstTransportHeader("routing") == null) {
+                            mediation.setPayloadFromString(msg, "Valid routing rules does not exist");
+                            mediation.sendResponse(msg, 500);
+                        } else {
+                            msg.removeTransportHeader(HttpConstants.Headers.CONTENT_TYPE);
+                            msg.removeTransportHeader(HttpConstants.Headers.CONTENT_LENGTH);
+                            msg.removeTransportHeader(HttpConstants.Headers.USER_AGENT);
+                            msg.addTransportHeader(HttpConstants.MessageProperties.QUERY_STRING, mediation.getHTTPSupport().getQueryString(msg));
+                            mediation.sendToEndpoint(msg, "jmsQueue");
+
+                            mediation.setPayloadFromString(msg, "Accepted : " + msg.getFirstTransportHeader(JMSConstants.MESSAGE_ID));
+                            mediation.sendResponse(msg, 200);
+                        }
+                    ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="jmsQueue">
+        <u:address>jms:/Q.jmsPending</u:address>
+    </u:endpoint>
+
+    <u:proxy id="jmsToService">
+        <u:transport id="jms-lsnr">
+            <u:property name="ultra.jms.destination" value="Q.jmsPending"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.http.HttpConstants; org.adroitlogic.ultraesb.api.transport.BaseConstants;"><![CDATA[
+                        logger.info("Processing queued message from JMS..");
+                        if ("xadmin;server1;community#1.0##".equals(msg.getFirstTransportHeader("routing"))) {
+                            msg.suspendTransaction("txManager");
+                            msg.setContentType(BaseConstants.ContentType.TEXT_XML);
+                            mediation.sendToEndpoint(msg, "stockquote-service");
+                        } else {
+                            logger.error("Discard undeliverable message : {}", msg.getMessageUUID());
+                        }
+                    ]]></u:java>
+            </u:inSequence>
+            <u:outSequence>
+                <u:java><![CDATA[
+                    double quotedPrice = Double.parseDouble(mediation.extractAsStringUsingXPath(msg, "//last", null));
+                    msg.resumeTransaction();
+                    if (quotedPrice > 100) {
+                        logger.info("Confirm order at : {}", quotedPrice);
+                        msg.commitTransaction();
+                    } else {
+                        logger.warn("Quote price : {} - order rejected", quotedPrice);
+                        msg.rollbackTransaction();
+                    }
+                ]]></u:java>
+            </u:outSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="stockquote-service">
+        <u:address>http://localhost:9000/service/SimpleStockQuoteService</u:address>
+    </u:endpoint>
+
+</beans>

@@ -1,0 +1,12 @@
+{
+    "uz_meta": {
+        "parent": "jvm-general-item-parent"
+    },
+    "params":{
+        "name": "JVM Version",
+        "key_": "jmx[java.lang:type=Runtime][VmVersion]",
+        "value_type": "1",
+        "history": 12,
+        "delay": 180
+    }
+}

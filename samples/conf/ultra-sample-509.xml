@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xmlns:amq="http://activemq.apache.org/schema/core"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd
+http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <!-- Create an embedded ActiveMQ Broker -->
+    <amq:broker useJmx="true" persistent="false">
+        <amq:transportConnectors>
+            <amq:transportConnector uri="tcp://localhost:61616"/>
+        </amq:transportConnectors>
+    </amq:broker>
+
+    <!-- JMS ConnectionFactory to use, configuring the embedded broker using XML -->
+    <amq:connectionFactory id="queueConnectionFactory" brokerURL="vm://localhost"/>
+
+    <!--Define JMS transport listener-->
+    <bean id="jms-lsnr" class="org.adroitlogic.ultraesb.transport.jms.JMSTransportListener">
+        <property name="connectionFactory" ref="queueConnectionFactory"/>
+    </bean>
+
+    <!--Define JMS transport sender-->
+    <bean id="jms-sender" class="org.adroitlogic.ultraesb.transport.jms.JMSTransportSender">
+        <property name="template">
+            <bean id="jmsProducerTemplate" class="org.springframework.jms.core.JmsTemplate">
+                <property name="connectionFactory" ref="queueConnectionFactory"/>
+            </bean>
+        </property>
+    </bean>
+
+    <u:proxy id="stream-proxy">
+        <u:transport id="jms-lsnr">
+            <u:property name="ultra.jms.destination" value="Q.STREAM-REQ"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.jms.JMSConstants;"><![CDATA[
+                    logger.info("Processing stream message from JMS..");
+                    org.adroitlogic.ultraesb.api.format.StreamMessage oldMsg =
+                        (org.adroitlogic.ultraesb.api.format.StreamMessage) msg.getCurrentPayload();
+
+                    // create new message by copying from old
+                    org.adroitlogic.ultraesb.core.format.StreamMessage newMsg =
+                        new org.adroitlogic.ultraesb.core.format.StreamMessage();
+
+                    newMsg.writeBoolean(oldMsg.readBoolean());
+                    newMsg.writeByte(oldMsg.readByte());
+                    byte[] b = new byte[20];
+                    int len = oldMsg.readBytes(b);
+                    newMsg.writeBytes(b, 0, len);
+                    newMsg.writeChar(oldMsg.readChar());
+                    newMsg.writeDouble(oldMsg.readDouble());
+                    newMsg.writeFloat(oldMsg.readFloat());
+                    newMsg.writeInt(oldMsg.readInt());
+                    newMsg.writeLong(oldMsg.readLong());
+                    newMsg.writeObject(oldMsg.readObject());
+                    newMsg.writeShort(oldMsg.readShort());
+                    newMsg.writeString(oldMsg.readString());
+
+                    msg.setCurrentPayload(newMsg);
+                    mediation.sendToEndpoint(msg, "stream-res");
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="stream-res">
+        <u:address>jms:/Q.STREAM-RES</u:address>
+    </u:endpoint>
+
+    <u:proxy id="object-proxy">
+        <u:transport id="jms-lsnr">
+            <u:property name="ultra.jms.destination" value="Q.OBJECT-REQ"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.jms.JMSConstants;"><![CDATA[
+                    logger.info("Processing object message from JMS..");
+                    org.adroitlogic.ultraesb.api.format.ObjectMessage objMsg =
+                        (org.adroitlogic.ultraesb.api.format.ObjectMessage) msg.getCurrentPayload();
+
+                    samples.services.restful.shop.domain.Customer cust =
+                        (samples.services.restful.shop.domain.Customer) objMsg.asSerializableObject();
+                    cust.setFirstName("Avanka");
+                    cust.setId(5678);
+                    mediation.sendToEndpoint(msg, "object-res");
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="object-res">
+        <u:address>jms:/Q.OBJECT-RES</u:address>
+    </u:endpoint>
+
+    <u:proxy id="text-proxy">
+        <u:transport id="jms-lsnr">
+            <u:property name="ultra.jms.destination" value="Q.TEXT-REQ"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.jms.JMSConstants;"><![CDATA[
+                    logger.info("Processing text message from JMS..");
+                    mediation.setPayloadFromString(msg, "response-"+mediation.readPayloadAsString(msg));
+                    mediation.sendToEndpoint(msg, "text-res");
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="text-res">
+        <u:address>jms:/Q.TEXT-RES</u:address>
+    </u:endpoint>
+
+    <u:proxy id="bytes-proxy">
+        <u:transport id="jms-lsnr">
+            <u:property name="ultra.jms.destination" value="Q.BYTES-REQ"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.jms.JMSConstants;"><![CDATA[
+                    logger.info("Processing bytes message from JMS..");
+                    java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream(64);
+                    msg.getCurrentPayload().writeTo(baos);
+                    mediation.setPayloadFromByteArray(msg, baos.toByteArray());
+                    mediation.sendToEndpoint(msg, "bytes-res");
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="bytes-res">
+        <u:address>jms:/Q.BYTES-RES</u:address>
+    </u:endpoint>
+
+    <u:proxy id="map-proxy">
+        <u:transport id="jms-lsnr">
+            <u:property name="ultra.jms.destination" value="Q.MAP-REQ"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.transport.jms.JMSConstants;"><![CDATA[
+                    logger.info("Processing map message from JMS..");
+                    java.util.Map map = (java.util.Map) msg.getCurrentPayload().asSerializableObject();
+                    map.put("name", "perera");
+                    mediation.sendToEndpoint(msg, "map-res");
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="map-res">
+        <u:address>jms:/Q.MAP-RES</u:address>
+    </u:endpoint>
+
+</beans>

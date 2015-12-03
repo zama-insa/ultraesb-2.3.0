@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--suppress SpringBeanNameConventionInspection, UnparsedCustomBeanInspection -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+       http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg type="int" value="10"/>
+    </bean>
+
+    <bean id="http-8280" class="org.adroitlogic.ultraesb.transport.http.HttpNIOListener">
+        <constructor-arg ref="fileCache"/>
+        <property name="port" value="8280"/>
+    </bean>
+
+    <bean id="http-sender" class="org.adroitlogic.ultraesb.transport.http.HttpNIOSender">
+        <constructor-arg ref="fileCache"/>
+    </bean>
+
+    <bean id="myThrottleConfig" class="org.adroitlogic.ultraesb.core.mediation.throttle.ConcurrencyThrottle">
+        <property name="concurrency" value="5"/>
+    </bean>
+
+    <u:proxy id="counter">
+        <u:transport id="http-8280">
+            <u:property name="ultra.transport.url" value="counter*"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java import="org.adroitlogic.ultraesb.api.mediation.ThrottleSupport;"><![CDATA[
+                        ThrottleSupport throttle = mediation.getThrottleSupport("myThrottleConfig");
+                        if (throttle.isAllowed(msg)) {
+                            mediation.sendToEndpoint(msg, "es");
+                        } else {
+                            Message res = msg.createDefaultResponseMessage();
+                            mediation.setPayloadFromString(res, "Failure");
+                            mediation.sendResponse(res, 500);
+                        }
+                    ]]></u:java>
+            </u:inSequence>
+            <!--<u:outSequence>-->
+                <!--<u:java><![CDATA[-->
+                        <!--System.out.println("Received response to the message");-->
+                    <!--]]></u:java>-->
+            <!--</u:outSequence>-->
+            <u:outDestination>
+                <u:address type="response"/>
+            </u:outDestination>
+        </u:target>
+    </u:proxy>
+
+    <u:proxy id="simulator">
+        <u:transport id="http-8280">
+            <u:property name="ultra.transport.url" value="simulator*"/>
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:class name="org.adroitlogic.ultraesb.core.CounterSimulatorSequence"/>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <u:endpoint id="es">
+        <u:address>http://localhost:8280/service/simulator</u:address>
+    </u:endpoint>
+
+</beans>

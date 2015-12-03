@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:u="http://www.adroitlogic.org/ultraesb"
+       xmlns:s="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
+
+    <bean id="ultra-config" class="org.adroitlogic.ultraesb.core.ConfigurationImpl">
+        <property name="environment">
+            <bean class="org.adroitlogic.ultraesb.api.Environment">
+                <constructor-arg name="name" value="sample"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="fileCache" class="org.adroitlogic.ultraesb.core.PooledMessageFileCache">
+        <constructor-arg value="10" type="int"/>
+    </bean>
+
+    <!--Refer to the unit test MailTest for more details about this sample and a unit test for it-->
+
+    <!--Defines the mail transport listener. See http://api.adroitlogic.org/ for a complete list of the
+    many configuration properties -->
+    <bean id="mail" class="org.adroitlogic.ultraesb.transport.mail.MailTransportListener">
+        <property name="properties">
+            <map>
+                <entry key="mail.pop3.host" value="localhost"/>
+                <entry key="mail.pop3.port" value="3110"/>
+                <entry key="mail.imap.host" value="localhost"/>
+                <entry key="mail.imap.port" value="3143"/>
+                <!--<entry key="ultra.mail.remove_headers" value="RemoveHeader, AnotherHeaderToRemove"/>-->
+                <!--<entry key="ultra.mail.preserve_headers" value="To, Subject, From"/>-->
+            </map>
+        </property>
+    </bean>
+
+    <!--Defines the mail transport sender. See http://api.adroitlogic.org/ for a complete list of the
+    many configuration properties -->
+    <bean id="mail-sender" class="org.adroitlogic.ultraesb.transport.mail.MailTransportSender">
+        <property name="properties">
+            <map>
+                <entry key="mail.smtp.host" value="localhost"/>
+                <entry key="mail.smtp.port" value="3025"/>
+                <entry key="mail.smtp.user" value="sender"/>
+                <entry key="mail.smtp.password" value="sender"/>
+                <entry key="mail.smtp.from" value="sender@localhost"/>
+            </map>
+        </property>
+    </bean>
+
+    <!--A POP3 mail proxy service that checks an email account, removes a specific header 'RemoveHeader' and prints
+    the subject and body to System.out
+    Note: This sample will configured to work as a unit test-->
+    <u:proxy id="mail-proxy1">
+        <u:transport id="mail">
+            <u:property name="ultra.polling.disabled" value="true"/>
+            <u:property name="ultra.transport.url" value="user1@localhost"/>
+            <u:property name="ultra.polling.start_delay" value="1000"/>
+            <u:property name="ultra.polling.repeat_interval" value="2000"/>
+            <!--<u:property name="ultra.polling.concurrent" value="true"/>-->
+            <!--<u:property name="ultra.polling.cron_expression" value="0/20/40 * * ? * MON-FRI"/>-->
+            <u:property name="mail.pop3.user" value="user1"/>
+            <u:property name="mail.pop3.password" value="pass1"/>
+            <u:property name="ultra.mail.remove_headers" value="RemoveHeader"/>
+            <!--<u:property name="ultra.mail.preserve_headers" value="To, Subject, From"/>-->
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    String subject = msg.getFirstTransportHeader("Subject");
+                    System.out.println("Got mail with Subject : " + subject + " with body : " + mediation.readPayloadAsString(msg));
+
+                    String remove = msg.getFirstTransportHeader("RemoveHeader");
+                    if (remove != null) {
+                        throw new Exception("This header should have been removed");
+                    }
+
+                    if ("fail".equals(subject)) {
+                        throw new Exception("This message should fail");
+                    }
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--An IMAP mail proxy service that checks an email account,
+    Note: The transport property 'disabled' set to true, disables a proxy service from the configuration
+    Note: This sample will configured to work as a unit test-->
+    <u:proxy id="mail-proxy2">
+        <u:transport id="mail">
+            <u:property name="ultra.polling.disabled" value="true"/>
+            <u:property name="ultra.transport.url" value="user2@localhost"/>
+            <u:property name="ultra.polling.start_delay" value="1000"/>
+            <u:property name="ultra.polling.repeat_interval" value="2000"/>
+            <!--<u:property name="ultra.polling.concurrent" value="true"/>-->
+            <!--<u:property name="ultra.polling.cron_expression" value="0/20/40 * * ? * MON-FRI"/>-->
+            <u:property name="ultra.mail.move_after_process" value="DONE"/>
+            <u:property name="ultra.mail.move_after_failure" value="FAIL"/>
+            <u:property name="ultra.mail.protocol" value="imap"/>
+            <u:property name="mail.imap.user" value="user2"/>
+            <u:property name="mail.imap.password" value="pass2"/>
+            <!--<u:property name="ultra.mail.leave_after_process" value="true"/>-->
+
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    String subject = msg.getFirstTransportHeader("Subject");
+                    System.out.println("Got mail : " + subject + " with body : " + mediation.readPayloadAsString(msg));
+                    if ("fail".equals(subject)) {
+                        throw new Exception("This message should fail");
+                    }
+                ]]></u:java>
+            </u:inSequence>
+        </u:target>
+    </u:proxy>
+
+    <!--An IMAP mail proxy service that checks an email account and sends it to another email account with a different
+    subject
+    Note: This sample will configured to work as a unit test-->
+    <u:proxy id="mail-proxy3">
+        <u:transport id="mail">
+            <!--<u:property name="ultra.polling.disabled" value="true"/>-->
+            <u:property name="ultra.transport.url" value="user3@localhost"/>
+            <u:property name="ultra.polling.start_delay" value="1000"/>
+            <u:property name="ultra.polling.repeat_interval" value="2000"/>
+            <!--<u:property name="ultra.polling.concurrent" value="true"/>-->
+            <!--<u:property name="ultra.polling.cron_expression" value="0/20/40 * * ? * MON-FRI"/>-->
+            <u:property name="ultra.mail.move_after_process" value="DONE"/>
+            <u:property name="ultra.mail.move_after_failure" value="FAIL"/>
+            <u:property name="ultra.mail.protocol" value="imap"/>
+            <u:property name="mail.imap.user" value="user3"/>
+            <u:property name="mail.imap.password" value="pass3"/>
+            <!--<u:property name="ultra.mail.leave_after_process" value="true"/>-->
+
+        </u:transport>
+        <u:target>
+            <u:inSequence>
+                <u:java><![CDATA[
+                    String subject = msg.getFirstTransportHeader("Subject");
+                    System.out.println("Proxy 3 - Got the mail message with subject : " + subject
+                        + " and body : " + mediation.readPayloadAsString(msg));
+                    if ("fail".equals(subject)) {
+                        throw new Exception("This message should fail");
+                    }
+                ]]></u:java>
+            </u:inSequence>
+            <u:inDestination>
+                <u:address>mailto:fwd@localhost</u:address>
+                <!--<u:property name="ultra.mail.from" value="forwarder@localhost"/>-->
+                <u:property name="ultra.mail.subject" value="reply"/>
+                <!--<u:property name="ultra.mail.from" value="someone@localhost"/>-->
+            </u:inDestination>
+        </u:target>
+    </u:proxy>
+
+</beans>

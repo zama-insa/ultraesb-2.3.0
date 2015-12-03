@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "work-manager-item-parent"
+    },
+    "params":{
+        "description": "Work in progress in the work manager ${.*}$",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=WorkManagers,Name=${.*}$][Details.wipMapSize]"
+    }
+}

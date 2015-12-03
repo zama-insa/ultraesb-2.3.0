@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "sequence-item-parent"
+    },
+    "params":{
+        "name": "Execution times of the sequence ${.*}$ (max)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=Sequences,Name=${.*}$][Details.maxTime]"
+    }
+}

@@ -1,0 +1,500 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!DOCTYPE html >
+
+<html xmlns="http://www.w3.org/1999/html">
+<div id="container" title="Proxy Service Details">
+    <header class="helpedHeading">
+        <h2>Proxy Service Details</h2>
+        <div class="ultraHelp" title="Proxy Service Details Help">
+        <div>
+            <p>The Proxy Service Details tab lists information about the selected proxy service, and the transports
+            over which it is exposed</p>
+            <p>Use the <b>Control Panel</b> to start, stop and enable or disable debug on the proxy service. To
+            learn more about proxy services, refer to the <a href="http://adroitlogic.org/samples-articles-and-tutorials/16/12">Proxy Services Getting Started Guide</a></p>
+        </div>
+        Future versions of the UConsole will have enhanced functionality exposed through this page
+    </div>
+    </header>
+    <section>Detailed configuration of the proxy service and the deployed transports</section>
+    <div id="proxy-details">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tabs-1">Proxy Service Statistics</a></li>
+                <li><a href="#tabs-2">Proxy Service Configuration</a></li>
+            </ul>
+
+            <div id="tabs-2">
+                <div id="proxy-controls" class="top-right-controls">
+                    <div class="controls">
+                        <ul>
+                            <li title="Start proxy service" class="start clickable left-span"><img src="icons/mga-start.png"/><br/> Start</li>
+                            <li title="Stop proxy service" class="stop clickable"><img src="icons/mga-stop.png"/><br/>Stop</li>
+                            <li title="Enable debug for proxy service" class="enableDebug clickable left-span"><img src="icons/mga-enable-debug.png"/><br/> Debug On</li>
+                            <li title="Disable debug for proxy service" class="disableDebug clickable"><img src="icons/mga-disable-debug.png"/><br/> Debug Off</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <fieldset id="proxyDetails">
+                    <header><h3>Access URLs</h3></header>
+                    <ul id="accessURLs"></ul>
+                    <header><h3>Proxy Configuration</h3></header>
+                    <ul>
+                        <li>
+                            <label>Proxy ID</label>
+                            <input id="id" class="disabledText" type="text" readonly/>
+                        </li>
+
+                        <li>
+                            <label>In Sequence</label>
+                            <input id="inSeq" class="disabledText" type="text" readonly/>
+                        </li>
+
+                        <li>
+                            <label>In Destination</label>
+                            <input id="inDes" class="disabledText" type="text" readonly/>
+                        </li>
+
+                        <li>
+                            <label>Out Sequence</label>
+                            <input id="outSeq" class="disabledText" type="text" readonly/>
+                        </li>
+
+                        <li>
+                            <label>Out Destination</label>
+                            <input id="outDes" class="disabledText" type="text" readonly/>
+                        </li>
+
+                        <li>
+                            <label>Error Sequence</label>
+                            <input id="errSeq" class="disabledText" type="text" readonly/>
+                        </li>
+                        <li>
+                            <label>State</label>
+                            <input id="state" class="disabledText" type="text" readonly/>
+                        </li>
+                        <li>
+                            <label>Debug</label>
+                            <input id="debug" class="disabledText" type="text" readonly/>
+                        </li>
+                        </ul>
+                </fieldset>
+
+                <header><h3>Deployed Transports</h3></header>
+                    <ul id="proxyTrpDetails">
+                    </ul>
+
+            </div>
+
+            <div id="tabs-1">
+                <div id="proxy-stat-controls" class="top-right-controls">
+                    <div class="controls">
+                        <ul>
+                            <li title="Start proxy service" class="start clickable left-span"><img src="icons/mga-start.png"/><br/> Start</li>
+                            <li title="Stop proxy service" class="stop clickable"><img src="icons/mga-stop.png"/><br/>Stop</li>
+                            <li title="Enable debug for proxy service" class="enableDebug clickable left-span"><img src="icons/mga-enable-debug.png"/><br/> Debug On</li>
+                            <li title="Disable debug for proxy service" class="disableDebug clickable"><img src="icons/mga-disable-debug.png"/><br/> Debug Off</li>
+                        </ul>
+                    </div>
+                </div>
+                <fieldset id="proxyStats">
+                    <header><h3>Proxy Service Metrics Dashboard &ndash; <span id="proxyId"></span><span><select id="proxyClusterSelector" class="clusteraware hidden" style="margin-left: 20px; margin-bottom: 2px;" onchange="redrawGraphs('proxyClusterSelector')">
+                        <option value="cluster">Cluster</option>
+                        <option value="node">Node</option>
+                    </select></span></h3></header>
+                    <!--<div class="proxyTimes" style="float: left">-->
+                        <!--<h4>Events Linear Distribution</h4>-->
+                    <!--</div>-->
+                    <!--<div class="proxyTimesDonut" style="float: left">-->
+                        <!--<h4>Events Radial Distribution</h4>-->
+                    <!--</div>-->
+                    <div>
+                    <div class="processingInTime" style="float: left; margin-right: 20px; width: 470px;">
+                        <div class="stats">
+                            <p>
+                                <span style="font-weight: bold">Incoming Execution Time <select id="processingInTimeSelector" style="height: 24px;" onchange="redrawGraphs('processingInTimeSelector')">
+                                    <option value="mean">AVG</option>
+                                    <option value="max">MAX</option>
+                                    <option value="min">MIN</option>
+                                </select> (ms)</span>
+                                <span id="inMeanExec" class="stat avg"></span><span class="right"> Avg: </span>
+                                <span id="inMaxExec" class="stat max"></span><span class="right"> Max: </span>
+                                <span id="inMinExec" class="stat min"></span><span class="right"> Min: </span>
+                            </p>
+                            <div id="inExecHist" class="hidden" style="width: 470px; padding: 10px 0;">
+                                <div class="percent"><span class="text">75<sup>th</sup> percentile: </span><span id="in75Per" class="stat _75"></span></div>
+                                <div class="percent"><span class="text">95<sup>th</sup> percentile: </span><span id="in95Per" class="stat _95"></span></div>
+                                <div class="percent"><span class="text">98<sup>th</sup> percentile: </span><span id="in98Per" class="stat _98"></span></div>
+
+                                <div class="percent"><span class="text">99<sup>th</sup> percentile:</span><span id="in99Per" class="stat _99"></span></div>
+                                <div class="percent"><span class="text">99.9<sup>th</sup> percentile:</span><span id="in999Per" class="stat _999"></span></div>
+                                <div class="percent"><span class="text">99.99<sup>th</sup> percentile:</span><span id="in9999Per" class="stat _9999"></span></div>
+
+                                <div class="percent"><span class="text">Median: </span><span id="inMedianExec" class="stat avg"></span></div>
+                            </div>
+                            <div id="inshowhist"><span class="right link" onclick="$('#inshowhist').hide();$('#inhidehist').show();$('#inExecHist').slideDown()">Show Histogram <span class="caret down"></span></span></div>
+                            <div id="inhidehist" class="hidden"><span class="right link" onclick="$('#inhidehist').hide();$('#inshowhist').show();$('#inExecHist').slideUp()">Hide Histogram <span class="caret up"></span></span></div>
+                            <div style="padding-top: 10px;"></div>
+                        </div>
+                    </div>
+
+
+                    <div class="processingOutTime" style="float: left; width: 470px;">
+                        <div class="stats">
+                            <p>
+                                <span style="font-weight: bold">Outgoing Execution Time <select id="processingOutTimeSelector" style="height: 24px;" onchange="redrawGraphs('processingOutTimeSelector')">
+                                    <option value="mean">AVG</option>
+                                    <option value="max">MAX</option>
+                                    <option value="min">MIN</option>
+                                </select> (ms)</span>
+                                <span id="outMeanExec" class="stat avg"></span><span class="right"> Avg: </span>
+                                <span id="outMaxExec" class="stat max"></span><span class="right"> Max: </span>
+                                <span id="outMinExec" class="stat min"></span><span class="right"> Min: </span>
+                            </p>
+                            <div id="outExecHist" class="hidden" style="width: 470px; padding: 10px 0;">
+                                <div class="percent"><span class="text">75<sup>th</sup> percentile: </span><span id="out75Per" class="stat _75"></span></div>
+                                <div class="percent"><span class="text">95<sup>th</sup> percentile: </span><span id="out95Per" class="stat _95"></span></div>
+                                <div class="percent"><span class="text">98<sup>th</sup> percentile: </span><span id="out98Per" class="stat _98"></span></div>
+
+                                <div class="percent"><span class="text">99<sup>th</sup> percentile:</span><span id="out99Per" class="stat _99"></span></div>
+                                <div class="percent"><span class="text">99.9<sup>th</sup> percentile:</span><span id="out999Per" class="stat _999"></span></div>
+                                <div class="percent"><span class="text">99.99<sup>th</sup> percentile:</span><span id="out9999Per" class="stat _9999"></span></div>
+
+                                <div class="percent"><span class="text">Median: </span><span id="outMedianExec" class="stat avg"></span></div>
+                            </div>
+                            <div id="outshowhist"><span class="right link" onclick="$('#outshowhist').hide();$('#outhidehist').show();$('#outExecHist').slideDown()">Show Histogram <span class="caret down"></span></span></div>
+                            <div id="outhidehist" class="hidden"><span class="right link" onclick="$('#outhidehist').hide();$('#outshowhist').show();$('#outExecHist').slideUp()">Hide Histogram <span class="caret up"></span></span></div>
+                            <div style="padding-top: 10px;"></div>
+                        </div>
+                    </div>
+                    </div>
+                    <div style="clear:both"></div>
+                    <div class="processedInCount" style="float: left; margin-right: 20px;">
+                        <div class="stats">
+                            <p>
+                                <span style="font-weight: bold">Processed Incoming Messages</span>
+                                <span id="inRate" class="stat rate"></span><span class="right">Rate: </span>
+                                <span id="inCount" class="stat count"></span><span class="right">Count: </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="processedOutCount" style="float: left">
+                        <div class="stats">
+                            <p>
+                                <span style="font-weight: bold">Processed Outgoing Messages</span>
+                                <span id="outRate" class="stat rate"></span><span class="right">Rate: </span>
+                                <span id="outCount" class="stat count"></span><span class="right">Count: </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="error_stats">
+                        <div class="handledErrorInCount" style="float: left; margin-right: 20px;">
+                            <div class="stats">
+                                <p>
+                                    <span style="font-weight: bold">Handled Incoming Errors</span>
+                                    <span id="handledErrorInRate" class="stat rate"></span><span class="right">Rate: </span>
+                                    <span id="handledErrorInCount" class="stat count"></span><span class="right">Count: </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="handledErrorOutCount" style="float: left">
+                            <div class="stats">
+                                <p>
+                                    <span style="font-weight: bold">Handled Outgoing Errors</span>
+                                    <span id="handledErrorOutRate" class="stat rate"></span><span class="right">Rate: </span>
+                                    <span id="handledErrorOutCount" class="stat count"></span><span class="right">Count: </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="failedInCount" style="float: left; margin-right: 20px;">
+                            <div class="stats">
+                                <p>
+                                    <span style="font-weight: bold">Failed Incoming Messages</span>
+                                    <span id="failedInRate" class="stat rate"></span><span class="right">Rate: </span>
+                                    <span id="failedInCount" class="stat count"></span><span class="right">Count: </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="failedOutCount" style="float: left">
+                            <div class="stats">
+                                <p>
+                                    <span style="font-weight: bold">Failed Outgoing Messages</span>
+                                    <span id="failedOutRate" class="stat rate"></span><span class="right">Rate: </span>
+                                    <span id="failedOutCount" class="stat count"></span><span class="right">Count: </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <br/>
+                    <br/>
+
+                    <div class="tabular_view" style="float: left">
+                        <ul>
+                            <li>
+                                <label>Last Statistics Reset Time</label>
+                                <input id="resetTime" class="disabledText" type="text" readonly/>
+                            </li>
+
+                            <li>
+                                <label>Current Execution Instances</label>
+                                <input id="executionCount" class="disabledText" type="text" readonly/>
+                            </li>
+
+                            <li>
+                                <label>Current Polling Instances</label>
+                                <input id="pollingCount" class="disabledText" type="text" readonly/>
+                            </li>
+                        </ul>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="js/proxy-support.js"></script>
+    <script type="text/javascript" src="js/graph/line-graph.js"></script>
+    <script type="text/javascript" src="js/graph/area-graph.js"></script>
+    <script type="text/javascript" src="js/graph/donut-graph.js"></script>
+    <script type="text/javascript" src="js/graph/stacked-horizontal-bar.js"></script>
+<script type="text/javascript">
+    var proxyId = getURLParameter('proxyId');
+
+    $(document).ready (function() {
+        $('#tabs').tabs();
+        var jqxhr = $.getJSON(getCallURLBase() + 'proxyservices/getService/' + proxyId , function(dataset) {
+
+            $('#id').val(proxyId);
+            $('#proxyId').text(proxyId);
+            $('#inSeq').val(function() {if (null == dataset.inSequence) {return '-';} else {return dataset.inSequence.id;}});
+            $('#inDes').val(function() {if (null == dataset.inDestination) {return '-';} else {return dataset.inDestination.id;}});
+            $('#outSeq').val(function() {if (null == dataset.outSequence) {return '-';} else {return dataset.outSequence.id;}});
+            $('#outDes').val(function() {if (null == dataset.outDestination) {return '-';} else {return dataset.outDestination.id}});
+            $('#errSeq').val(function() {if (null == dataset.errorSequence) {return '-';} else {return dataset.errorSequence.id}});
+            $('#state').val(function() {if (null == dataset.state) {return '-';} else {return dataset.state}});
+            $('#debug').val(function() {if (dataset.debugOn) {return 'Enabled';} else {return 'Disabled'}});
+            $('#resetTime').val(function() {if (null == dataset.lastStatisticsResetTime) {return '-';} else {return dataset.lastStatisticsResetTime;}});
+
+            $('#executionCount').val(function() {if (null == dataset.executionCount) {return '-';} else {return dataset.executionCount;}});
+            $('#pollingCount').val(function() {if (null == dataset.pollingCount) {return '-';} else {return dataset.pollingCount;}});
+
+            $('.start').attr("title", $('.start').attr("title") + proxyId);
+            $('.start').bind("click", new Function("startProxyService('" + proxyId + "','" + dataset.state + "')"));
+            $('.stop').attr("title", $('.stop').attr("title") + proxyId);
+            $('.stop').bind("click", new Function("stopProxyService('" + proxyId + "','" + dataset.state + "')"));
+            $('.enableDebug').attr("title", $('.enableDebug').attr("title") + proxyId);
+            $('.enableDebug').bind("click", new Function("enableDebugProxyService('" + proxyId + "'," + dataset.debugOn + ")"));
+            $('.disableDebug').attr("title", $('.disableDebug').attr("title") + proxyId);
+            $('.disableDebug').bind("click", new Function("disableDebugProxyService('" + proxyId + "'," + dataset.debugOn + ")"));
+
+            $.each(dataset.transports, function(index,val) {
+                $('#proxyTrpDetails').append('<li><label>Transport ID</label><input class="disabledText" type="text" readonly value=" ' + val + '"/></li>');
+
+                var obj = dataset.transportProperties;
+
+                $.each(obj, function(k,v) {
+                    if(k == val) {
+                        $.each(v, function(key,value) {
+                            $('#proxyTrpDetails').append('<li><label>' + key + '</label><input class="disabledText" type="text" readonly value=" ' + value + ' " /></li>');
+                        });
+                    }
+                });
+//                $('#proxyTrpDetails').append('<br/>');
+            });
+
+            $.each(dataset.accessURLs, function(index,val) {
+                $('#accessURLs').append('<li><img src="icons/' + val.toLocaleLowerCase() + '.png" alt=""/> &nbsp;&nbsp;&nbsp;<a target="_blank" style="color: #4682b4; font-size: 14px;" href="' + index + '">' + index + '</a></li>');
+            });
+
+        var graphs = {};
+
+        var processingInTimeSelector = $.cookie('processingInTimeSelector');
+        if (processingInTimeSelector == null) {
+            processingInTimeSelector = 'mean';
+        } else {
+            $('#processingInTimeSelector').val(processingInTimeSelector);
+        }
+
+        var processingOutTimeSelector = $.cookie('processingOutTimeSelector');
+        if (processingOutTimeSelector == null) {
+            processingOutTimeSelector = 'mean';
+        } else {
+            $('#processingOutTimeSelector').val(processingOutTimeSelector);
+        }
+        graphs[dataset.metricsStreams.processingTimeInStream] = {
+            "divClass": "processingInTime", "type": "timer",
+            "stream": dataset.metricsStreams.processingTimeInStream,
+            "w": 400, "h": 150, "yAxisName": "Exec Time (ms)", "defaultMax": 0.1,
+            "dataTransform": function(d) { d.mean = d[processingInTimeSelector]/1000000; },
+            "allDataTransform": function(d) {
+                d.mean = d.mean/1000000;
+                d.min = d.min/1000000;
+                d.max = d.max/1000000;
+                d.median = d.median/1000000;
+                d._75Percentile = d._75Percentile/1000000;
+                d._95Percentile = d._95Percentile/1000000;
+                d._98Percentile = d._98Percentile/1000000;
+                d._99Percentile = d._99Percentile/1000000;
+                d._999Percentile = d._999Percentile/1000000;
+                d._9999Percentile = d._9999Percentile/1000000;
+            },
+            "stats": {
+                "average": "inMeanExec",
+                "min": "inMinExec",
+                "max": "inMaxExec",
+                "median": "inMedianExec",
+                "_75Percentile": "in75Per",
+                "_95Percentile": "in95Per",
+                "_98Percentile": "in98Per",
+                "_99Percentile": "in99Per",
+                "_999Percentile": "in999Per",
+                "_9999Percentile": "in9999Per"
+            }
+        };
+        graphs[dataset.metricsStreams.processingTimeOutStream] = {
+            "divClass": "processingOutTime", "type": "timer",
+            "stream": dataset.metricsStreams.processingTimeOutStream,
+            "w": 400, "h": 150, "yAxisName": "Exec Time (ms)", "defaultMax": 0.1,
+            "dataTransform": function(d) { d.mean = d[processingOutTimeSelector]/1000000; },
+            "allDataTransform": function(d) {
+                d.mean = d.mean/1000000;
+                d.min = d.min/1000000;
+                d.max = d.max/1000000;
+                d.median = d.median/1000000;
+                d._75Percentile = d._75Percentile/1000000;
+                d._95Percentile = d._95Percentile/1000000;
+                d._98Percentile = d._98Percentile/1000000;
+                d._99Percentile = d._99Percentile/1000000;
+                d._999Percentile = d._999Percentile/1000000;
+                d._9999Percentile = d._9999Percentile/1000000;
+            },
+            "stats": {
+                "average": "outMeanExec",
+                "min": "outMinExec",
+                "max": "outMaxExec",
+                "median": "outMedianExec",
+                "_75Percentile": "out75Per",
+                "_95Percentile": "out95Per",
+                "_98Percentile": "out98Per",
+                "_99Percentile": "out99Per",
+                "_999Percentile": "out999Per",
+                "_9999Percentile": "out9999Per"
+            }
+        };
+        graphs[dataset.metricsStreams.processedInStream] = {
+            "divClass": "processedInCount", "type": "counter",
+            "stream": dataset.metricsStreams.processedInStream,
+            "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+            "yAxisData": function(d) {return d.count;},
+            "stats": {
+                "count": "inCount",
+                "rate": "inRate"
+            }
+        };
+        graphs[dataset.metricsStreams.processedOutStream] = {
+            "divClass": "processedOutCount", "type": "counter",
+            "stream": dataset.metricsStreams.processedOutStream,
+            "w": 400, "h": 150, "yAxisName": "Message Count", "defaultMax": 10,
+            "yAxisData": function(d) {return d.count;},
+            "stats": {
+                "count": "outCount",
+                "rate": "outRate"
+            }
+        };
+        graphs[dataset.metricsStreams.handledErrorInStream] = {
+            "divClass": "handledErrorInCount", "type": "counter",
+            "stream": dataset.metricsStreams.handledErrorInStream, "color": "orange",
+            "w": 400, "h": 150, "yAxisName": "Error Count", "defaultMax": 5,
+            "yAxisData": function(d) {return d.count;},
+            "stats": {
+                "count": "handledErrorInCount",
+                "rate": "handledErrorInRate"
+            }
+        };
+        graphs[dataset.metricsStreams.handledErrorOutStream] = {
+            "divClass": "handledErrorOutCount", "type": "counter",
+            "stream": dataset.metricsStreams.handledErrorOutStream, "color": "orange",
+            "w": 400, "h": 150, "yAxisName": "Error Count", "defaultMax": 5,
+            "yAxisData": function(d) {return d.count;},
+            "stats": {
+                "count": "handledErrorOutCount",
+                "rate": "handledErrorOutRate"
+            }
+        };
+        graphs[dataset.metricsStreams.failedInStream] = {
+            "divClass": "failedInCount", "type": "counter",
+            "stream": dataset.metricsStreams.failedInStream, "color": "red",
+            "w": 400, "h": 150, "yAxisName": "Failure Count", "defaultMax": 5,
+            "yAxisData": function(d) {return d.count;},
+            "stats": {
+                "count": "failedInCount",
+                "rate": "failedInRate"
+            }
+        };
+        graphs[dataset.metricsStreams.failedOutStream] = {
+            "divClass": "failedOutCount", "type": "counter",
+            "stream": dataset.metricsStreams.failedOutStream, "color": "red",
+            "w": 400, "h": 150, "yAxisName": "Failure Count", "defaultMax": 5,
+            "yAxisData": function(d) {return d.count;},
+            "stats": {
+                "count": "failedOutCount",
+                "rate": "failedOutRate"
+            }
+        };
+
+        if ($.cookie("clustering") == "true") {
+            $('.clusteraware').show();
+            var proxyClusterSelector = $.cookie('proxyClusterSelector');
+            if (proxyClusterSelector == null) {
+                dynamicClusterMultiGraph(graphs, 3000);
+            } else {
+                $('#proxyClusterSelector').val(proxyClusterSelector);
+                if (proxyClusterSelector == "cluster") {
+                    dynamicClusterMultiGraph(graphs, 3000);
+                } else {
+                    dynamicMultiGraph(graphs, 3000);
+                }
+            }
+        } else {
+            dynamicMultiGraph(graphs, 3000);
+        }
+//        stackedHorizontalBar("proxyTimes", dataset.metricsStreams.messageTimeEventStream, [], 890, 50, "Event Times (ms)");
+//        donutGraph("proxyTimesDonut", 210, 205, dataset.metricsStreams.messageTimeEventStream);
+        });
+    });
+
+    function redrawGraphs(selector) {
+        $.cookie(selector, $('#' + selector).val());
+        window.location.reload();
+    }
+
+</script>
+</div>
+</html>

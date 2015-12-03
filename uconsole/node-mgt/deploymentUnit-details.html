@@ -1,0 +1,345 @@
+<!--
+  ~ AdroitLogic UltraESB Enterprise Service Bus
+  ~
+  ~ Copyright (c) 2010-2014 AdroitLogic Private Ltd. (http://adroitlogic.org). All Rights Reserved.
+  ~
+  ~ GNU Affero General Public License Usage
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+  ~ Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License along with this program (See LICENSE-AGPL.TXT).
+  ~ If not, see http://www.gnu.org/licenses/agpl-3.0.html
+  ~
+  ~ Commercial Usage
+  ~
+  ~ Licensees holding valid UltraESB Commercial licenses may use this file in accordance with the UltraESB Commercial
+  ~ License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written
+  ~ agreement between you and AdroitLogic.
+  ~
+  ~ If you are unsure which license is appropriate for your use, or have questions regarding the use of this file,
+  ~ please contact AdroitLogic at info@adroitlogic.com
+  -->
+
+<!DOCTYPE html>
+<html>
+<div id="container" title="Deployment Unit Details">
+    <header><h2>Deployment Unit Details</h2></header>
+
+    <div class="outer_wrapper">
+        <form>
+            <fieldset>
+                <h3>Configuration</h3>
+                <ul id="attributes">
+                    <li>
+                        <label>Name </label>
+                        <input id="name" class="disabledText" readonly type="text"/>
+                    </li>
+                    <li>
+                        <label>State </label>
+                        <input id="state" class="disabledText" readonly type="text"/>
+                    </li>
+                    <li>
+                        <div id="tabs">
+                            <ul>
+                                <li><a href="#tabs-1">Proxy Services</a></li>
+                                <li><a href="#tabs-2">Sequences</a></li>
+                                <li><a href="#tabs-3">Endpoints</a></li>
+                            </ul>
+                            <div id="tabs-1">
+                        <div id="duProxyServices">
+                            <h3>Proxy Services</h3>
+                            <table class="display" id="servicelist">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th colspan="2" style="width: 50px;">Sequences</th>
+                                    <th colspan="2" style="width: 50px;">Destinations</th>
+                                    <th>State</th>
+                                    <th>Access URL</th>
+                                    <th>Control</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td id="id"> <a href="index.html?pageName=node-mgt/proxy-details.html&proxyId="></a> </td>
+                                    <td id="inSeq"> <a href="index.html?pageName=node-mgt/sequence-details.html&id="><img style="height: 20px;" src="icons/right.png"/> in-flow </a> </td>
+                                    <td id="outSeq"> <a href="index.html?pageName=node-mgt/sequence-details.html&id="><img style="height: 20px;" src="icons/left.png"/> out-flow </a> </td>
+                                    <td id="inDest"> <a href="index.html?pageName=node-mgt/endpoint-details.html&mode=view&epId="><img style="height: 20px;" src="icons/right.png"/> in-dest </a> </td>
+                                    <td id="outDest"> <a href="index.html?pageName=node-mgt/endpoint-details.html&mode=view&epId="><img style="height: 20px;" src="icons/left.png"/> out-dest </a> </td>
+                                    <td id="psstate" class="state "></td>
+                                    <td id="url"></td>
+                                    <td id="pscontrol">
+                                        <img class="start clickable" title="Start" src="icons/start.png"/>
+                                        <img class="stop clickable"  title="Stop"  src="icons/stop.png"/>
+                                        <img class="enableDebug clickable" title="Enable Debug" src="icons/enable-debug.png"/>
+                                        <img class="disableDebug clickable" title="Disable Debug" src="icons/disable-debug.png"/>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                                </div>
+                            <div id="tabs-2">
+                        <div id="duSequences">
+                            <h3>Sequences</h3>
+                            <table class="display" id="tblSequences">
+                                <thead>
+                                <tr><th>ID</th><th>Info</th><th>Proxy</th><th>State</th><th>Control</th></tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class="id"><a href="index.html?pageName=node-mgt/sequence-details.html&id="></a></td>
+                                    <td class="seqinf"></td>
+                                    <td class="proxyID"></td>
+                                    <td class="state "></td>
+                                    <td class="control">
+                                        <img class="start clickable" title="Start" src="icons/start.png"/>
+                                        <img class="stop clickable"  title="Stop"  src="icons/stop.png"/>
+                                        <img class="enabledebug clickable" title="Enable Debug" src="icons/enable-debug.png"/>
+                                        <img class="disabledebug clickable" title="Disable Debug" src="icons/disable-debug.png"/>
+                                        <img class="resetStatistics clickable"  title="Reset Statistics"  src="icons/reset.png"/>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                                </div>
+                            <div id="tabs-3">
+                        <div id="duEndpoints">
+                            <h3>Endpoints</h3>
+                            <table class="display" id="endpointlist">
+                                <thead>
+                                <tr>
+                                    <th >Name</th>
+                                    <th>Type</th>
+                                    <th>Addresses<br/>Active</th>
+                                    <th>Addresses<br/>Ready</th>
+                                    <th>Addresses<br/>Suspended</th>
+                                    <th>Messages<br/>Failed</th>
+                                    <th>State</th>
+                                    <th>Control</th>
+                                </tr>
+
+                                </thead>
+
+                                <tbody>
+                                <tr>
+                                    <td id="epname"><a href="index.html?pageName=node-mgt/endpoint-details.html&mode=view&epId="></a></td>
+                                    <td class="numeric" id="type"></td>
+                                    <td class="numeric" id="active"></td>
+                                    <td class="numeric" id="ready"></td>
+                                    <td class="numeric" id="suspended"></td>
+                                    <td class="numeric" id="failed"></td>
+                                    <td class="state " id="epstate"></td>
+
+                                    <td id="control">
+                                        <img class="start clickable" title="Start" src="icons/start.png"/>
+                                        <img class="stop clickable"  title="Stop"  src="icons/stop.png"/>
+                                        <img class="enDebug clickable" title="Enable Debug" src="icons/enable-debug.png"/>
+                                        <img class="disDebug clickable" title="Disable Debug" src="icons/disable-debug.png"/>
+                                        <img class="edit clickable"  title="Edit"  src="icons/edit.png"/>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                            </div>
+                            </div>
+                    </li>
+                </ul>
+            </fieldset>
+        </form>
+
+    </div>
+
+    <script type="text/javascript" src="js/proxy-support.js"></script>
+    <script type="text/javascript" src="js/endpoint-support.js"></script>
+    <script type="text/javascript" src="js/sequence-support.js"></script>
+    <script type="text/javascript">
+        var id;
+//        var path;
+        $(document).ready(function() {
+            id = getURLParameter('id');
+            var jq = $.getJSON(getCallURLBase() + "server/getDeploymentUnit?id=" + id, function(view) {
+
+                var data = {services:view.proxyServices};
+                var dataDir = {
+                    'tbody tr':{
+                        'service<-services':{
+                            'td#id a'                            :function(service){if ( null == service.item.id) {return "-";} else { return service.item.id;}},
+                            'td#id a@href+'                      :'service.id',
+                            'td#inSeq @title'                         :function(service){if ( null == service.item.inSequence) {return "-";} else { return service.item.inSequence.id;}},
+//                                'td#inSeq a'                         :function(service){if ( null == service.item.inSequence) {return "-";} else { return service.item.inSequence.id;}},
+                            'td#inSeq a@style'                   :function(service){ return 'display: ' + (null == service.item.inSequence ? 'none' : 'inline') + ';'},
+                            'td#inSeq a@href+'                   :'service.inSequence.id',
+                            'td#inDest @title'                        :function(service){if ( null == service.item.inDestination) {return "-";} else { return service.item.inDestination.id;}},
+//                                'td#inDest a'                        :function(service){if ( null == service.item.inDestination) {return "-";} else { return service.item.inDestination.id;}},
+                            'td#inDest a@style'                        :function(service){ return 'display: ' + (null == service.item.inDestination ? 'none' : 'inline') + ';'},
+                            'td#inDest a@href+'                  :'service.inDestination.id',
+                            'td#outSeq @title'                        :function(service){if ( null == service.item.outSequence) {return "-";} else { return service.item.outSequence.id}},
+//                                'td#outSeq a'                        :function(service){if ( null == service.item.outSequence) {return "-";} else { return service.item.outSequence.id}},
+                            'td#outSeq a@style'                        :function(service){ return 'display: ' + (null == service.item.outSequence ? 'none' : 'inline') + ';'},
+                            'td#outSeq a@href+'                  :'service.outSequence.id',
+                            'td#outDest @title'                       :function(service){if ( null == service.item.outDestination) {return "-";} else { return service.item.outDestination.id;}},
+//                                'td#outDest a'                       :function(service){if ( null == service.item.outDestination) {return "-";} else { return service.item.outDestination.id;}},
+                            'td#outDest a@style'                       :function(service){ return 'display: ' + (null == service.item.outDestination ? 'none' : 'inline') + ';'},
+                            'td#outDest a@href+'                 :'service.outDestination.id',
+                            'td#psstate'                           :'service.state',
+                            'td#url'                           :function(service) {var svcURL = ''; if (service.item.state === 'Started') {$.each(service.item.accessURLs, function(key, val) {svcURL += '<img style="height: 18px;" src="icons/' + val.toLowerCase() + '.png"/> <a target="_blank" href="'+ key +'">' + key + '</a><br/>';});} return svcURL;},
+                            'td#psstate @class+'                   :'service.state',
+                            'td#pscontrol img.start@onclick'       :'{startProxyService("#{service.id}","#{service.state}");}',
+                            'td#pscontrol img.start@id'            : function (service) { return service.item.id + "-start"},
+                            'td#pscontrol img.stop@onclick'        :'{stopProxyService("#{service.id}","#{service.state}");}',
+                            'td#pscontrol img.stop@id'             : function (service) { return service.item.id + "-stop"},
+                            'td#pscontrol img.enableDebug@onclick' :'{enableDebugProxyService("#{service.id}","#{service.debugOn}");}',
+                            'td#pscontrol img.enableDebug@id'      : function (service) { return service.item.id + "-enDebug"},
+                            'td#pscontrol img.disableDebug@onclick':'{disableDebugProxyService("#{service.id}","#{service.debugOn}");}',
+                            'td#pscontrol img.disableDebug@id'     : function (service) { return service.item.id + "-disDebug"},
+                            'td#pscontrol img.enableDebug@onload'  :'{displayDebugIcon("#{service.id}" ,"#{service.debugOn}");}',
+                            'td#pscontrol img.start@onload'        :'{displayIcon("#{service.id}" ,"#{service.state}");}'
+                        }
+                    }
+                };
+                $('#servicelist').render(data,dataDir);
+                encodeURLs();
+                $('#servicelist').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers"
+//                        "aoColumns" : [null, {"sWidth": "20px"}, {"sWidth": "20px"}, {"sWidth": "20px"}, {"sWidth": "20px"}, null, null, {"sWidth": "100px"}]
+                });
+
+                var data = {sequences:view.sequences};
+                var dataDirective = {
+                    'tbody tr':{
+                        'sequence<-sequences':{
+                            'td.id a':function(sequence){if (null == sequence.item.id) {return "-";} else { return sequence.item.id;}},
+                            'td.id a@title':'sequence.id',
+                            'td.seqinf':function(sequence){if (null == sequence.item.info) {return "-";} else { return sequence.item.info;}},
+                            'td.seqinf@title':'sequence.info',
+                            'td.proxyID':function(sequence){if (null == sequence.item.proxyID) {return "-";} else { return sequence.item.proxyID;}},
+                            'td.proxyID@title':'sequence.proxyID',
+                            'td.id a@href+':'sequence.id',
+                            'td.state' :function(sequence){if (null == sequence.item.state) {return "-";} else { return sequence.item.state;}},
+                            'td.state@title' : 'sequence.state',
+                            'td.state @class+' : 'sequence.state',
+                            'td.control img.start@onclick'          :'{startSequence("#{sequence.id}" , "#{sequence.state}");}',
+                            'td.control img.start@id'               : function (sequence) { return sequence.item.id + "-start"} ,
+                            'td.control img.stop@onclick'           : '{endSequence("#{sequence.id}" , "#{sequence.state}");}',
+                            'td.control img.stop@id'                : function (sequence) { return sequence.item.id + "-stop"},
+                            'td.control img.enabledebug@onclick'    : '{enableDebugSequence("#{sequence.id}" , "#{sequence.debugOn}");}',
+                            'td.control img.enabledebug@id'         : function (sequence) { return sequence.item.id + "-enDebug"},
+                            'td.control img.disabledebug@onclick'   : '{disableDebugSequence("#{sequence.id}" , "#{sequence.debugOn}");}',
+                            'td.control img.disabledebug@id'        : function (sequence) { return sequence.item.id + "-disDebug"},
+                            'td.control img.resetStatistics@onclick': '{resetStatisticsSequence("#{sequence.id}");}',
+                            'td.control img.enabledebug@onload'     : '{displayDebugIcon("#{sequence.id}" ,"#{sequence.debugOn}");}',
+                            'td.control img.start@onload'           : '{displayIcon("#{sequence.id}" ,"#{sequence.state}");}'
+                        }
+                    }
+                };
+                $('#tblSequences').render(data, dataDirective);
+                encodeURLs();
+                $('#tblSequences').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers",
+                    "aoColumns" : [null, null, null, null, {"sWidth": "100px"}]
+                });
+
+                var data = {endpoints:view.endpoints};
+                var directive = {
+                    'tbody tr ':{
+                        'endpoint <-endpoints':{
+                            'td#epname@title'                  :'endpoint.id',
+                            'td#epname a'                      :function(endpoint) {if (null == endpoint.item.id) {return "-";} else {return endpoint.item.id;}},
+                            'td#epname a@href+'                :'endpoint.id',
+                            'td#type'                        :function(endpoint){if (null == endpoint.item.typeAsString) {return "-";} else {return endpoint.item.typeAsString;}},
+                            'td#active'                      :function(ep){ return formatNumber(ep.item.activeAddressCount);},
+                            'td#ready'                       :function(ep){ return formatNumber(ep.item.readyAddressCount);},
+                            'td#suspended'                   :function(ep){ return formatNumber(ep.item.suspendedAddressCount);},
+                            'td#failed'                      :function(ep){ return formatNumber(ep.item.failedMessageCount);},
+                            'td#epstate'                       :'endpoint.state',
+                            'td#epstate @class+'               :'endpoint.state',
+                            'td#control img.start@onclick'   :'{startEndpoint("#{endpoint.state}","#{endpoint.id}");}',
+                            'td#control img.start@id'        : function (endpoint) { return endpoint.item.id + "-start"},
+                            'td#control img.stop@onclick'    :'{stopEndpoint("#{endpoint.state}", "#{endpoint.id}");}',
+                            'td#control img.stop@id'         : function (endpoint) { return endpoint.item.id + "-stop"},
+                            'td#control img.enDebug@onclick' :'{enableDebug("#{endpoint.id}" , "#{endpoint.debugOn}");}',
+                            'td#control img.enDebug@id'      :function (endpoint) { return endpoint.item.id + "-enDebug"},
+                            'td#control img.disDebug@onclick':'{disableDebug("#{endpoint.id}" , "#{endpoint.debugOn}");}',
+                            'td#control img.disDebug@id'     :function (endpoint) { return endpoint.item.id + "-disDebug"},
+                            'td#control img.edit@onclick'    :'{editEndpoint("#{endpoint.id}");}',
+                            'td#control img.enDebug@onload'  :'{displayDebugIcon("#{endpoint.id}" ,"#{endpoint.debugOn}");}',
+                            'td#control img.start@onload'    :'{displayIcon("#{endpoint.id}" ,"#{endpoint.state}");}'
+                        }
+                    }
+                };
+
+                $('#endpointlist').render(data,directive);
+                encodeURLs();
+                $('#endpointlist').dataTable({
+                    "bLengthChange": true,
+                    "bJQueryUI": true,
+                    "sPaginationType": "full_numbers",
+                    "aoColumns" : [null, null, null, null, null, null, null, {"sWidth": "120px"}]
+                });
+
+                /*var lines = view.rawContent.split('\n');
+                var count = 0;
+                $.each(lines, function() {
+                    count += 1 + Math.floor( this.length / 110 ); // take into account long lines
+                });
+                if (count < 20) {
+                    count = 20;
+                }
+                $('#attributes').append('<li><label><br>Inline Content</label><textarea id="serverContent" cols="110" rows="' + count + '"></textarea></li>');
+                $('#serverContent').text(view.rawContent);
+//                path=view.fileName;
+
+                editAreaLoader.init({
+                    id : "serverContent",
+                    language: "en",
+                    syntax: "Java",
+                    start_highlight: true,
+                    allow_toggle: false
+                });
+
+                $('#attributes').append('<ul><li><br/><button type="button" value="get value" class="button clickable" title="Save" onclick="generateJson()">Save</button>&nbsp;&nbsp;<button type="button" value="get value" class="button clickable" title="Cancel" onclick="cancel()">Cancel</button>&nbsp;&nbsp;</li></ul>');*/
+
+                $('#name').val(view.name);
+                $('#state').val(view.state);
+                $('#tabs').tabs();
+            });
+        });
+
+        function generateJson() {
+            var contentDetails = '{"fileName":"' + encodeURI(escapeSpecialChars($('#filename').attr("value"))) + '",';
+
+            if (editAreaLoader.getValue('serverContent')) {
+                contentDetails += ('"content":"' + escapeSpecialChars(editAreaLoader.getValue('serverContent'))  +'"}');
+            }
+            $.ajax({
+                type: 'PUT',
+                url: getCallURLBase() + 'server/updateDeploymentUnitConfig' ,
+                data: contentDetails,
+                dataType: 'text',
+                contentType: 'application/json',
+                success: function(msg) {
+                    showInfo('Successfully updated file: ' + id , 'index.html?pageName=node-mgt/server-manager.html&bc=clear');
+                }
+            });
+        }
+
+        function cancel() {
+            showWarning('Cancel save changes: ' + id , 'index.html?pageName=node-mgt/server-manager.html');
+        }
+
+    </script>
+</div>
+</html>

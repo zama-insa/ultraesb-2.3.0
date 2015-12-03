@@ -1,0 +1,11 @@
+{
+    "uz_meta": {
+        "abstract": "true",
+        "parent": "items-parent",
+        "key": "work-manager-item-parent",
+        "type": "work-manager"
+    },
+    "params": {
+        "applications": ["Work Managers"]
+    }
+}

@@ -1,0 +1,25 @@
+{
+    "jsonrpc": "2.0",
+    "method": "host.create",
+    "params": {
+        "host": "$host$",
+        "interfaces": [
+            {
+                "type": 1,
+                "main": 1,
+                "useip": 1,
+                "ip": "$ip$",
+                "dns": "",
+                "port": "$port$"
+            }
+        ],
+        "groups": [
+            {
+                "groupid": "$hostgroup$"
+            }
+        ]
+
+    },
+    "auth": "$auth$",
+    "id": 3
+}

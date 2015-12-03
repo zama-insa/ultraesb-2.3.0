@@ -1,0 +1,9 @@
+{
+    "uz_meta": {
+        "parent": "file-cache-item-parent"
+    },
+    "params":{
+        "description": "Files Usage of the file cache ${.*}$ (available-for-use)",
+        "key_": "jmx[org.adroitlogic.ultraesb.detail:Type=FileCaches,Name=${.*}$][Details.availableForUse]"
+    }
+}
