@@ -5,12 +5,12 @@
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 http://www.adroitlogic.org/ultraesb http://schemas.ultraesb.org/ultraesb-2.0.xsd">
 
-	<u:proxy id="ProducerService">
+	<u:proxy id="1">
 	  <u:transport id="http-8280">
 	  </u:transport>
   		<u:target>
 			<u:inDestination>
-  				<u:address>http://localhost:8080/Producer/services/Producer?wsdl</u:address>
+  				<u:address>http://localhost:8090/Producer/services/Producer?wsdl</u:address>
 			</u:inDestination>
     		<u:outDestination>
     			<u:address type="response"/>
